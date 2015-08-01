@@ -1,0 +1,11 @@
+﻿<Window x:Class="MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="MainWindow" Height="350" Width="525" Loaded="Window_Loaded">
+
+    <Canvas x:Name="RootCanvas" Focusable="True">
+        <TextBlock FontFamily="MS Gothic" Width="200" Height="16" Canvas.Left="100" Canvas.Top="200">こんにちは</TextBlock>
+        <Rectangle Width="124" Height="46" Canvas.Left="100" Canvas.Top="40" Stroke="#FF992C2C" />
+        <Line X1="100" Y1="100" X2="200" Y2="300" Stroke="Black"/>
+    </Canvas>
+</Window>

@@ -1,0 +1,580 @@
+﻿
+
+public class LALR 
+	Inherits TSys 
+
+
+
+
+
+
+
+	Public Shared Sub writeSrc( la1 As LALR,  import_list As List(Of String),  use_inverse_fnc As boolean, file_text() As String)
+		Dim iserr As boolean
+		Dim gram1 As GrammarSymbol
+		Dim item1 As LALRItem
+		Dim stat1 As LALRState
+		Dim prod1 As Production
+		Dim buf1 As StringBuffer
+		Dim term1 As Terminal
+		Dim nont1 As NonTerminal
+		Dim vgram1 As List(Of GrammarSymbol)
+		Dim class_name As String
+		Dim method_name As String
+		Dim name1 As String
+		Dim str1 As String
+		Dim str2 As String
+		Dim str3 As String
+		Dim dir1 As String
+		Dim tbl1(,) As short
+		Dim	tbl2() As short
+		Dim tbl_idx As Integer
+		Dim i1 As Integer
+		Dim i2 As Integer
+		Dim i3 As Integer
+		Dim k1 As Integer
+		Dim cnt1 As Integer
+		Dim sid As Integer
+		Dim maxlen As Integer
+		Dim aact() As Integer
+		Dim agoto() As Integer
+		
+		If la1.outDirName IsNot Nothing  Then
+			dir1	= outDirName
+		Else
+			dir1	= sys_getDirNameByPath(fileName) + "/"
+		End If
+		class_name	= Sys.cPRE_PARSER + la1.ParserName
+
+		buf1	= sys_newStringBuffer(256 * 256)
+		sys_SBappend(buf1, "package " + la1.packageName + ";\n")
+		
+		sys_SBappend(buf1, "import lkzf.sys.*;\n")
+		If import_list Is Nothing  Then
+			sys_SBappend(buf1, "import lkzf.lang.*;\n")
+			sys_SBappend(buf1, "import lkzf.build.logic.*;\n")
+		Else
+			For Each str1 In  import_list
+				sys_SBappend(buf1, "import " + str1 + ";\n")
+			Next
+		End If
+		
+'		If Not la1.packageName.equals("lkzf.build")  Then
+'			sys_SBappend(buf1, "import lkzf.build.*;\n")
+'		End If
+		
+		sys_SBappend(buf1, "public class " + class_name + " extends TParser {\n")
+
+		'	定数定義
+		sys_SBappend(buf1, "  public static final Integer	nStat   = " + la1.States.Count + ";\n")
+		sys_SBappend(buf1, "  public static final Integer	nGram   = " + la1.GrammarSymbols.Count + ";\n")
+		sys_SBappend(buf1, "  public static final Integer	nGoal   = " + la1.topProd.prodId + ";\n")
+		For Each gram1 In la1.GrammarSymbols
+			sys_SBappend(buf1, "  public static final Integer	" + gram1.gramSym + " = " + gram1.gramId + ";\n")
+		Next
+
+		'	トークン定義
+		sys_SBappend(buf1, "  static final TSym parserSym[] = {\n")
+		For Each term1 In la1.Terminals
+			sys_SBappend(buf1, "    TSym.newTSym(\"" + term1.gramName + "\", " + term1.gramSym + "),\n")
+		Next
+		sys_SBappend(buf1, "  };\n")
+
+		'	生成規則定義
+		maxlen	= 0
+		sys_SBappend(buf1, "  static final short lexProd[][] = {\n")
+		For Each nont1 In la1.NonTerminals
+			For i2 = 0; i2 < nont1.nontP.Count; i2 += 1){
+				prod1	= nont1.nontP( i2)
+				If maxlen < prod1.prodGram.Count  Then
+					maxlen	= prod1.prodGram.Count
+				End If
+				sys_SBappend(buf1, "    { " + prod1.prodId + ", " + nont1.gramSym)
+				PutLog("p" + prod1.prodId + " " + nont1.gramName + ":")
+				For i3 = 0; i3 < prod1.prodGram.Count; i3 += 1){
+					gram1	= prod1.prodGram( i3)
+					sys_SBappend(buf1, ", " + gram1.gramSym)
+					PutLog(" " + gram1.gramName)
+				Next
+				sys_SBappend(buf1, " },\n")
+				PutLog("\n")
+			Next
+		Next
+		sys_SBappend(buf1, "  };\n")
+
+		For i1 = 0 To la1.States.Count - 1
+			la1.States(i1).statId	= i1
+		Next
+
+		'	状態ダンプ
+		For Each stat1 In la1.States
+			PutLog("s" + stat1.statId + "\n")
+			For i2 = 0; i2 < stat1.statItems.Count; i2 += 1){
+				item1	= stat1.statItems( i2)
+				PutLog("  " + item1.itemP.prodNonT.gramName + ":")	' + item1.itemP.prodId + " " + item1.itemDot)
+				vgram1	= item1.itemP.prodGram
+				For i3 = 0; ; i3 += 1){
+					If i3 = item1.itemDot  Then
+						PutLog(" .")
+					End If
+					If i3 = vgram1.Count  Then
+						Exit For
+					End If
+					PutLog(" " + vgram1( i3).gramName)
+				Next
+				PutLog(" ( ")
+				For i3 = 0; i3 < item1.lookahead.Count; i3 += 1){
+					PutLog("  " + item1.lookahead( i3).gramName)
+				Next
+				PutLog(" )\n")
+			Next
+		Next
+
+		'	構文解析表定義
+		ReDim tbl1(40000 - 1, 4 - 1)
+		tbl_idx	= 0
+		iserr	= false
+		
+		' すべての状態に対し
+		For i1 = 0 To la1.States.Count - 1
+			stat1	= la1.States( i1)
+			ReDim aact(la1.GrammarSymbols.Count - 1)
+			ReDim agoto(la1.GrammarSymbols.Count - 1)
+			
+			' 各行き先に対し
+			For i2 = 0; i2 < stat1.gotoLabel.Count; i2 += 1 
+				gram1	= stat1.gotoLabel( i2)
+				sid		= stat1.gotoState( i2).statId
+
+				If aact( gram1.gramId ) <> 0 Then
+					' すでにアクションが定義済みの場合
+					
+					iserr	= true
+					sys_SBappend(buf1, "shift/shift conflict " + stat1.statId + " " + gram1.gramSym + " " + agoto( gram1.gramId ) + "/" + sid + "\n")
+				End If
+				' 移動を定義する
+				aact( gram1.gramId )	= Sys.LALR_Shift
+				agoto( gram1.gramId )	= sid
+			Next
+
+			' 状態内の各項に対し
+			For i2 = 0; i2 < stat1.statItems.Count; i2 += 1){
+				item1	= stat1.statItems( i2)
+				
+				If item1.itemDot = item1.itemP.prodGram.Count Then
+					' ドットが右端にある場合
+					
+					If item1.lookahead.Count = 0 Then
+						sys_SBappend(buf1, "no lookahead stat:" + stat1.statId + " prod:" + item1.itemP.prodId + " " + item1.itemP.prodNonT.gramName + "\n")
+					End If
+					
+					' 各先読みに対し
+					For i3 = 0; i3 < item1.lookahead.Count; i3 += 1){
+						term1	= item1.lookahead( i3)
+						
+						If aact( term1.gramId ) <> 0 Then
+							' すでにアクションが定義済みの場合
+							
+							iserr	= true
+							If aact( term1.gramId ) = Sys.LALR_Shift Then
+								sys_SBappend(buf1, "shift/reduce conflict " + stat1.statId + " " + term1.gramName + " " + "s" + agoto( term1.gramId ) + " p" + item1.itemP.prodId + "\n")
+							Else
+								sys_SBappend(buf1, "reduce/reduce conflict " + stat1.statId + " " + term1.gramName + " " + "p" + agoto( term1.gramId ) + " p" + item1.itemP.prodId + "\n")
+							End If
+						End If
+						' 還元を定義する
+						aact( term1.gramId )	= LALR_Reduce
+						agoto( term1.gramId )	= item1.itemP.prodId
+					Next
+				End If
+			Next
+			
+			For i2 = 0 To aact.length - 1
+				If aact( i2 ) <> 0 Then
+
+					gram1				= la1.GrammarSymbols( i2)
+					tbl1(tbl_idx,0)	= (short)i1
+					tbl1(tbl_idx,1)	= (short)gram1.gramId
+					tbl1(tbl_idx , 2)	= (short)aact( i2 )
+					tbl1(tbl_idx , 3)	= (short)agoto( i2 )
+					tbl_idx += 1
+				End If
+			Next
+		Next
+
+/*		
+		tbl2	= new short( tbl_idx * 4 )
+		i2		= 0
+		For i1 = 0; i1 < tbl_idx; i1 += 1){
+			tbl2( i2 )		= tbl1(i1 , 0)
+			tbl2( i2 + 1 )	= tbl1(i1 , 1)
+			tbl2( i2 + 2 )	= tbl1(i1 , 2)
+			tbl2( i2 + 3 )	= tbl1(i1 , 3)
+			i2				+= 4
+		Next
+		sys_writeObject(dir1 + la1.ParserName + ".dat", tbl2)
+*/
+		' 構文解析表を書く。
+		i1	= 0
+		For i2 = 0 To 10 - 1
+			sys_SBappend(buf1, "	public short[][] getLexTblData" + i2 + "(){\n")
+			sys_SBappend(buf1, "		short tbl1[][] = {\n")
+			cnt1	= 0
+			For ; cnt1 < 2000 AndAlso i1 < tbl_idx; i1 += 1){
+				sys_SBappend(buf1, "			{ " + tbl1(i1 , 0) + ", " + tbl1(i1 , 1) + ", " + tbl1(i1 , 2) + ", " + tbl1(i1 , 3) + " },\n") 
+				cnt1 += 1
+			Next
+			sys_SBappend(buf1, "		};\n")
+			sys_SBappend(buf1, "		return tbl1;\n")
+			sys_SBappend(buf1, "	};\n")
+		Next
+		
+
+		' 記号表を返す
+		sys_SBappend(buf1, "	public TSym[] getParserSym(){\n")
+		sys_SBappend(buf1, "		return parserSym;\n")
+		sys_SBappend(buf1, "	}\n\n")
+		
+		sys_SBappend(buf1, "	public void ParserInit(TParser par1){\n")
+		
+		sys_SBappend(buf1, "		par1.nStat		= " + class_name + ".nStat;\n")
+		sys_SBappend(buf1, "		par1.nGram		= " + class_name + ".nGram;\n")
+		sys_SBappend(buf1, "		par1.lexProd	= " + class_name + ".lexProd;\n")
+		sys_SBappend(buf1, "		par1.eEOF		= " + class_name + ".eEOF;\n")
+		sys_SBappend(buf1, "		par1.eGoal		= " + class_name + ".eGoal;\n")
+		sys_SBappend(buf1, "		par1.parName	= \"" + la1.ParserName + "\";\n")
+		sys_SBappend(buf1, "	}\n\n")
+
+		
+		'	還元時の処理
+		sys_SBappend(buf1, la1.HeaderText + "\n\n")
+		
+		sys_SBappend(buf1, "  public Object Reduce(TParser parser___, Integer prod___id, Integer prod___len){\n")
+		sys_SBappend(buf1, "    Object object___ = null;\n")
+		sys_SBappend(buf1, "    If prod___len == 1) object___ = parser___.stcVal( parser___.stcBase+1 );\n")
+		sys_SBappend(buf1, "    switch(prod___id){\n")
+		
+		' すべての非終端記号に対して
+		For i1 = 0; i1 < la1.NonTerminals.Count; i1 += 1){
+			nont1	= la1.NonTerminals( i1)
+			
+			' すべての生成規則に対して
+			For Each prod1 In nont1.nontP.Count - 1
+				If use_inverse_fnc Then
+					If Not prod1.prodNonT.gramName.equals("Goal")  Then
+						' Goalでない場合
+						
+						method_name	= prod1.prodNonT.gramName + cINV + la1.ParserIdx
+						str1	= la1.methodClassName + "." + method_name + "(new _CRun(), makeParserInvArg(parser___, " + prod1.prodGram.Count + "), " + prod1.prodId + ");"
+						sys_SBappend(buf1, "    case " + prod1.prodId + ": object___ = " + str1 + " break;\n")
+					End If
+				Else
+					If prod1.prodText IsNot Nothing Then
+						' 還元時の処理がある場合
+						
+						str1	= prod1.prodText
+						
+						' $$を置換する
+						For ; ; ){
+							k1	= str1.IndexOf( "$$")
+							If k1 = -1 Then
+								Exit For
+							End If
+							str1	= str1.Substring( 0, k1) + "object___" + sys_substring2(str1, k1 + 2)
+						Next
+						
+						' $n を置換する
+						For i3 = maxlen; 1 <= i3; i3--){
+							str2	= "$" + i3
+							str3	= "(parser___.stcVal[parser___.stcBase+" + i3 + "])"
+							Do While True
+								k1	= str1.IndexOf( str2)
+								If k1 = -1 Then
+									Exit Do
+								End If
+								str1	= str1.Substring( 0, k1) + str3 + sys_substring2(str1, k1 + str2.Length)
+							Loop
+						Next
+						sys_SBappend(buf1, "    case " + prod1.prodId + ": " + str1 + " break;\n")
+					End If
+				End If
+			Next
+		Next
+		sys_SBappend(buf1, "    }\n")
+		sys_SBappend(buf1, "    return object___;\n")
+		sys_SBappend(buf1, "  }\n")
+
+		sys_SBappend(buf1, "}\n")
+		file_text( 0 )	= dir1 + class_name + ".java"
+		file_text( 1 )	= buf1.toString()
+		If iserr  Then
+			Write(file_text( 0 ), file_text( 1 ))
+			ExitApp("conflict")
+		End If
+	End Sub
+	
+
+
+	Public Shared  Function  newVString(cnt As Integer, inc As Integer) As List(Of String)
+	Dim vec1 As List(Of String)
+		
+		vec1		= new List(Of String)()
+		vec1.vecVec	= sys_newVector(cnt, inc)
+	Return vec1
+	End Function
+
+
+
+	Public Shared Integer vstrIndexOf(vstr1 As List(Of String), obj1 As Object){
+	Return sys_vecIdx(vstr1.vecVec, obj1)
+	End Function
+	
+	Public Shared Sub vec2_copyElements(vec2 As TVec, vec1 As TVec)
+	Dim i1 As Integer
+
+		For i1 = 0; i1 < sys_vecSize(vec1.vecVec); i1 += 1){
+			sys_vecAdd(vec2.vecVec, sys_vecAt(vec1.vecVec, i1))
+		Next
+	End Sub
+	
+		
+  
+End Class
+
+Public Class TParser
+
+
+	abstract public TSym[]		getParserSym()
+	abstract public short[][]	getLexTblData0()
+	abstract public short[][]	getLexTblData1()
+	abstract public short[][]	getLexTblData2()
+	abstract public short[][]	getLexTblData3()
+	abstract public short[][]	getLexTblData4()
+	abstract public short[][]	getLexTblData5()
+	abstract public short[][]	getLexTblData6()
+	abstract public short[][]	getLexTblData7()
+	abstract public short[][]	getLexTblData8()
+	abstract public short[][]	getLexTblData9()
+	
+	Public Shared Function Enum(TParser par1, Integer e) As String
+		If par1.vEnum Is Nothing Then
+			par1.vEnum	= sys_getFinalInt(par1.getClass().getName(), par1.nGram)
+		End If
+		
+		If 1 <= e AndAlso e < par1.nGram AndAlso par1.vEnum( e ) IsNot Nothing Then
+			return par1.vEnum( e )
+		End If
+		return "不明"
+	End Function
+
+
+	/**
+	 *	構文解析表をマージする
+	 */
+	Public Shared Sub readLexTbl(TParser par1)
+		Dim cnt As Integer
+		Dim mtbl1(,,) As short
+		Dim n1 As Integer
+		Dim i1 As Integer
+		
+		mtbl1	= new short[10][][]
+		cnt	= 0
+		
+		mtbl1( 0 )	= par1.getLexTblData0();	cnt	+= mtbl1[0].length;
+		mtbl1( 1 )	= par1.getLexTblData1();	cnt	+= mtbl1[1].length;
+		mtbl1( 2 )	= par1.getLexTblData2();	cnt	+= mtbl1( 2 ).length;
+		mtbl1( 3 )	= par1.getLexTblData3();	cnt	+= mtbl1( 3 ).length;
+		mtbl1( 4 )	= par1.getLexTblData4();	cnt	+= mtbl1( 4 ).length;
+		mtbl1( 5 )	= par1.getLexTblData5();	cnt	+= mtbl1( 5 ).length;
+		mtbl1( 6 )	= par1.getLexTblData6();	cnt	+= mtbl1( 6 ).length;
+		mtbl1( 7 )	= par1.getLexTblData7();	cnt	+= mtbl1( 7 ).length;
+		mtbl1( 8 )	= par1.getLexTblData8();	cnt	+= mtbl1( 8 ).length;
+		mtbl1( 9 )	= par1.getLexTblData9();	cnt	+= mtbl1( 9 ).length;
+		
+		ReDim par1.lexTbl(cnt - 1, 4 - 1)
+		n1	= 0
+		For i1 = 0 To cnt - 1
+			System.arraycopy(mtbl1( i1 ), 0, par1.lexTbl, n1, mtbl1( i1 ).length)
+			
+			n1	+= mtbl1( i1 ).length
+		Next
+	End Sub
+
+/*
+	Public Shared void readLexTbl2(TParser par1){
+		short[]	tbl1
+		Dim i1 As Integer
+		Dim i2 As Integer
+		Dim cnt As Integer
+
+		tbl1	= (short[])sys_readObject(BuildDir + "/" + FileSeparatorChar + par1.parName + ".dat")
+		If tbl1 Is null Then
+			sys_throw(newTErrObj("initjzf:", null))
+		Else
+			cnt			= tbl1.length / 4
+			par1.lexTbl	= new short(cnt , 4)
+			i2			= 0
+			For i1 = 0; i1 < cnt; i1 += 1){
+				par1.lexTbl(i1 , 0)	= tbl1( i2 )
+				par1.lexTbl(i1 , 1)	= tbl1( i2 + 1 )
+				par1.lexTbl(i1 , 2)	= tbl1( i2 + 2 )
+				par1.lexTbl(i1 , 3)	= tbl1( i2 + 3 )
+				i2					+= 4
+			}
+		}
+	}
+*/
+	
+	
+	Public Shared Function Parse(par1 As TParser, islex As Boolean) As Object
+		Dim act As short
+		Dim n1 As short
+		Dim istat1 As short
+		Dim istat2 As short
+		Dim istat3 As short
+		Dim inont As short
+		Dim obj1 As Object
+		Dim tkn1 As TTkn
+		Dim sym1 As Integer
+		Dim terminate As boolean
+		Dim i1 As Integer
+		Dim str1 As String
+		
+		terminate	= false
+		If par1.nextTkn Is Nothing Then
+			tkn1	= par1.parLex.lexNextTkn()
+		Else
+			tkn1			= par1.nextTkn
+			par1.nextTkn	= Nothing
+		End If
+		sym1	= tkn1.tknSym
+		If sym1 = par1.eEOF Then
+			throw newTErrObj("empty file", Nothing)
+		End If
+		Do While True
+			istat1	= par1.vStack( par1.stcIdx )
+			act		= par1.mAct(istat1 , sym1)
+			n1		= par1.mGot(istat1 , sym1)
+			If act = 0 AndAlso Not terminate  AndAlso islex  Then
+				terminate		= true
+				sym1			= par1.eEOF
+				act				= par1.mAct(istat1 , sym1)
+				n1				= par1.mGot(istat1 , sym1)
+				par1.nextTkn	= tkn1
+			End If
+			Select Case act
+			case 0
+				par1.parLex.lexErr()
+				For i1 = 0 To par1.stcIdx - 1
+					log(" s" + par1.vStack( i1 ))
+				Next
+				str1	= "syntax err:" + istat1 + " " + Enum(par1, sym1)
+				log(str1)
+				throw newTErrObj(str1, tkn1)
+'				
+			case LALR_Shift
+				If terminate  Then
+					throw newTErrObj("shift in terminate", tkn1)
+				End If
+'				TSys.log("shift " + istat1 + " -> " + n1 + "\n")
+				par1.stcIdx += 1
+				If par1.stcIdx >= par1.vStack.Length Then
+					throw newTErrObj("vStack overflow:" + par1.stcIdx, Nothing)
+				End If
+				par1.vStack( par1.stcIdx )	= n1
+				par1.stcVal( par1.stcIdx )	= tkn1
+				If Not par1.parLex.lexEof()  Then
+					tkn1	= par1.parLex.lexNextTkn()
+					sym1	= tkn1.tknSym
+				Else
+					sym1	= par1.eEOF
+				End If
+				
+			case LALR_Reduce
+				par1.stcBase	= par1.stcIdx - (par1.lexProd( n1 ).Count - offProd)
+				obj1			= par1.Reduce(par1, n1, par1.lexProd( n1 ).Count - offProd)
+				inont			= par1.lexProd(n1 , iNonT)
+				par1.stcIdx		= par1.stcIdx - (par1.lexProd( n1 ).Count - offProd)
+				If inont = par1.eGoal Then
+					If sym1 = par1.eEOF AndAlso par1.stcIdx = 0 Then
+						If Not terminate  Then
+							par1.isParserEof	= true
+						End If
+						return obj1
+					Else
+						throw newTErrObj("amari", tkn1)
+					End If
+				End If
+				If par1.stcIdx < 0 Then
+					throw newTErrObj("vStack underflow:" + par1.stcIdx, Nothing)
+				End If
+				istat2	= par1.vStack( par1.stcIdx )
+				istat3	= par1.mGot(istat2 , inont)
+				par1.stcIdx += 1
+				If par1.vStack.Length <= par1.stcIdx Then
+					throw newTErrObj("vStack overflow:" + par1.stcIdx, Nothing)
+				End If
+'				TSys.log("reduce " + par1.stcIdx + " " + Enum(par1, inont) + " " + istat1 + " -> " + istat2 + " -> " + istat3 + "\n")
+				par1.vStack( par1.stcIdx )	= istat3
+				par1.stcVal( par1.stcIdx )	= obj1
+				
+			End Select
+		Loop
+	End Function
+
+	public Sub lexInitStr(String str1 As , TParser par1 As )
+	End Sub
+	
+
+	Public Shared Function makeParserInvArg( par1 As TParser,  len1 As Integer) As TVector
+		Dim obj1 As Object
+		Dim vec1 As TVector
+		Dim i1 As Integer
+		
+		vec1	= new TVector(len1, 5)
+		For i1 = 0 To len1 - 1
+			obj1	= par1.stcVal( par1.stcBase + 1 + i1 )
+			vec1.addElement(obj1)
+		Next
+		
+		return vec1
+	End Function
+End Class
+
+
+
+
+
+
+
+Public Class TVec 
+	public java.util.Vector	vecVec
+End Class
+
+public MustInherit class TLex 
+	Inherits Sys 
+	public 	lexSym() As TSym;
+
+
+	public Function getSymbolVal(String str1 As ) As int
+		int	i1;
+		
+		for(i1 = 0; i1 < lexSym.length; i1++){
+			if(lexSym[i1].symName.equals(str1) == true){
+				return lexSym[i1].symSymbol;
+			}
+		}
+		return -1;
+	}
+
+	public Shared Function  newTTknW(String name As , int sym As , int pos As ) As TTknW
+		TTknW	tkn1;
+		
+		tkn1			= new TTknW();
+		tkn1.tknName	= name;
+		tkn1.tknSym		= sym;
+		tkn1.tknPos		= pos;
+	
+		return tkn1;
+	}
+ End Class
