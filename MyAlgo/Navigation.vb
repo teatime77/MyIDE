@@ -484,7 +484,7 @@ Public Class TNavSetRef
         End If
 
         If dot1.VarRef Is Nothing Then
-            NavDot2(dot1, vvvar, varg)
+            'NavDot2(dot1, vvvar, varg)
             Throw New TErr(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
         Else
             If Not TypeOf dot1.VarRef Is TFnc Then

@@ -1171,6 +1171,8 @@ Public Class TParseBas
         mod1.ValidMod = False
         Do While True
             Select Case CurTkn.TypeTkn
+                Case ETkn.ePartial
+                    mod1.isPartial = True
                 Case ETkn.ePublic
                     mod1.isPublic = True
                 Case ETkn.eShared

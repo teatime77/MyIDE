@@ -831,6 +831,10 @@ Public Class TBasicCodeGenerator
     Public Sub ClsSrc(cla1 As TCls)
         Dim i1 As Integer
 
+        If cla1.ModCla().isPartial Then
+            WordAdd(ETkn.ePartial, EFigType.eResFig, cla1)
+        End If
+
         WordAdd(ETkn.ePublic, EFigType.eResFig, cla1)
 
         If cla1.ModCla().isAbstract Then

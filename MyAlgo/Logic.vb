@@ -182,6 +182,7 @@ Public Class TTkn
     Public PosTkn As Integer
 
     Public tknSym As Integer
+    Public ObjTkn As Object
 
     Public Sub New()
     End Sub
@@ -198,11 +199,21 @@ Public Class TTkn
         PosTkn = 0
     End Sub
 
+    Public Sub New(str1 As String, obj As Object)
+        StrTkn = str1
+        ObjTkn = obj
+    End Sub
+
+    Public Sub New(type1 As ETkn, obj As Object)
+        TypeTkn = type1
+        ObjTkn = obj
+    End Sub
 End Class
 
 ' -------------------------------------------------------------------------------- TModifier
 Public Class TModifier
     Public ValidMod As Boolean
+    Public isPartial As Boolean
     Public isPublic As Boolean
     Public isShared As Boolean
     Public isConst As Boolean
@@ -216,6 +227,8 @@ End Class
 ' -------------------------------------------------------------------------------- TTerm
 Public Class TTerm
     Public UpTrm As Object
+    Public TokenList As List(Of TTkn)
+
     Public Sub New()
     End Sub
 
@@ -280,6 +293,8 @@ Public Class TVar
     Public UsedVar As Boolean = False
     ' public List<TRef> UseVar = new List<TRef>();
     ' public List<TRef> DefVar = new List<TRef>();
+
+    Public TokenListVar As List(Of TTkn)
 
     Public Sub CopyVarMem(var1 As TVar)
         var1.ModVar = ModVar
@@ -346,6 +361,8 @@ Public Class TCls
     Public DimCla As Integer = 0
     Public SrcCla As TSrc
     Public IsParamCla As Boolean = False
+
+    Public TokenListCls As List(Of TTkn)
 
     Public Sub New()
         Debug.WriteLine("@a")
