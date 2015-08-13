@@ -1019,6 +1019,11 @@ Public Class TPrj
                     Return GetIEnumerableCla(cla1)
                 End If
 
+            ElseIf TypeOf trm1 Is TAggregate Then
+                Dim aggr1 As TAggregate = CType(trm1, TAggregate)
+
+                Return GetTermType(aggr1.IntoAggr)
+
             Else
                 Debug.Assert(False)
             End If

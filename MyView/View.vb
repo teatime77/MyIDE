@@ -1138,16 +1138,17 @@ Public Class TNaviView
 
                         ParallelForEach(.Children)
                         Dim sync_list_ = (From x In .Children Select New TSync_(x, _current)).ToList()
-                        Dim wait_all_1 = (From x In sync_list_ Select x.Wait_1).ToArray()
-                        Dim wait_all_2 = (From x In sync_list_ Select x.Wait_2).ToArray()
+                        '!!!!!!!!!!!!!!!!!!!!!!!!!!!! ToArrayが未対応
+                        ''''Dim wait_all_1 = (From x In sync_list_ Select x.Wait_1).ToArray()
+                        ''''Dim wait_all_2 = (From x In sync_list_ Select x.Wait_2).ToArray()
 
                         'Dim t = New Thread(Sub()
                         '                       Parallel.ForEach(sync_list_, AddressOf GlobalRuleParallelForEach)
                         '                   End Sub)
                         't.Start()
 
-                        WaitHandle.WaitAll(wait_all_1)
-                        WaitHandle.WaitAll(wait_all_2)
+                        ''''WaitHandle.WaitAll(wait_all_1)
+                        ''''WaitHandle.WaitAll(wait_all_2)
 
                         If TypeOf _current Is TCanvas Then
                             With CType(_current, TCanvas)

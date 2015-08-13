@@ -260,7 +260,7 @@ Public Class TIDE
     ' 変数参照のグラフを作る
     Public Sub MakeRefSugiyamaGraph(prj1 As TPrj)
         Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode)
-        Dim dgr As TDrawGraph, dot_path As String, L As TList(Of TList(Of TNode))
+        Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, L As TList(Of TList(Of TNode))
 
         ' すべてのクラスに対し
         For Each cla1 In prj1.vCla
@@ -296,7 +296,10 @@ Public Class TIDE
                     dgr = New TDrawGraph(vnd)
                     TDrawGraph.CheckGraph(dgr.AllNode)
 
-                    dot_path = prj1.OutDir + "\html\_dot\" + cla1.NameCla() + "_" + fld1.NameVar
+                    dot_dir = prj1.OutDir + "\html\_dot"
+                    TDirectory.CreateDirectory(dot_dir)
+
+                    dot_path = dot_dir + "\" + cla1.NameCla() + "_" + fld1.NameVar
 
                     ' dotファイルに書く
                     TGraph.WriteDotFile("オリジナル", dgr.AllNode, Nothing, dot_path + "-1.dot")
@@ -457,8 +460,8 @@ Public Class TIDE
         '    Debug.WriteLine("")
         'End Try
 
-        TestMiyu()
         TestView()
+        TestMiyu()
         Test()
 
         SrcBrwsr.SetSrcBrw()

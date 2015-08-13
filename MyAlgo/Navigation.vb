@@ -1301,3 +1301,45 @@ Public Class TNavSetValidStmt
         Return arg1
     End Function
 End Class
+
+' -------------------------------------------------------------------------------- TNavSetValidStmt
+Public Class TNavMakeVirtualMethod
+    Inherits TNavPrj
+    Public InnermostClass As TCls
+    Public VirtualSeparable As Boolean
+    Public CurrentVar As TVar
+    Public StmtToInnermostClass As New Dictionary(Of TStmt, TCls)
+
+    Public Overrides Function StartStmt(stmt1 As TStmt, arg1 As Object) As Object
+        If stmt1 IsNot Nothing Then
+            StmtToInnermostClass.Add(stmt1, InnermostClass)
+        End If
+
+        Return stmt1
+    End Function
+
+    Public Overrides Sub NavIfBlc(if_blc As TIfBlc, arg1 As Object)
+        Dim innermost_class As TCls = InnermostClass
+
+        If VirtualSeparable Then
+            ' 仮想関数に分離可能の場合
+
+            If TypeOf (if_blc.CndIf) Is TApp Then
+                Dim app1 As TApp = CType(if_blc.CndIf, TApp)
+
+                If app1.TypeApp = ETkn.eTypeof AndAlso TypeOf app1.ArgApp(0) Is TRef Then
+                    Dim ref1 As TRef = CType(app1.ArgApp(0), TRef)
+
+                    If ref1.VarRef Is CurrentVar Then
+                        InnermostClass = CType(CType(app1.ArgApp(1), TRef).VarRef, TCls)
+                    End If
+
+                End If
+            End If
+        End If
+        NavTrm(if_blc.CndIf, arg1)
+        NavStmt(if_blc.BlcIf, arg1)
+
+        InnermostClass = innermost_class
+    End Sub
+End Class
