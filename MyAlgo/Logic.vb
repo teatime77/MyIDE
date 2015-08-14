@@ -227,6 +227,8 @@ Public Class TModifier
     Public isAbstract As Boolean
     Public isVirtual As Boolean
     Public isIterator As Boolean
+
+    Public TokenListMod As List(Of TTkn)
 End Class
 
 ' -------------------------------------------------------------------------------- TTerm

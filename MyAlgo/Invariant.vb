@@ -108,6 +108,7 @@ Public Class TTokenWriter
 End Class
 
 Public Class TInvariant
+    Public PrjMK As TPrj
 
     '   エスケープ文字を作る
     Public Function Escape(str1 As String) As String
@@ -382,7 +383,7 @@ Public Class TInvariant
 
     End Sub
 
-    Public Function ModifierSrc(mod1 As TModifier) As List(Of TTkn)
+    Public Sub ModifierSrc(mod1 As TModifier)
         Dim tw As New TTokenWriter(Nothing)
 
         If mod1 IsNot Nothing Then
@@ -404,10 +405,10 @@ Public Class TInvariant
             If mod1.isOverride Then
                 tw.Fmt(ETkn.eOverride)
             End If
-        End If
 
-        Return tw.GetTokenList()
-    End Function
+            mod1.TokenListMod = tw.GetTokenList()
+        End If
+    End Sub
 
     Public Sub MakeBasicStmtCode(self As Object)
         Dim tw As New TTokenWriter(self)
@@ -450,7 +451,7 @@ Public Class TInvariant
                     ElseIf TypeOf self Is TVarDecl Then
                         With CType(self, TVarDecl)
 
-                            tw.Fmt(ModifierSrc(.ModDecl))
+                            tw.Fmt(.ModDecl.TokenListMod)
                             If .ModDecl Is Nothing OrElse Not .ModDecl.isPublic AndAlso Not .ModDecl.isShared Then
                                 tw.Fmt(ETkn.eDim)
                             End If
@@ -626,4 +627,146 @@ Public Class TInvariant
         End If
 
     End Sub
+
+    '  関数のソースを作る
+    Public Sub MakeBasicFncCode(self As Object)
+        With CType(self, TFnc)
+            Dim tw As New TTokenWriter(self)
+
+            tw.Fmt(.ComVar.TokenList)
+
+            tw.Fmt(.ModVar.TokenListMod)
+
+            Select Case .TypeFnc
+                Case ETkn.eFunction
+                    tw.Fmt(ETkn.eFunction, self)
+                Case ETkn.eSub
+                    tw.Fmt(ETkn.eSub, self)
+                Case ETkn.eNew
+                    tw.Fmt(ETkn.eSub, ETkn.eNew)
+
+                Case ETkn.eOperator
+                    tw.Fmt(ETkn.eOperator, self)
+
+                Case Else
+                    Debug.WriteLine("")
+            End Select
+
+            tw.Fmt(Laminate((From var1 In .ArgFnc Select var1.TokenListVar), New TTkn(ETkn.eComma, self)))
+
+            If .RetType IsNot Nothing Then
+                tw.Fmt(ETkn.eAs, .RetType.TokenListCls)
+
+            End If
+
+            If .InterfaceFnc IsNot Nothing Then
+                tw.Fmt(ETkn.eImplements, .InterfaceFnc.TokenListCls, ETkn.eDot, .ImplFnc)
+            End If
+            tw.Fmt(ETkn.eNL)
+
+
+            If .BlcFnc IsNot Nothing Then
+                tw.Fmt(.BlcFnc.TokenList)
+                tw.Fmt(ETkn.eEndFunction)
+            End If
+        End With
+    End Sub
+
+    Public Sub MakeBasicFldCode(self As Object)
+        With CType(self, TFld)
+            Dim tw As New TTokenWriter(self)
+
+
+            tw.Fmt(.ComVar.TokenList)
+            tw.Fmt(.ModVar.TokenListMod)
+            If .ModVar Is Nothing OrElse Not .ModVar.isPublic AndAlso Not .ModVar.isShared Then
+                tw.Fmt(ETkn.eDim)
+            End If
+            tw.Fmt(self)
+
+            If .TailCom <> "" Then
+                tw.Fmt(New TTkn(ETkn.eComment, .TailCom))
+            End If
+            tw.Fmt(ETkn.eNL)
+        End With
+    End Sub
+
+    Public Sub GenericSrc(self As Object)
+        With CType(self, TCls)
+            Dim tw As New TTokenWriter(self)
+
+            If .GenCla IsNot Nothing Then
+                ' ジェネリック型の場合
+
+                tw.Fmt(ETkn.eLP, ETkn.eOf, Laminate((From cls1 In .GenCla Select cls1.TokenListCls), New TTkn(ETkn.eComma, self)), ETkn.eRP)
+            End If
+
+        End With
+    End Sub
+
+    Public Sub MakeBasicClassCode(self As Object)
+        With CType(self, TCls)
+            Dim tw As New TTokenWriter(self)
+
+            If .ModCla().isPartial Then
+                tw.Fmt(ETkn.ePartial)
+            End If
+
+            tw.Fmt(ETkn.ePublic)
+
+            If .ModCla().isAbstract Then
+                tw.Fmt(ETkn.eAbstract)
+            End If
+
+            Select Case .KndCla
+                Case EClass.eClassCla
+                    tw.Fmt(ETkn.eClass)
+                Case EClass.eStructCla
+                    tw.Fmt(ETkn.eStruct)
+                Case EClass.eInterfaceCla
+                    tw.Fmt(ETkn.eInterface)
+            End Select
+            tw.Fmt(self)
+
+            GenericSrc(self)
+
+            tw.Fmt(ETkn.eNL)
+
+            If .SuperCla.Count <> 0 AndAlso .SuperCla(0) IsNot PrjMK.ObjectType Then
+                tw.Fmt(ETkn.eInherits, .SuperCla(0).TokenListCls, ETkn.eNL)
+            End If
+
+            If .InterfacesCls.Count <> 0 AndAlso .InterfacesCls(0) IsNot PrjMK.ObjectType Then
+                tw.Fmt(ETkn.eImplements)
+                tw.Fmt(Laminate((From cls1 In .InterfacesCls Select cls1.TokenListCls), New TTkn(ETkn.eComma, self)), ETkn.eNL)
+            End If
+
+            '  すべてのフィールドに対し
+            For Each fld1 In .FldCla
+                If PrjMK.OutputNotUsed OrElse fld1.UsedVar Then
+                    tw.Fmt(fld1.TokenListVar)
+                End If
+            Next
+
+            '  すべてのメソッドに対し
+            For Each fnc1 In .FncCla
+                If Not fnc1.IsGenerated() AndAlso (PrjMK.OutputNotUsed OrElse (fnc1.Reachable OrElse fnc1.ModFnc().isMustOverride) OrElse fnc1.NameVar = "New@TList") Then
+
+                    tw.Fmt(fnc1.TokenListVar)
+                End If
+            Next
+
+
+            Select Case .KndCla
+                Case EClass.eClassCla
+                    tw.Fmt(ETkn.eEndClass, ETkn.eNL)
+                Case EClass.eStructCla
+                    tw.Fmt(ETkn.eEndStruct, ETkn.eNL)
+                Case EClass.eInterfaceCla
+                    tw.Fmt(ETkn.eEndInterface, ETkn.eNL)
+            End Select
+
+        End With
+    End Sub
+
 End Class
