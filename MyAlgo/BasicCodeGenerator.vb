@@ -579,6 +579,9 @@ Public Class TBasicCodeGenerator
             NL(stmt1)
 
         ElseIf TypeOf stmt1 Is TComment Then
+
+
+
             ComSrc(CType(stmt1, TComment), tab1, stmt1)
         Else
             Select Case stmt1.TypeStmt

@@ -65,6 +65,7 @@ Public Enum ETkn
     eNamespace
     eNE
     eNext
+    eNL
     eOR
     eOut
     eQUE
@@ -201,6 +202,10 @@ Public Class TTkn
 
     Public Sub New(str1 As String, obj As Object)
         StrTkn = str1
+        ObjTkn = obj
+    End Sub
+
+    Public Sub New(obj As Object)
         ObjTkn = obj
     End Sub
 
@@ -980,6 +985,9 @@ Public Class TStmt
     Public ValidStmt As Boolean = True
     Public BeforeSrc As String
     Public AfterSrc As String = ""
+
+    Public TokenList As List(Of TTokenLine)
+    Public TabStmt As Integer
 
     Public Sub New()
         StmtIdx = StmtCnt

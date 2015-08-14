@@ -389,7 +389,7 @@ Public Class TIDE
 
         prj1 = New TPrj()
         prj1.ClassNameTable = TProgramTransformation.ReadClassNameTable("C:\usr\prj\MyIDE\etc\Translation", "NameTable.txt", 2)
-        prj1.SrcFileNames = New String() {"@lib.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
+        prj1.SrcFileNames = New String() {"@lib.vb", "Invariant.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
         If TSys.IsWeb Then
             prj1.SrcDir = "http://localhost:8801/MyAlgo"
         Else
