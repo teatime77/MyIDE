@@ -234,10 +234,14 @@ End Class
 ' -------------------------------------------------------------------------------- TFile
 Public Class TFile
 
-    Public Shared Sub WriteAllText(path As String, contents As String, encoding As Encoding)
+    Public Shared Sub WriteAllText(path1 As String, contents As String, encoding As Encoding)
         If Not TSys.IsWeb Then
 
-            File.WriteAllText(path, contents, encoding)
+            Dim dir1 As String = Path.GetDirectoryName(path1)
+            If Not Directory.Exists(dir1) Then
+                Directory.CreateDirectory(dir1)
+            End If
+            File.WriteAllText(path1, contents, encoding)
         End If
     End Sub
 

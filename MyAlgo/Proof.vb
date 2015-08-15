@@ -339,7 +339,7 @@ Public Class TDataflow
     End Sub
 
     ' 値が変化し得るフィールドを解析する
-    Public Iterator Function AnalyzeChangeableFld() As IEnumerable(Of EAnalyzeChangeableFld)
+    Public Sub AnalyzeChangeableFld()
         Dim prj1 As TPrj = PrjDF
         Dim rule As TFnc = GlobalRule
         Dim root_change As TChange
@@ -352,7 +352,6 @@ Public Class TDataflow
         SyncClassName = "TSync_" + ChangeableFld.FullFldName()
 
         '-------------------------------------------------- 処理対象のフィールドを表示する。
-        Yield EAnalyzeChangeableFld.Init
 
         valid_stmt = New Dictionary(Of TStmt, TStmt)()
 
@@ -380,7 +379,6 @@ Public Class TDataflow
             Unprocessed.RemoveAt(Unprocessed.Count - 1)
 
             '-------------------------------------------------- 値が変化した変数、代入された場所、代入時の条件を表示する。
-            Yield EAnalyzeChangeableFld.ChangeableCondition
 
             For Each ref1 In Change.VariableChn.RefVar
                 ' すべての変数参照に対し
@@ -412,7 +410,6 @@ Public Class TDataflow
                     End If
 
                     '-------------------------------------------------- 代入時の条件と、文の実行の条件の無矛盾の判定を表示する。
-                    Yield EAnalyzeChangeableFld.Consistency
 
                     If NormalizedCondition Is Nothing OrElse Consistent(NormalizedCondition, PreCondition) Then
                         ' 代入時の条件と、文の実行の条件が矛盾しない場合
@@ -436,7 +433,6 @@ Public Class TDataflow
 
 
                         '-------------------------------------------------- 影響され得る文のリストを表示する。
-                        Yield EAnalyzeChangeableFld.MayBeAffectedStmtList
 
                         ' 影響され得る代入文から代入先の変数の値の変化を波及させる。
                         For Each asn1 In (From x In may_be_affected_stmt_list Where TypeOf x Is TAsn Select CType(x, TAsn))
@@ -459,7 +455,6 @@ Public Class TDataflow
                                 vchange_all.Add(ChangePropagation)
 
                                 '-------------------------------------------------- 値が変化した変数、代入された場所、代入時の条件を表示する。
-                                Yield EAnalyzeChangeableFld.ValueChangePropagation
                             End If
                         Next
                     End If
@@ -484,7 +479,7 @@ Public Class TDataflow
 
         ' データフローのソースを作る。
         MakeDataflowSrc(prj1, valid_stmt)
-    End Function
+    End Sub
 
     ' 参照のされ方から相対レベルを得る。
     Public Function RelLevelByRefType(ref_type As ERefType) As Integer

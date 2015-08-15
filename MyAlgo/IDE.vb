@@ -460,6 +460,7 @@ Public Class TIDE
         '    Debug.WriteLine("")
         'End Try
 
+        Dim test_dataflow As New TTestDataflow()
         Test()
         TestView()
         TestMiyu()
