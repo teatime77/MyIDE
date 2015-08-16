@@ -3,7 +3,7 @@
 Public Class TBasicCodeGenerator
     Inherits TCodeGenerator
 
-    Public Sub New(prj1 As TPrj)
+    Public Sub New(prj1 As TProject)
         MyBase.New(prj1)
     End Sub
 
@@ -22,38 +22,38 @@ Public Class TBasicCodeGenerator
         Return sb.ToString()
     End Function
 
-    Public Overrides Sub AppSrc(app1 As TApp)
+    Public Overrides Sub AppSrc(app1 As TApply)
         Select Case app1.TypeApp
-            Case ETkn.eADD, ETkn.eMns, ETkn.eMUL, ETkn.eDIV, ETkn.eMOD
-                If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = ETkn.eADD OrElse app1.TypeApp = ETkn.eMns) Then
-                    WordAdd(TPrj.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns) Then
+                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(0))
                 Else
 
                     TrmSrc(app1.ArgApp(0))
-                    WordAdd(TPrj.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(1))
                 End If
 
-            Case ETkn.eAppCall
+            Case EToken.eAppCall
 
                 TrmSrc(app1.FncApp)
                 AppArg(app1)
 
-            Case ETkn.eBaseCall
-                WordAdd(ETkn.eBase, EFigType.eResFig, app1)
+            Case EToken.eBaseCall
+                WordAdd(EToken.eBase, EFigType.eResFig, app1)
                 WordAdd(".", EFigType.eSymFig, app1)
                 TrmSrc(app1.FncApp)
                 AppArg(app1)
 
-            Case ETkn.eBaseNew
-                Fmt(ETkn.eBase, ETkn.eDot, ETkn.eNew)
+            Case EToken.eBaseNew
+                Fmt(EToken.eBase, EToken.eDot, EToken.eNew)
                 AppArg(app1)
 
-            Case ETkn.eNew
+            Case EToken.eNew
                 Debug.Assert(app1.NewApp IsNot Nothing)
 
-                WordAdd(ETkn.eNew, EFigType.eResFig, app1)
+                WordAdd(EToken.eNew, EFigType.eResFig, app1)
 
                 If app1.IniApp Is Nothing Then
                     ' 初期値がない場合
@@ -73,11 +73,11 @@ Public Class TBasicCodeGenerator
 
                         TypeSrc(app1.NewApp)
                         AppArg(app1)
-                        WordAdd(ETkn.eFrom, EFigType.eResFig, app1)
+                        WordAdd(EToken.eFrom, EFigType.eResFig, app1)
                     End If
                     TrmSrc(app1.IniApp)
                 End If
-            Case ETkn.eAs, ETkn.eCast
+            Case EToken.eAs, EToken.eCast
                 WordAdd("CType", EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
@@ -85,14 +85,14 @@ Public Class TBasicCodeGenerator
                 TypeSrc(app1.ClassApp)
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case ETkn.eGetType
-                WordAdd(ETkn.eGetType, EFigType.eResFig, app1)
+            Case EToken.eGetType
+                WordAdd(EToken.eGetType, EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TypeSrc(app1.ClassApp)
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case ETkn.eQUE
-                WordAdd(ETkn.eIIF, EFigType.eResFig, app1)
+            Case EToken.eQUE
+                WordAdd(EToken.eIIF, EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
                 WordAdd(",", EFigType.eSymFig, app1)
@@ -101,14 +101,14 @@ Public Class TBasicCodeGenerator
                 TrmSrc(app1.ArgApp(2))
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case ETkn.eTypeof
+            Case EToken.eTypeof
                 WordAdd("typeof", EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case ETkn.eAddressOf
-                WordAdd(ETkn.eAddressOf, EFigType.eResFig, app1)
+            Case EToken.eAddressOf
+                WordAdd(EToken.eAddressOf, EFigType.eResFig, app1)
                 TrmSrc(app1.ArgApp(0))
 
             Case Else
@@ -117,17 +117,17 @@ Public Class TBasicCodeGenerator
         End Select
     End Sub
 
-    Public Overrides Sub CnsSrc(cns1 As TCns)
+    Public Overrides Sub CnsSrc(cns1 As TConstant)
         Select Case cns1.TypeAtm
-            Case ETkn.eChar
+            Case EToken.eChar
                 WordAdd("""" + Escape(cns1.NameRef) + """c", EFigType.eStrFig, cns1)
-            Case ETkn.eString
+            Case EToken.eString
                 WordAdd("""" + Escape(cns1.NameRef) + """", EFigType.eStrFig, cns1)
-            Case ETkn.eRegEx
+            Case EToken.eRegEx
                 WordAdd(Escape(cns1.NameRef), EFigType.eStrFig, cns1)
-            Case ETkn.eInt
+            Case EToken.eInt
                 WordAdd(cns1.NameRef, EFigType.eNumFig, cns1)
-            Case ETkn.eHex
+            Case EToken.eHex
                 Debug.Assert(TSys.Substring(cns1.NameRef, 0, 2) = "&H")
                 WordAdd(cns1.NameRef, EFigType.eNumFig, cns1)
             Case Else
@@ -150,16 +150,16 @@ Public Class TBasicCodeGenerator
             If Not is_enum AndAlso dot1.VarRef.ModVar.isShared Then
                 ' 列挙型以外のstaticメンバーの参照の場合
 
-                Debug.Assert(TypeOf dot1.TrmDot Is TRef AndAlso TypeOf CType(dot1.TrmDot, TRef).VarRef Is TCls)
+                Debug.Assert(TypeOf dot1.TrmDot Is TReference AndAlso TypeOf CType(dot1.TrmDot, TReference).VarRef Is TClass)
 
                 If PrjMK.dicClassMemName IsNot Nothing Then
                     ' クラス名とメンバー名を変換する場合
 
-                    class_mem1 = CType(dot1.TrmDot, TRef).NameRef + "." + dot1.NameRef
+                    class_mem1 = CType(dot1.TrmDot, TReference).NameRef + "." + dot1.NameRef
                     If PrjMK.dicClassMemName.ContainsKey(class_mem1) Then
 
                         class_mem2 = PrjMK.dicClassMemName(class_mem1)
-                        WordAdd(class_mem2, ETkn.eRef, EFigType.eUnknownFig, dot1)
+                        WordAdd(class_mem2, EToken.eRef, EFigType.eUnknownFig, dot1)
                         Exit Sub
                     End If
                 End If
@@ -177,7 +177,7 @@ Public Class TBasicCodeGenerator
                     mem_name = dic1(dot1.NameRef)
 
                     Fmt(dot1)
-                    '                    WordAdd(mem_name, ETkn.eRef, EFigType.eRefFig, dot1)
+                    '                    WordAdd(mem_name, EToken.eRef, EFigType.eRefFig, dot1)
                     Exit Sub
                 End If
             End If
@@ -186,7 +186,7 @@ Public Class TBasicCodeGenerator
         Fmt(dot1)
     End Sub
 
-    Public Overrides Sub RefSrc(ref1 As TRef)
+    Public Overrides Sub RefSrc(ref1 As TReference)
         PrjMK.CheckRefVar(ref1)
 
         Fmt(ref1)
@@ -196,47 +196,47 @@ Public Class TBasicCodeGenerator
         End If
     End Sub
 
-    Public Overrides Sub RelSrc(rel1 As TApp)
-        Dim tp1 As TCls, tp2 As TCls
+    Public Overrides Sub RelSrc(rel1 As TApply)
+        Dim tp1 As TClass, tp2 As TClass
 
         Select Case rel1.TypeApp
-            Case ETkn.eEq, ETkn.eNE
+            Case EToken.eEq, EToken.eNE
                 TrmSrc(rel1.ArgApp(0))
-                tp1 = TPrj.Prj.GetTermType(rel1.ArgApp(0))
-                tp2 = TPrj.Prj.GetTermType(rel1.ArgApp(1))
+                tp1 = TProject.Prj.GetTermType(rel1.ArgApp(0))
+                tp2 = TProject.Prj.GetTermType(rel1.ArgApp(1))
                 If tp1 Is Nothing OrElse tp2 Is Nothing Then
                     ' Debug.WriteLine("");
-                    ' tp1 = TPrj.Prj.GetTermType(rel1.ArgApp[0]);
-                    ' tp2 = TPrj.Prj.GetTermType(rel1.ArgApp[1]);
+                    ' tp1 = TProject.Prj.GetTermType(rel1.ArgApp[0]);
+                    ' tp2 = TProject.Prj.GetTermType(rel1.ArgApp[1]);
                 End If
                 If tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
                     WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 Else
-                    If rel1.TypeApp = ETkn.eNE Then
-                        WordAdd(ETkn.eIsNot, EFigType.eResFig, rel1)
+                    If rel1.TypeApp = EToken.eNE Then
+                        WordAdd(EToken.eIsNot, EFigType.eResFig, rel1)
                     Else
-                        WordAdd(ETkn.eIs, EFigType.eResFig, rel1)
+                        WordAdd(EToken.eIs, EFigType.eResFig, rel1)
                     End If
                 End If
                 TrmSrc(rel1.ArgApp(1))
-            Case ETkn.eASN, ETkn.eLT, ETkn.eGT, ETkn.eADDEQ, ETkn.eSUBEQ, ETkn.eMULEQ, ETkn.eDIVEQ, ETkn.eMODEQ, ETkn.eLE, ETkn.eGE
+            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
-            Case ETkn.eIsNot
+            Case EToken.eIsNot
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(ETkn.eIsNot, EFigType.eSymFig, rel1)
+                WordAdd(EToken.eIsNot, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
-            Case ETkn.eTypeof
-                WordAdd(ETkn.eTypeof, EFigType.eResFig, rel1)
+            Case EToken.eTypeof
+                WordAdd(EToken.eTypeof, EFigType.eResFig, rel1)
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(ETkn.eIs, EFigType.eResFig, rel1)
+                WordAdd(EToken.eIs, EFigType.eResFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
-            Case ETkn.eIs
+            Case EToken.eIs
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(ETkn.eIs, EFigType.eResFig, rel1)
+                WordAdd(EToken.eIs, EFigType.eResFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
             Case Else
                 Debug.Assert(False)
@@ -244,8 +244,8 @@ Public Class TBasicCodeGenerator
     End Sub
 
 
-    Public Overrides Sub ParSrc(par1 As TPar)
-        If par1.TrmPar.IsApp() AndAlso CType(par1.TrmPar, TApp).TypeApp = ETkn.eCast Then
+    Public Overrides Sub ParSrc(par1 As TParenthesis)
+        If par1.TrmPar.IsApp() AndAlso CType(par1.TrmPar, TApply).TypeApp = EToken.eCast Then
             TrmSrc(par1.TrmPar)
         Else
             WordAdd("(", EFigType.eSymFig, par1)
@@ -256,14 +256,14 @@ Public Class TBasicCodeGenerator
 
     ' From i In v1 Where i Mod 2 = 0 Select AA(i)
     Public Overrides Sub FromSrc(from1 As TFrom)
-        WordAdd(ETkn.eFrom, EFigType.eResFig, from1)
+        WordAdd(EToken.eFrom, EFigType.eResFig, from1)
         Fmt(from1.VarFrom)
-        WordAdd(ETkn.eIn, EFigType.eResFig, from1)
+        WordAdd(EToken.eIn, EFigType.eResFig, from1)
         TrmSrc(from1.SeqFrom)
 
         If from1.CndFrom IsNot Nothing Then
 
-            WordAdd(ETkn.eWhere, EFigType.eResFig, from1)
+            WordAdd(EToken.eWhere, EFigType.eResFig, from1)
             TrmSrc(from1.CndFrom)
         End If
 
@@ -275,19 +275,19 @@ Public Class TBasicCodeGenerator
 
         If from1.TakeFrom IsNot Nothing Then
 
-            WordAdd(ETkn.eTake, EFigType.eResFig, from1)
+            WordAdd(EToken.eTake, EFigType.eResFig, from1)
             TrmSrc(from1.TakeFrom)
         End If
     End Sub
 
     ' Aggregate x In v Into Sum(x.Value)
     Public Overrides Sub AggregateSrc(aggr1 As TAggregate)
-        WordAdd(ETkn.eAggregate, EFigType.eResFig, aggr1)
+        WordAdd(EToken.eAggregate, EFigType.eResFig, aggr1)
         Fmt(aggr1.VarAggr)
-        WordAdd(ETkn.eIn, EFigType.eResFig, aggr1)
+        WordAdd(EToken.eIn, EFigType.eResFig, aggr1)
         TrmSrc(aggr1.SeqAggr)
 
-        WordAdd(ETkn.eInto, EFigType.eResFig, aggr1)
+        WordAdd(EToken.eInto, EFigType.eResFig, aggr1)
 
         Select Case aggr1.FunctionAggr
             Case EAggregateFunction.eSum
@@ -299,15 +299,15 @@ Public Class TBasicCodeGenerator
             Case Else
                 Debug.Assert(False)
         End Select
-        Fmt(ETkn.eLP)
+        Fmt(EToken.eLP)
 
 
         TrmSrc(aggr1.IntoAggr)
 
-        Fmt(ETkn.eRP)
+        Fmt(EToken.eRP)
     End Sub
 
-    Public Sub IfBlcHeadSrc(if_blc As TIfBlc, tab1 As Integer)
+    Public Sub IfBlcHeadSrc(if_blc As TIfBlock, tab1 As Integer)
         Dim if1 As TIf, i1 As Integer
 
         if1 = CType(if_blc.ParentStmt, TIf)
@@ -318,13 +318,13 @@ Public Class TBasicCodeGenerator
             Tab(tab1)
             WordAdd("If", EFigType.eResFig, if1)
             TrmSrc(if1.IfBlc(0).CndIf)
-            WordAdd(ETkn.eThen, EFigType.eResFig, if1)
+            WordAdd(EToken.eThen, EFigType.eResFig, if1)
         Else
             If if1.IfBlc(i1).CndIf IsNot Nothing Then
                 Tab(tab1)
                 WordAdd("ElseIf", EFigType.eResFig, if1)
                 TrmSrc(if1.IfBlc(i1).CndIf)
-                WordAdd(ETkn.eThen, EFigType.eResFig, if1)
+                WordAdd(EToken.eThen, EFigType.eResFig, if1)
             Else
                 Tab(tab1)
                 WordAdd("Else", EFigType.eResFig, if1)
@@ -332,9 +332,9 @@ Public Class TBasicCodeGenerator
         End If
     End Sub
 
-    Public Sub IfBlcSrc(if_blc As TIfBlc, tab1 As Integer)
+    Public Sub IfBlcSrc(if_blc As TIfBlock, tab1 As Integer)
         IfBlcHeadSrc(if_blc, tab1)
-        BlcSrc(if_blc, ETkn.eUnknown, if_blc.BlcIf, tab1)
+        BlcSrc(if_blc, EToken.eUnknown, if_blc.BlcIf, tab1)
     End Sub
 
     '  ifのソースを作る
@@ -352,42 +352,42 @@ Public Class TBasicCodeGenerator
     Public Overrides Sub ForSrc(for1 As TFor, tab1 As Integer)
         Tab(tab1)
         If for1.IsDo Then
-            WordAdd(ETkn.eDo, EFigType.eResFig, for1)
-            WordAdd(ETkn.eWhile, EFigType.eResFig, for1)
+            WordAdd(EToken.eDo, EFigType.eResFig, for1)
+            WordAdd(EToken.eWhile, EFigType.eResFig, for1)
             TrmSrc(for1.CndFor)
-            BlcSrc(for1, ETkn.eDo, for1.BlcFor, tab1)
+            BlcSrc(for1, EToken.eDo, for1.BlcFor, tab1)
         ElseIf for1.InVarFor IsNot Nothing Then
-            WordAdd(ETkn.eFor, EFigType.eResFig, for1)
-            WordAdd(ETkn.eEach, EFigType.eResFig, for1)
+            WordAdd(EToken.eFor, EFigType.eResFig, for1)
+            WordAdd(EToken.eEach, EFigType.eResFig, for1)
             Fmt(for1.InVarFor)
-            WordAdd(ETkn.eIn, EFigType.eResFig, for1)
+            WordAdd(EToken.eIn, EFigType.eResFig, for1)
             TrmSrc(for1.InTrmFor)
-            BlcSrc(for1, ETkn.eEach, for1.BlcFor, tab1)
+            BlcSrc(for1, EToken.eEach, for1.BlcFor, tab1)
         ElseIf for1.FromFor IsNot Nothing Then
-            WordAdd(ETkn.eFor, EFigType.eResFig, for1)
+            WordAdd(EToken.eFor, EFigType.eResFig, for1)
             Fmt(for1.IdxFor)
             WordAdd("=", EFigType.eSymFig, for1)
             TrmSrc(for1.FromFor)
-            WordAdd(ETkn.eTo, EFigType.eResFig, for1)
+            WordAdd(EToken.eTo, EFigType.eResFig, for1)
             TrmSrc(for1.ToFor)
             If for1.StepFor IsNot Nothing Then
 
-                WordAdd(ETkn.eStep, EFigType.eResFig, for1)
+                WordAdd(EToken.eStep, EFigType.eResFig, for1)
                 TrmSrc(for1.StepFor)
             End If
-            BlcSrc(for1, ETkn.eFor, for1.BlcFor, tab1)
+            BlcSrc(for1, EToken.eFor, for1.BlcFor, tab1)
         Else
             Debug.Assert(False, "For Src Bas")
         End If
     End Sub
 
-    '  TStmtのソースを作る
-    Public Overrides Sub SimpleStmtSrc(stmt1 As TStmt, tab1 As Integer)
+    '  TStatementのソースを作る
+    Public Overrides Sub SimpleStmtSrc(stmt1 As TStatement, tab1 As Integer)
         Dim trm1 As TTerm
-        Dim asn1 As TAsn
+        Dim asn1 As TAssignment
 
-        If TypeOf stmt1 Is TAsn Then
-            asn1 = CType(stmt1, TAsn)
+        If TypeOf stmt1 Is TAssignment Then
+            asn1 = CType(stmt1, TAssignment)
             Tab(tab1)
 
             TrmSrc(asn1.RelAsn.ArgApp(0))
@@ -398,8 +398,8 @@ Public Class TBasicCodeGenerator
         ElseIf TypeOf stmt1 Is TCall Then
             Tab(tab1)
             TrmSrc(CType(stmt1, TCall).AppCall)
-        ElseIf TypeOf stmt1 Is TVarDecl Then
-            VarDeclSrc(CType(stmt1, TVarDecl), tab1)
+        ElseIf TypeOf stmt1 Is TVariableDeclaration Then
+            VarDeclSrc(CType(stmt1, TVariableDeclaration), tab1)
         Else
             WordAdd("Simple Stmt Src", EFigType.eSymFig, stmt1)
         End If
@@ -454,14 +454,14 @@ Public Class TBasicCodeGenerator
     '  TTryのソースを作る
     Public Overrides Sub TrySrc(try1 As TTry, tab1 As Integer)
         Tab(tab1)
-        WordAdd(ETkn.eTry, EFigType.eResFig, try1)
-        BlcSrc(try1, ETkn.eTry, try1.BlcTry, tab1)
+        WordAdd(EToken.eTry, EFigType.eResFig, try1)
+        BlcSrc(try1, EToken.eTry, try1.BlcTry, tab1)
 
         Tab(tab1)
-        WordAdd(ETkn.eCatch, EFigType.eResFig, try1)
+        WordAdd(EToken.eCatch, EFigType.eResFig, try1)
         VarSrc(try1.VarCatch(0))
 
-        BlcSrc(try1, ETkn.eCatch, try1.BlcCatch, tab1)
+        BlcSrc(try1, EToken.eCatch, try1.BlcCatch, tab1)
 
         Tab(tab1)
         WordAdd("End Try", EFigType.eResFig, try1)
@@ -471,19 +471,19 @@ Public Class TBasicCodeGenerator
     '  TWithのソースを作る
     Public Overrides Sub WithSrc(with1 As TWith, tab1 As Integer)
         Tab(tab1)
-        WordAdd(ETkn.eWith, EFigType.eResFig, with1)
+        WordAdd(EToken.eWith, EFigType.eResFig, with1)
         TrmSrc(with1.TermWith)
 
-        BlcSrc(with1, ETkn.eWith, with1.BlcWith, tab1)
+        BlcSrc(with1, EToken.eWith, with1.BlcWith, tab1)
 
         Tab(tab1)
         WordAdd("End With", EFigType.eResFig, with1)
         NL(with1)
     End Sub
 
-    '  TStmtのソースを作る
-    Public Overrides Sub StmtSrc(stmt1 As TStmt, tab1 As Integer)
-        Dim ret1 As TRet
+    '  TStatementのソースを作る
+    Public Overrides Sub StmtSrc(stmt1 As TStatement, tab1 As Integer)
+        Dim ret1 As TReturn
         Dim thr1 As TThrow
         Dim red1 As TReDim
         Dim i1 As Integer
@@ -505,8 +505,8 @@ Public Class TBasicCodeGenerator
 
         If Not stmt1.ValidStmt Then
 
-            If TypeOf stmt1 Is TIfBlc Then
-                IfBlcHeadSrc(CType(stmt1, TIfBlc), tab1)
+            If TypeOf stmt1 Is TIfBlock Then
+                IfBlcHeadSrc(CType(stmt1, TIfBlock), tab1)
                 NL(stmt1)
             End If
 
@@ -520,12 +520,12 @@ Public Class TBasicCodeGenerator
                 NL(stmt1)
             Next
         End If
-        If TypeOf stmt1 Is TAsn OrElse TypeOf stmt1 Is TCall OrElse TypeOf stmt1 Is TVarDecl Then
+        If TypeOf stmt1 Is TAssignment OrElse TypeOf stmt1 Is TCall OrElse TypeOf stmt1 Is TVariableDeclaration Then
             SimpleStmtSrc(stmt1, tab1)
             NL(stmt1)
 
-        ElseIf TypeOf stmt1 Is TIfBlc Then
-            IfBlcSrc(CType(stmt1, TIfBlc), tab1)
+        ElseIf TypeOf stmt1 Is TIfBlock Then
+            IfBlcSrc(CType(stmt1, TIfBlock), tab1)
 
         ElseIf TypeOf stmt1 Is TIf Then
             IfSrc(CType(stmt1, TIf), tab1)
@@ -547,7 +547,7 @@ Public Class TBasicCodeGenerator
         ElseIf TypeOf stmt1 Is TReDim Then
             red1 = CType(stmt1, TReDim)
             Tab(tab1)
-            WordAdd(ETkn.eReDim, EFigType.eResFig, stmt1)
+            WordAdd(EToken.eReDim, EFigType.eResFig, stmt1)
             TrmSrc(red1.TrmReDim)
             WordAdd("(", EFigType.eSymFig, stmt1)
             For i1 = 0 To red1.DimReDim.Count - 1
@@ -559,13 +559,13 @@ Public Class TBasicCodeGenerator
             WordAdd(")", EFigType.eSymFig, stmt1)
             NL(stmt1)
 
-        ElseIf TypeOf stmt1 Is TBlc Then
-            BlcSrc(stmt1, ETkn.eUnknown, CType(stmt1, TBlc), tab1)
+        ElseIf TypeOf stmt1 Is TBlock Then
+            BlcSrc(stmt1, EToken.eUnknown, CType(stmt1, TBlock), tab1)
 
-        ElseIf TypeOf stmt1 Is TRet Then
-            ret1 = CType(stmt1, TRet)
+        ElseIf TypeOf stmt1 Is TReturn Then
+            ret1 = CType(stmt1, TReturn)
             Tab(tab1)
-            WordAdd(ETkn.eReturn, EFigType.eResFig, stmt1)
+            WordAdd(EToken.eReturn, EFigType.eResFig, stmt1)
             If ret1.TrmRet IsNot Nothing Then
                 TrmSrc(ret1.TrmRet)
             End If
@@ -574,7 +574,7 @@ Public Class TBasicCodeGenerator
         ElseIf TypeOf stmt1 Is TThrow Then
             thr1 = CType(stmt1, TThrow)
             Tab(tab1)
-            WordAdd(ETkn.eThrow, EFigType.eResFig, stmt1)
+            WordAdd(EToken.eThrow, EFigType.eResFig, stmt1)
             TrmSrc(thr1.TrmThrow)
             NL(stmt1)
 
@@ -585,14 +585,14 @@ Public Class TBasicCodeGenerator
             ComSrc(CType(stmt1, TComment), tab1, stmt1)
         Else
             Select Case stmt1.TypeStmt
-                Case ETkn.eExitDo, ETkn.eExitFor, ETkn.eExitSub
+                Case EToken.eExitDo, EToken.eExitFor, EToken.eExitSub
                     Tab(tab1)
                     Select Case stmt1.TypeStmt
-                        Case ETkn.eExitDo
+                        Case EToken.eExitDo
                             WordAdd("Exit Do", EFigType.eResFig, stmt1)
-                        Case ETkn.eExitFor
+                        Case EToken.eExitFor
                             WordAdd("Exit For", EFigType.eResFig, stmt1)
-                        Case ETkn.eExitSub
+                        Case EToken.eExitSub
                             WordAdd("Exit Sub", EFigType.eResFig, stmt1)
                         Case Else
                             Debug.Assert(False)
@@ -614,7 +614,7 @@ Public Class TBasicCodeGenerator
     End Sub
 
     '  ブロックのソースを作る
-    Public Overrides Sub BlcSrc(obj1 As Object, type1 As ETkn, blc1 As TBlc, tab1 As Integer)
+    Public Overrides Sub BlcSrc(obj1 As Object, type1 As EToken, blc1 As TBlock, tab1 As Integer)
         NL(obj1)
         For Each stmt1 In blc1.StmtBlc
             If Not stmt1.IsGenerated Then
@@ -622,53 +622,53 @@ Public Class TBasicCodeGenerator
             End If
         Next
         Select Case type1
-            Case ETkn.eOperator
+            Case EToken.eOperator
                 Tab(tab1)
-                WordAdd(ETkn.eEnd, EFigType.eResFig, obj1)
-                WordAdd(ETkn.eOperator, EFigType.eResFig, obj1)
+                WordAdd(EToken.eEnd, EFigType.eResFig, obj1)
+                WordAdd(EToken.eOperator, EFigType.eResFig, obj1)
                 NL(obj1)
-            Case ETkn.eSub, ETkn.eNew
+            Case EToken.eSub, EToken.eNew
                 Tab(tab1)
-                WordAdd(ETkn.eEnd, EFigType.eResFig, obj1)
-                WordAdd(ETkn.eSub, EFigType.eResFig, obj1)
+                WordAdd(EToken.eEnd, EFigType.eResFig, obj1)
+                WordAdd(EToken.eSub, EFigType.eResFig, obj1)
                 NL(obj1)
-            Case ETkn.eFunction
+            Case EToken.eFunction
                 Tab(tab1)
-                WordAdd(ETkn.eEnd, EFigType.eResFig, obj1)
-                WordAdd(ETkn.eFunction, EFigType.eResFig, obj1)
+                WordAdd(EToken.eEnd, EFigType.eResFig, obj1)
+                WordAdd(EToken.eFunction, EFigType.eResFig, obj1)
                 NL(obj1)
-            Case ETkn.eFor, ETkn.eEach
+            Case EToken.eFor, EToken.eEach
                 Tab(tab1)
-                WordAdd(ETkn.eNext, EFigType.eResFig, obj1)
+                WordAdd(EToken.eNext, EFigType.eResFig, obj1)
                 NL(obj1)
-            Case ETkn.eDo
+            Case EToken.eDo
                 Tab(tab1)
-                WordAdd(ETkn.eLoop, EFigType.eResFig, obj1)
+                WordAdd(EToken.eLoop, EFigType.eResFig, obj1)
                 NL(obj1)
         End Select
     End Sub
 
-    Public Overrides Sub VarSrc(var1 As TVar)
-        Dim as_new As Boolean, app1 As TApp
+    Public Overrides Sub VarSrc(var1 As TVariable)
+        Dim as_new As Boolean, app1 As TApply
 
         as_new = False
         If var1.ByRefVar Then
-            WordAdd(ETkn.eRef, EFigType.eResFig, var1)
+            WordAdd(EToken.eRef, EFigType.eResFig, var1)
         End If
         If var1.ParamArrayVar Then
-            Fmt(ETkn.eParamArray)
+            Fmt(EToken.eParamArray)
         End If
 
         Fmt(var1)
         If var1.TypeVar IsNot Nothing AndAlso Not var1.NoType Then
-            WordAdd(ETkn.eAs, EFigType.eResFig, var1)
-            If var1.InitVar IsNot Nothing AndAlso var1.InitVar.IsApp() AndAlso CType(var1.InitVar, TApp).TypeApp = ETkn.eNew Then
+            WordAdd(EToken.eAs, EFigType.eResFig, var1)
+            If var1.InitVar IsNot Nothing AndAlso var1.InitVar.IsApp() AndAlso CType(var1.InitVar, TApply).TypeApp = EToken.eNew Then
                 as_new = True
-                app1 = CType(var1.InitVar, TApp)
+                app1 = CType(var1.InitVar, TApply)
                 If app1.ArgApp.Count = 0 Then
                     ' 引数がない場合
 
-                    WordAdd(ETkn.eNew, EFigType.eResFig, var1)
+                    WordAdd(EToken.eNew, EFigType.eResFig, var1)
                     TypeSrc(app1.NewApp)
                 Else
                     ' 引数がある場合
@@ -677,7 +677,7 @@ Public Class TBasicCodeGenerator
 
                 If app1.IniApp IsNot Nothing Then
 
-                    WordAdd(ETkn.eFrom, EFigType.eResFig, var1)
+                    WordAdd(EToken.eFrom, EFigType.eResFig, var1)
                     TrmSrc(app1.IniApp)
                 End If
             Else
@@ -685,29 +685,29 @@ Public Class TBasicCodeGenerator
             End If
         End If
         If Not as_new AndAlso var1.InitVar IsNot Nothing Then
-            WordAdd(ETkn.eASN, EFigType.eSymFig, var1)
+            WordAdd(EToken.eASN, EFigType.eSymFig, var1)
             TrmSrc(var1.InitVar)
         End If
     End Sub
 
     '  関数のソースを作る
-    Public Overrides Sub FncSrc(fnc1 As TFnc)
+    Public Overrides Sub FncSrc(fnc1 As TFunction)
         ComSrc(fnc1.ComVar, 1, fnc1)
         Tab(1)
 
         ModifierSrc(fnc1, fnc1.ModFnc())
         Select Case fnc1.TypeFnc
-            Case ETkn.eFunction
+            Case EToken.eFunction
                 WordAdd("Function", EFigType.eResFig, fnc1)
                 Fmt(fnc1)
-            Case ETkn.eSub
+            Case EToken.eSub
                 WordAdd("Sub", EFigType.eResFig, fnc1)
                 Fmt(fnc1)
-            Case ETkn.eNew
+            Case EToken.eNew
                 WordAdd("Sub", EFigType.eResFig, fnc1)
                 WordAdd("New", EFigType.eResFig, fnc1)
-            Case ETkn.eOperator
-                WordAdd(ETkn.eOperator, EFigType.eResFig, fnc1)
+            Case EToken.eOperator
+                WordAdd(EToken.eOperator, EFigType.eResFig, fnc1)
                 WordAdd(fnc1.NameFnc(), EFigType.eVarFig, fnc1)
             Case Else
                 Debug.WriteLine("")
@@ -717,12 +717,12 @@ Public Class TBasicCodeGenerator
         VarListSrc(fnc1.ArgFnc, fnc1)
 
         If fnc1.RetType IsNot Nothing Then
-            WordAdd(ETkn.eAs, EFigType.eResFig, fnc1)
+            WordAdd(EToken.eAs, EFigType.eResFig, fnc1)
             TypeSrc(fnc1.RetType)
         End If
 
         If fnc1.InterfaceFnc IsNot Nothing Then
-            WordAdd(ETkn.eImplements, EFigType.eResFig, fnc1)
+            WordAdd(EToken.eImplements, EFigType.eResFig, fnc1)
             Fmt(fnc1.InterfaceFnc)
             WordAdd(".", EFigType.eSymFig, fnc1)
             Fmt(fnc1.ImplFnc)
@@ -751,8 +751,8 @@ Public Class TBasicCodeGenerator
     End Function
 
     '  型のソースを作る
-    Public Overrides Sub TypeSrc(type1 As TCls)
-        Dim i1 As Integer, cla1 As TCls
+    Public Overrides Sub TypeSrc(type1 As TClass)
+        Dim i1 As Integer, cla1 As TClass
 
         If type1 Is Nothing Then
             WordAdd("型不明", EFigType.eUnknownFig, type1)
@@ -792,14 +792,14 @@ Public Class TBasicCodeGenerator
     End Sub
 
     '  変数宣言のソースを作る
-    Public Overrides Sub VarDeclSrc(dcl1 As TVarDecl, tab1 As Integer)
+    Public Overrides Sub VarDeclSrc(dcl1 As TVariableDeclaration, tab1 As Integer)
         Dim i1 As Integer
-        Dim var1 As TVar
+        Dim var1 As TVariable
 
         Tab(tab1)
         ModifierSrc(dcl1, dcl1.ModDecl)
         If dcl1.ModDecl Is Nothing OrElse Not dcl1.ModDecl.isPublic AndAlso Not dcl1.ModDecl.isShared Then
-            WordAdd(ETkn.eDim, EFigType.eResFig, dcl1)
+            WordAdd(EToken.eDim, EFigType.eResFig, dcl1)
         End If
         '             sw.Write('\t');
         For i1 = 0 To dcl1.VarDecl.Count - 1
@@ -811,14 +811,14 @@ Public Class TBasicCodeGenerator
         Next
     End Sub
 
-    Public Sub GenericSrc(cla1 As TCls)
+    Public Sub GenericSrc(cla1 As TClass)
         Dim i1 As Integer
 
         If cla1.GenCla IsNot Nothing Then
             ' ジェネリック型の場合
 
             WordAdd("(", EFigType.eSymFig, cla1)
-            WordAdd(ETkn.eOf, EFigType.eResFig, cla1)
+            WordAdd(EToken.eOf, EFigType.eResFig, cla1)
 
             For i1 = 0 To cla1.GenCla.Count - 1
                 If i1 <> 0 Then
@@ -831,26 +831,26 @@ Public Class TBasicCodeGenerator
         End If
     End Sub
 
-    Public Sub ClsSrc(cla1 As TCls)
+    Public Sub ClsSrc(cla1 As TClass)
         Dim i1 As Integer
 
         If cla1.ModCla().isPartial Then
-            WordAdd(ETkn.ePartial, EFigType.eResFig, cla1)
+            WordAdd(EToken.ePartial, EFigType.eResFig, cla1)
         End If
 
-        WordAdd(ETkn.ePublic, EFigType.eResFig, cla1)
+        WordAdd(EToken.ePublic, EFigType.eResFig, cla1)
 
         If cla1.ModCla().isAbstract Then
-            WordAdd(ETkn.eAbstract, EFigType.eResFig, cla1)
+            WordAdd(EToken.eAbstract, EFigType.eResFig, cla1)
         End If
 
         Select Case cla1.KndCla
             Case EClass.eClassCla
-                WordAdd(ETkn.eClass, EFigType.eResFig, cla1)
+                WordAdd(EToken.eClass, EFigType.eResFig, cla1)
             Case EClass.eStructCla
-                WordAdd(ETkn.eStruct, EFigType.eResFig, cla1)
+                WordAdd(EToken.eStruct, EFigType.eResFig, cla1)
             Case EClass.eInterfaceCla
-                WordAdd(ETkn.eInterface, EFigType.eResFig, cla1)
+                WordAdd(EToken.eInterface, EFigType.eResFig, cla1)
         End Select
         Fmt(cla1)
 
@@ -867,7 +867,7 @@ Public Class TBasicCodeGenerator
             If cla1.InterfacesCls(0) IsNot PrjMK.ObjectType Then
                 NL(cla1)
                 Tab(1)
-                WordAdd(ETkn.eImplements, EFigType.eResFig, cla1)
+                WordAdd(EToken.eImplements, EFigType.eResFig, cla1)
                 For i1 = 0 To cla1.InterfacesCls.Count - 1
                     If i1 <> 0 Then
                         WordAdd(",", EFigType.eSymFig, cla1)
@@ -886,7 +886,7 @@ Public Class TBasicCodeGenerator
                 Tab(1)
                 ModifierSrc(fld1, fld1.ModVar)
                 If fld1.ModVar Is Nothing OrElse Not fld1.ModVar.isPublic AndAlso Not fld1.ModVar.isShared Then
-                    WordAdd(ETkn.eDim, EFigType.eResFig, fld1)
+                    WordAdd(EToken.eDim, EFigType.eResFig, fld1)
                 End If
                 VarSrc(fld1)
 
@@ -907,24 +907,24 @@ Public Class TBasicCodeGenerator
             End If
         Next
 
-        WordAdd(ETkn.eEnd, EFigType.eResFig, cla1)
+        WordAdd(EToken.eEnd, EFigType.eResFig, cla1)
 
         Select Case cla1.KndCla
             Case EClass.eClassCla
-                WordAdd(ETkn.eClass, EFigType.eResFig, cla1)
+                WordAdd(EToken.eClass, EFigType.eResFig, cla1)
             Case EClass.eStructCla
-                WordAdd(ETkn.eStruct, EFigType.eResFig, cla1)
+                WordAdd(EToken.eStruct, EFigType.eResFig, cla1)
             Case EClass.eInterfaceCla
-                WordAdd(ETkn.eInterface, EFigType.eResFig, cla1)
+                WordAdd(EToken.eInterface, EFigType.eResFig, cla1)
         End Select
         NL(cla1)
     End Sub
 
-    Public Sub MakeBasicSrc(src1 As TSrc)
+    Public Sub MakeBasicSrc(src1 As TSourceFile)
         Dim dlg1 As TDelegate
 
         For Each str_f In src1.vUsing
-            WordAdd(ETkn.eImports, EFigType.eResFig, src1)
+            WordAdd(EToken.eImports, EFigType.eResFig, src1)
             WordAdd(str_f, EFigType.eUnknownFig, src1)
             NL(src1)
         Next
@@ -937,8 +937,8 @@ Public Class TBasicCodeGenerator
             Select Case cla1.KndCla
                 Case EClass.eEnumCla
                     '  列挙型の場合
-                    WordAdd(ETkn.ePublic, EFigType.eResFig, cla1)
-                    WordAdd(ETkn.eEnum, EFigType.eResFig, cla1)
+                    WordAdd(EToken.ePublic, EFigType.eResFig, cla1)
+                    WordAdd(EToken.eEnum, EFigType.eResFig, cla1)
                     Fmt(cla1)
                     NL(cla1)
                     '  すべてのフィールドに対し
@@ -949,20 +949,20 @@ Public Class TBasicCodeGenerator
                         Fmt(fld1)
                         NL(fld1)
                     Next
-                    WordAdd(ETkn.eEnd, EFigType.eResFig, cla1)
-                    WordAdd(ETkn.eEnum, EFigType.eResFig, cla1)
+                    WordAdd(EToken.eEnd, EFigType.eResFig, cla1)
+                    WordAdd(EToken.eEnum, EFigType.eResFig, cla1)
                     NL(cla1)
 
                 Case EClass.eDelegateCla
                     ' デリゲートの場合
 
                     dlg1 = CType(cla1, TDelegate)
-                    WordAdd(ETkn.ePublic, EFigType.eResFig, cla1)
-                    WordAdd(ETkn.eDelegate, EFigType.eResFig, cla1)
+                    WordAdd(EToken.ePublic, EFigType.eResFig, cla1)
+                    WordAdd(EToken.eDelegate, EFigType.eResFig, cla1)
                     If dlg1.RetDlg Is Nothing Then
-                        WordAdd(ETkn.eSub, EFigType.eResFig, cla1)
+                        WordAdd(EToken.eSub, EFigType.eResFig, cla1)
                     Else
-                        WordAdd(ETkn.eFunction, EFigType.eResFig, cla1)
+                        WordAdd(EToken.eFunction, EFigType.eResFig, cla1)
                     End If
                     Fmt(cla1)
 
@@ -970,7 +970,7 @@ Public Class TBasicCodeGenerator
 
                     VarListSrc(dlg1.ArgDlg, dlg1)
                     If dlg1.RetDlg IsNot Nothing Then
-                        Fmt(ETkn.eAs)
+                        Fmt(EToken.eAs)
                         TypeSrc(dlg1.RetDlg)
                     End If
                     NL(dlg1)
@@ -983,7 +983,7 @@ Public Class TBasicCodeGenerator
 
     End Sub
 
-    Public Sub OutputBasicSrc(src1 As TSrc, out_dir As String)
+    Public Sub OutputBasicSrc(src1 As TSourceFile, out_dir As String)
         Dim src_dir As String, html_path As String, fname As String, ext1 As String, src_txt As String
 
         src_txt = MakeSrcText()
@@ -1021,16 +1021,16 @@ Public Class TBasicCodeGenerator
                         End If
                     Case EFigType.eResFig
                         Select Case txt1.TknTxt
-                            Case ETkn.eAs, ETkn.eTo, ETkn.eIs, ETkn.eIsNot, ETkn.eIn, ETkn.eInto, ETkn.eWhere, ETkn.eTake, ETkn.eStep, ETkn.eImplements, ETkn.eParamArray
+                            Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
                                 sw.Write(" " + txt1.TextTxt + " ")
-                            Case ETkn.eThen
+                            Case EToken.eThen
                                 sw.Write(" " + txt1.TextTxt)
                             Case Else
                                 sw.Write(txt1.TextTxt + " ")
                         End Select
                     Case EFigType.eRefFig
                         Select Case txt1.TknTxt
-                            Case ETkn.eRef
+                            Case EToken.eRef
                                 If txt1.TextTxt = "null" Then
                                     sw.Write("Nothing")
                                 ElseIf txt1.TextTxt = "this" Then

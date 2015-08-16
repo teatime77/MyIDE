@@ -1197,7 +1197,7 @@ Public MustInherit Class TParser
     Public parLex As TLex
     Public stcBase As Integer
     Public stcVal As Object()
-    Public nextTkn As TTkn
+    Public nextTkn As TToken
     Public isParserEof As Boolean
     Public nStat As Integer
     Public nGram As Integer
@@ -1247,8 +1247,8 @@ Public MustInherit Class TParser
         Return parserLexEof(Me)
     End Function
 
-    Public Overrides Function lexNextTkn() As TTkn
-        Return CType(Parse(Me, True), TTkn)
+    Public Overrides Function lexNextTkn() As TToken
+        Return CType(Parse(Me, True), TToken)
     End Function
 
     Public Shared Function Parse(par1 As TParser, islex As Boolean) As Object
@@ -1259,7 +1259,7 @@ Public MustInherit Class TParser
         Dim istat3 As Short
         Dim inont As Short
         Dim obj1 As Object
-        Dim tkn1 As TTkn
+        Dim tkn1 As TToken
         Dim sym1 As Integer
         Dim terminate As Boolean
         Dim i1 As Integer
@@ -1296,7 +1296,7 @@ Public MustInherit Class TParser
                     str1 = "syntax err:" + istat1 + " " + sym1.ToString()
                     LALR.PutLog(str1)
                     Debug.Assert(False)
-                    '				
+                '				
                 Case LALR_Shift
                     If terminate Then
                         Debug.Assert(False)
@@ -1360,5 +1360,5 @@ Public MustInherit Class TLex
     Public MustOverride Sub lexInitStr(text1 As String, par1 As TParser)
     Public MustOverride Sub lexErr()
     Public MustOverride Function lexEof() As Boolean
-    Public MustOverride Function lexNextTkn() As TTkn
+    Public MustOverride Function lexNextTkn() As TToken
 End Class

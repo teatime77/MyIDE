@@ -39,14 +39,14 @@ Public Class TGraph
 
     ' ノードの集合からdotファイルを作る
     Public Shared Sub Node2Dot(sw1 As TStringWriter, v1 As TList(Of TNode), L As TList(Of TList(Of TNode)))
-        Dim fnc1 As TFnc, ref1 As TRef
+        Dim fnc1 As TFunction, ref1 As TReference
 
         For Each nd1 In v1
-            If TypeOf nd1.DatNode Is TFnc Then
-                fnc1 = CType(nd1.DatNode, TFnc)
+            If TypeOf nd1.DatNode Is TFunction Then
+                fnc1 = CType(nd1.DatNode, TFunction)
                 sw1.WriteLine("" + vbTab + "n{0} [shape = box, label = ""{1}""];", nd1.IdxNode, fnc1.FullName())
-            ElseIf TypeOf nd1.DatNode Is TRef Then
-                ref1 = CType(nd1.DatNode, TRef)
+            ElseIf TypeOf nd1.DatNode Is TReference Then
+                ref1 = CType(nd1.DatNode, TReference)
                 sw1.WriteLine("" + vbTab + "n{0} [shape = ellipse, label = ""{1}""];", nd1.IdxNode, ref1.NameRef)
             Else
                 sw1.WriteLine("" + vbTab + "n{0} [shape = circle];", nd1.IdxNode)

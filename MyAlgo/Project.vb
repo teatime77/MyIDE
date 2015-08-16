@@ -3,48 +3,48 @@ Imports System.Text
 Imports System.Diagnostics
 'Imports System.Web
 
-' -------------------------------------------------------------------------------- TPrj
-Public Class TPrj
-    Public Shared Prj As TPrj
+' -------------------------------------------------------------------------------- TProject
+Public Class TProject
+    Public Shared Prj As TProject
     Public SrcDir As String
     Public OutDir As String
     Public SrcFileNames As String()
-    Public vCla As New TList(Of TCls)
-    Public vGenCla As New TList(Of TCls)
-    Public vGenTmpCla As New TList(Of TCls)
-    Public vArrCla As New TList(Of TCls)
-    Public vAllClass As New TList(Of TCls)
-    Public vAllFnc As New TList(Of TFnc)
-    Public vAllFld As New TList(Of TFld)    ' すべてのフィールド
-    Public CurSrc As TSrc ' 現在のソース
-    Public TypeType As TCls
-    Public SystemType As TCls
-    Public BoolType As TCls
-    Public ObjectType As TCls
-    Public DoubleType As TCls
-    Public CharType As TCls
-    Public IntType As TCls
-    Public StringType As TCls
-    Public ArrayType As TCls
-    Public WaitHandleType As TCls
-    Public dicCla As New Dictionary(Of String, TCls) ' クラス辞書
-    Public dicGenCla As New Dictionary(Of String, TCls)
-    Public dicCmpCla As New Dictionary(Of TCls, TList(Of TCls))
-    Public dicArrCla As New Dictionary(Of TCls, TList(Of TCls))
+    Public vCla As New TList(Of TClass)
+    Public vGenCla As New TList(Of TClass)
+    Public vGenTmpCla As New TList(Of TClass)
+    Public vArrCla As New TList(Of TClass)
+    Public vAllClass As New TList(Of TClass)
+    Public vAllFnc As New TList(Of TFunction)
+    Public vAllFld As New TList(Of TField)    ' すべてのフィールド
+    Public CurSrc As TSourceFile ' 現在のソース
+    Public TypeType As TClass
+    Public SystemType As TClass
+    Public BoolType As TClass
+    Public ObjectType As TClass
+    Public DoubleType As TClass
+    Public CharType As TClass
+    Public IntType As TClass
+    Public StringType As TClass
+    Public ArrayType As TClass
+    Public WaitHandleType As TClass
+    Public dicCla As New Dictionary(Of String, TClass) ' クラス辞書
+    Public dicGenCla As New Dictionary(Of String, TClass)
+    Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
+    Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
     Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
     Public dicClassMemName As Dictionary(Of String, String)
     Public ClassNameTable As Dictionary(Of String, String)
-    Public SrcPrj As New TList(Of TSrc)
-    Public vTknNamePrj As Dictionary(Of ETkn, String)
-    Public ParsePrj As TParseBas
+    Public SrcPrj As New TList(Of TSourceFile)
+    Public vTknNamePrj As Dictionary(Of EToken, String)
+    Public ParsePrj As TBasicParser
     Public MainClassName As String
     Public MainFunctionName As String
-    Public theMain As TFnc
-    Public ArrayMaker As TFnc
+    Public theMain As TFunction
+    Public ArrayMaker As TFunction
     Public OutputNotUsed As Boolean = True
 
     Public Sub New()
-        Prj = CType(Me, TPrj)
+        Prj = CType(Me, TProject)
     End Sub
 
     Public Sub chk(b As Boolean)
@@ -53,8 +53,8 @@ Public Class TPrj
         End If
     End Sub
 
-    Public Function GetCla(name1 As String) As TCls
-        Dim cla1 As TCls = Nothing
+    Public Function GetCla(name1 As String) As TClass
+        Dim cla1 As TClass = Nothing
 
         If dicGenCla.ContainsKey(name1) Then
             cla1 = dicGenCla(name1)
@@ -69,12 +69,12 @@ Public Class TPrj
         End If
     End Function
 
-    Public Function RegCla(name1 As String) As TCls
-        Dim cla1 As TCls
+    Public Function RegCla(name1 As String) As TClass
+        Dim cla1 As TClass
 
         Debug.Assert(GetCla(name1) Is Nothing)
 
-        cla1 = New TCls(Nothing, name1)
+        cla1 = New TClass(Nothing, name1)
         vCla.Add(cla1)
         dicCla.Add(cla1.NameCla(), cla1)
 
@@ -102,8 +102,8 @@ Public Class TPrj
         Return cla1
     End Function
 
-    Public Function GetGenCla(name1 As String, vtp As TList(Of TCls)) As TCls
-        Dim i1 As Integer, cla1 As TCls, v As TList(Of TCls) = Nothing, ok As Boolean
+    Public Function GetGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+        Dim i1 As Integer, cla1 As TClass, v As TList(Of TClass) = Nothing, ok As Boolean
 
         cla1 = GetCla(name1)
         Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count)
@@ -135,8 +135,8 @@ Public Class TPrj
     End Function
 
     ' ジェネリック型のクラスを作る
-    Public Function RegGenCla(name1 As String, vtp As TList(Of TCls)) As TCls
-        Dim cla1 As TCls, cla3 As TCls, v As TList(Of TCls) = Nothing
+    Public Function RegGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+        Dim cla1 As TClass, cla3 As TClass, v As TList(Of TClass) = Nothing
 
         cla1 = GetCla(name1)
         Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count)
@@ -144,7 +144,7 @@ Public Class TPrj
         If dicCmpCla.ContainsKey(cla1) Then
             v = dicCmpCla(cla1)
         Else
-            v = New TList(Of TCls)()
+            v = New TList(Of TClass)()
             dicCmpCla.Add(cla1, v)
         End If
 
@@ -152,11 +152,11 @@ Public Class TPrj
         If TypeOf cla1 Is TDelegate Then
             cla3 = New TDelegate(cla1.NameCla())
         Else
-            cla3 = New TCls(cla1.NameCla())
+            cla3 = New TClass(cla1.NameCla())
         End If
         cla3.OrgCla = cla1
 
-        cla3.GenCla = New TList(Of TCls)(From tp In vtp)
+        cla3.GenCla = New TList(Of TClass)(From tp In vtp)
         For Each tp In vtp
             Debug.Assert(tp IsNot Nothing)
         Next
@@ -186,8 +186,8 @@ Public Class TPrj
         Return cla3
     End Function
 
-    Public Function GetRegGenCla(name1 As String, vtp As TList(Of TCls)) As TCls
-        Dim cla1 As TCls
+    Public Function GetRegGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+        Dim cla1 As TClass
 
         cla1 = GetGenCla(name1, vtp)
         If cla1 IsNot Nothing Then
@@ -199,8 +199,8 @@ Public Class TPrj
     End Function
 
     '  配列型を得る
-    Public Function GetArrCla(cla1 As TCls, dim_cnt As Integer) As TCls
-        Dim cla3 As TCls, v As TList(Of TCls) = Nothing
+    Public Function GetArrCla(cla1 As TClass, dim_cnt As Integer) As TClass
+        Dim cla3 As TClass, v As TList(Of TClass) = Nothing
 
         Debug.Assert(dim_cnt <> 0)
         If dicArrCla.ContainsKey(cla1) Then
@@ -214,12 +214,12 @@ Public Class TPrj
                 End If
             Next
         Else
-            v = New TList(Of TCls)()
+            v = New TList(Of TClass)()
             dicArrCla.Add(cla1, v)
         End If
 
         '  新たに型を作る
-        cla3 = TCls.MakeArr(cla1, dim_cnt)
+        cla3 = TClass.MakeArr(cla1, dim_cnt)
         v.Add(cla3)
         vCla.Add(cla3)
         vArrCla.Add(cla3)
@@ -227,8 +227,8 @@ Public Class TPrj
         Return cla3
     End Function
 
-    Public Function GetIEnumerableCla(cla1 As TCls) As TCls
-        Dim vtp As New TList(Of TCls), cla2 As TCls
+    Public Function GetIEnumerableCla(cla1 As TClass) As TClass
+        Dim vtp As New TList(Of TClass), cla2 As TClass
 
         vtp.Add(cla1)
         cla2 = GetRegGenCla("IEnumerable", vtp)
@@ -237,8 +237,8 @@ Public Class TPrj
         Return cla2
     End Function
 
-    Public Function GetTListCla(cla1 As TCls) As TCls
-        Dim vtp As New TList(Of TCls), cla2 As TCls
+    Public Function GetTListCla(cla1 As TClass) As TClass
+        Dim vtp As New TList(Of TClass), cla2 As TClass
 
         vtp.Add(cla1)
         cla2 = GetRegGenCla("TList", vtp)
@@ -248,8 +248,8 @@ Public Class TPrj
     End Function
 
     ' ジェネリック型を変換する
-    Public Function RepGenType(tp As TCls, dic As Dictionary(Of String, TCls)) As TCls
-        Dim name1 As String, vtp As TList(Of TCls), tp1 As TCls = Nothing, tp2 As TCls, changed As Boolean = False, cla1 As TCls
+    Public Function RepGenType(tp As TClass, dic As Dictionary(Of String, TClass)) As TClass
+        Dim name1 As String, vtp As TList(Of TClass), tp1 As TClass = Nothing, tp2 As TClass, changed As Boolean = False, cla1 As TClass
 
         If tp.DimCla <> 0 Then
             ' 配列型の場合
@@ -286,7 +286,7 @@ Public Class TPrj
         Else
             ' ジェネリック型の場合
 
-            vtp = New TList(Of TCls)()
+            vtp = New TList(Of TClass)()
             ' for Add Find
             For Each tp_f In tp.GenCla
                 tp2 = RepGenType(tp_f, dic)
@@ -317,13 +317,13 @@ Public Class TPrj
         End If
     End Function
 
-    Public Function CopyVariable(var_src As TVar, dic As Dictionary(Of String, TCls)) As TVar
-        Dim var1 As TVar
+    Public Function CopyVariable(var_src As TVariable, dic As Dictionary(Of String, TClass)) As TVariable
+        Dim var1 As TVariable
 
-        If TypeOf var_src Is TFld Then
-            var1 = New TFld()
+        If TypeOf var_src Is TField Then
+            var1 = New TField()
         Else
-            var1 = New TVar()
+            var1 = New TVariable()
         End If
 
         var_src.CopyVarMem(var1)
@@ -333,8 +333,8 @@ Public Class TPrj
     End Function
 
 
-    Public Function CopyField(cla1 As TCls, fld_src As TFld, dic As Dictionary(Of String, TCls)) As TFld
-        Dim fld1 As New TFld
+    Public Function CopyField(cla1 As TClass, fld_src As TField, dic As Dictionary(Of String, TClass)) As TField
+        Dim fld1 As New TField
 
         fld_src.CopyVarMem(fld1)
 
@@ -345,39 +345,39 @@ Public Class TPrj
         Return fld1
     End Function
 
-    Public Function CopyFunction(cla1 As TCls, fnc_src As TFnc, dic As Dictionary(Of String, TCls)) As TFnc
-        Dim fnc1 As New TFnc(fnc_src.NameVar, fnc_src.TypeVar)
+    Public Function CopyFunction(cla1 As TClass, fnc_src As TFunction, dic As Dictionary(Of String, TClass)) As TFunction
+        Dim fnc1 As New TFunction(fnc_src.NameVar, fnc_src.TypeVar)
 
         fnc_src.CopyFncMem(fnc1)
 
         fnc1.ClaFnc = cla1
         fnc1.OrgFnc = fnc_src
-        fnc1.ArgFnc = New TList(Of TVar)(From var_f In fnc_src.ArgFnc Select CopyVariable(var_f, dic))
+        fnc1.ArgFnc = New TList(Of TVariable)(From var_f In fnc_src.ArgFnc Select CopyVariable(var_f, dic))
 
         If fnc_src.RetType Is Nothing Then
             fnc1.RetType = Nothing
         Else
-            fnc1.RetType = TPrj.Prj.RepGenType(fnc_src.RetType, dic)
+            fnc1.RetType = TProject.Prj.RepGenType(fnc_src.RetType, dic)
         End If
 
         Return fnc1
     End Function
 
-    Public Sub CopyGenClaSub(cla1 As TCls, dic As Dictionary(Of String, TCls))
+    Public Sub CopyGenClaSub(cla1 As TClass, dic As Dictionary(Of String, TClass))
         If cla1 IsNot Nothing AndAlso cla1.OrgCla IsNot Nothing Then
-            cla1.SuperCla = New TList(Of TCls)(From spr1 In cla1.OrgCla.SuperCla Select TPrj.Prj.RepGenType(spr1, dic))
-            cla1.InterfacesCls = New TList(Of TCls)(From spr1 In cla1.OrgCla.InterfacesCls Select TPrj.Prj.RepGenType(spr1, dic))
+            cla1.SuperCla = New TList(Of TClass)(From spr1 In cla1.OrgCla.SuperCla Select TProject.Prj.RepGenType(spr1, dic))
+            cla1.InterfacesCls = New TList(Of TClass)(From spr1 In cla1.OrgCla.InterfacesCls Select TProject.Prj.RepGenType(spr1, dic))
 
-            cla1.FldCla = New TList(Of TFld)(From fld1 In cla1.OrgCla.FldCla Select CopyField(cla1, fld1, dic))
+            cla1.FldCla = New TList(Of TField)(From fld1 In cla1.OrgCla.FldCla Select CopyField(cla1, fld1, dic))
 
-            cla1.FncCla = New TList(Of TFnc)(From fnc1 In cla1.OrgCla.FncCla Select CopyFunction(cla1, fnc1, dic))
+            cla1.FncCla = New TList(Of TFunction)(From fnc1 In cla1.OrgCla.FncCla Select CopyFunction(cla1, fnc1, dic))
         End If
     End Sub
 
-    Public Sub CopyGenCla(cla1 As TCls)
-        Dim dic As Dictionary(Of String, TCls), i1 As Integer, dlg1 As TDelegate, dlg_org As TDelegate
+    Public Sub CopyGenCla(cla1 As TClass)
+        Dim dic As Dictionary(Of String, TClass), i1 As Integer, dlg1 As TDelegate, dlg_org As TDelegate
 
-        dic = New Dictionary(Of String, TCls)()
+        dic = New Dictionary(Of String, TClass)()
         ' for Each c In OrgCla.GenCla Add (c.NameCla, GenCla(@Idx)) To dic
         For i1 = 0 To cla1.OrgCla.GenCla.Count - 1
             dic.Add(cla1.OrgCla.GenCla(i1).NameCla(), cla1.GenCla(i1))
@@ -389,15 +389,15 @@ Public Class TPrj
             dlg1 = CType(cla1, TDelegate)
             dlg_org = CType(dlg1.OrgCla, TDelegate)
 
-            dlg1.ArgDlg = New TList(Of TVar)(From var_f In dlg_org.ArgDlg Select CopyVariable(var_f, dic))
-            dlg1.RetDlg = TPrj.Prj.RepGenType(dlg_org.RetDlg, dic)
+            dlg1.ArgDlg = New TList(Of TVariable)(From var_f In dlg_org.ArgDlg Select CopyVariable(var_f, dic))
+            dlg1.RetDlg = TProject.Prj.RepGenType(dlg_org.RetDlg, dic)
         End If
     End Sub
 
-    Public Sub CopyGenCla2(cla1 As TCls)
-        Dim dic As Dictionary(Of String, TCls)
+    Public Sub CopyGenCla2(cla1 As TClass)
+        Dim dic As Dictionary(Of String, TClass)
 
-        dic = New Dictionary(Of String, TCls)()
+        dic = New Dictionary(Of String, TClass)()
         ' for Each c In OrgCla.GenCla Add (c.NameCla, GenCla(@Idx)) To dic
         For Each cla2 In cla1.GenCla
             dic.Add(cla2.NameCla(), cla2)
@@ -417,7 +417,7 @@ Public Class TPrj
     End Sub
 
     Public Sub CopyGenClaAll()
-        Dim gen_cla As TCls
+        Dim gen_cla As TClass
 
         Do While vGenTmpCla.Count <> 0
             gen_cla = vGenTmpCla(0)
@@ -429,8 +429,8 @@ Public Class TPrj
 
     End Sub
 
-    Public Function FindVariable(name1 As String, vvvar As TList(Of TList(Of TVar))) As TVar
-        Dim cla1 As TCls = Nothing
+    Public Function FindVariable(name1 As String, vvvar As TList(Of TList(Of TVariable))) As TVariable
+        Dim cla1 As TClass = Nothing
 
         ' for Find
         For Each vvar In vvvar
@@ -456,10 +456,10 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Function CanCnvCla(dst_cla As TCls, src_trm As TTerm, src_cla As TCls) As Boolean
+    Public Function CanCnvCla(dst_cla As TClass, src_trm As TTerm, src_cla As TClass) As Boolean
         Dim dst_dlg As TDelegate, src_dlg As TDelegate, i1 As Integer
 
-        If src_trm IsNot Nothing AndAlso TypeOf src_trm Is TRef AndAlso CType(src_trm, TRef).NameRef = "Nothing" Then
+        If src_trm IsNot Nothing AndAlso TypeOf src_trm Is TReference AndAlso CType(src_trm, TReference).NameRef = "Nothing" Then
             Return Not dst_cla.IsSubcla(DoubleType)
         End If
 
@@ -495,8 +495,8 @@ Public Class TPrj
         Return dst_cla Is src_cla OrElse dst_cla Is ObjectType OrElse src_cla.IsSubcla(dst_cla)
     End Function
 
-    Public Function MatchFncArg(fnc1 As TFnc, varg As TList(Of TTerm)) As Boolean
-        Dim i1 As Integer, param_array As Boolean, var1 As TVar, trm1 As TTerm, tp1 As TCls
+    Public Function MatchFncArg(fnc1 As TFunction, varg As TList(Of TTerm)) As Boolean
+        Dim i1 As Integer, param_array As Boolean, var1 As TVariable, trm1 As TTerm, tp1 As TClass
 
         If varg Is Nothing Then
             Return True
@@ -527,12 +527,12 @@ Public Class TPrj
         End If
     End Function
 
-    Public Function MatchFunction(fnc1 As TFnc, name1 As String, varg As TList(Of TTerm)) As Boolean
+    Public Function MatchFunction(fnc1 As TFunction, name1 As String, varg As TList(Of TTerm)) As Boolean
         Return fnc1.NameFnc() = name1 AndAlso Not fnc1.IsNew AndAlso Prj.MatchFncArg(fnc1, varg)
     End Function
 
-    Public Shared Function FindFieldFunction(cla1 As TCls, name1 As String, varg As TList(Of TTerm)) As TVar
-        Dim var1 As TVar
+    Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
+        Dim var1 As TVariable
 
         ' for Find
         For Each fld2 In cla1.FldCla
@@ -567,8 +567,8 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Shared Function FindFieldByName(cla1 As TCls, name1 As String) As TFld
-        Dim fld1 As TFld
+    Public Shared Function FindFieldByName(cla1 As TClass, name1 As String) As TField
+        Dim fld1 As TField
 
         ' for Find
         For Each fld2 In cla1.FldCla
@@ -588,7 +588,7 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Function FindFunctionByName(class_name As String, fnc_name As String) As TFnc
+    Public Function FindFunctionByName(class_name As String, fnc_name As String) As TFunction
         For Each cls1 In vCla
             For Each fnc1 In cls1.FncCla
                 If cls1.NameCla() = class_name AndAlso fnc1.NameFnc() = fnc_name Then
@@ -600,7 +600,7 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Function FindFieldByName(class_name As String, field_name As String) As TFld
+    Public Function FindFieldByName(class_name As String, field_name As String) As TField
         For Each cls1 In vCla
             For Each fld1 In cls1.FldCla
                 If cls1.NameCla() = class_name AndAlso fld1.NameVar = field_name Then
@@ -612,8 +612,8 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Shared Function FindNew(cla1 As TCls, varg As TList(Of TTerm)) As TVar
-        Dim var1 As TVar
+    Public Shared Function FindNew(cla1 As TClass, varg As TList(Of TTerm)) As TVariable
+        Dim var1 As TVariable
 
         ' for Find
         For Each fnc2 In cla1.FncCla
@@ -633,7 +633,7 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Sub DumpClass(cla1 As TCls, sw As TStringWriter)
+    Public Sub DumpClass(cla1 As TClass, sw As TStringWriter)
         Dim i As Integer
 
         sw.Write("{0} {1} {2} ", cla1.ToString(), cla1.FldCla.Count, cla1.FncCla.Count)
@@ -663,20 +663,20 @@ Public Class TPrj
     End Sub
 
     Public Sub MakeInstanceClassInitializer()
-        Dim idx As Integer, is_shared As Boolean, new_fnc As TFnc, ini_fnc As TFnc, asn1 As TAsn, call_ini As TCall, app_ini As TApp, dot1 As TDot, ref1 As TRef
+        Dim idx As Integer, is_shared As Boolean, new_fnc As TFunction, ini_fnc As TFunction, asn1 As TAssignment, call_ini As TCall, app_ini As TApply, dot1 As TDot, ref1 As TReference
 
 
         For Each cls1 In vCla
             Dim vnew = (From fnc1 In cls1.FncCla Where fnc1.IsNew).ToList()
             If vnew.Count = 0 Then
 
-                new_fnc = New TFnc("Implicit@New", Nothing)
+                new_fnc = New TFunction("Implicit@New", Nothing)
 
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
-                new_fnc.TypeFnc = ETkn.eNew
-                new_fnc.ThisFnc = New TVar("Me", cls1)
-                new_fnc.BlcFnc = New TBlc()
+                new_fnc.TypeFnc = EToken.eNew
+                new_fnc.ThisFnc = New TVariable("Me", cls1)
+                new_fnc.BlcFnc = New TBlock()
                 new_fnc.IsNew = True
 
                 cls1.FncCla.Add(new_fnc)
@@ -689,21 +689,21 @@ Public Class TPrj
                 If vfld.Count <> 0 Then
 
                     If is_shared Then
-                        ini_fnc = New TFnc("Class@Initializer", Nothing)
+                        ini_fnc = New TFunction("Class@Initializer", Nothing)
                     Else
-                        ini_fnc = New TFnc("Instance@Initializer", Nothing)
+                        ini_fnc = New TFunction("Instance@Initializer", Nothing)
                     End If
 
                     ini_fnc.ClaFnc = cls1
                     ini_fnc.ModVar = New TModifier()
-                    ini_fnc.TypeFnc = ETkn.eSub
-                    ini_fnc.ThisFnc = New TVar("Me", cls1)
-                    ini_fnc.BlcFnc = New TBlc()
+                    ini_fnc.TypeFnc = EToken.eSub
+                    ini_fnc.ThisFnc = New TVariable("Me", cls1)
+                    ini_fnc.BlcFnc = New TBlock()
 
                     For Each fld1 In vfld
 
-                        ref1 = New TRef(fld1)
-                        asn1 = New TAsn(ref1, fld1.InitVar)
+                        ref1 = New TReference(fld1)
+                        asn1 = New TAssignment(ref1, fld1.InitVar)
                         ini_fnc.BlcFnc.AddStmtBlc(asn1)
                     Next
 
@@ -711,8 +711,8 @@ Public Class TPrj
 
                     If is_shared Then
 
-                        dot1 = New TDot(New TRef(cls1), ini_fnc)
-                        app_ini = TApp.MakeAppCall(dot1)
+                        dot1 = New TDot(New TReference(cls1), ini_fnc)
+                        app_ini = TApply.MakeAppCall(dot1)
                         call_ini = New TCall(app_ini)
                         call_ini.IsGenerated = True
                         theMain.BlcFnc.StmtBlc.Insert(0, call_ini)
@@ -724,7 +724,7 @@ Public Class TPrj
 
                         For Each new1 In vnew
 
-                            app_ini = TApp.MakeAppCall(New TRef(ini_fnc))
+                            app_ini = TApply.MakeAppCall(New TReference(ini_fnc))
                             call_ini = New TCall(app_ini)
                             call_ini.IsGenerated = True
                             new1.BlcFnc.StmtBlc.Insert(0, call_ini)
@@ -740,15 +740,15 @@ Public Class TPrj
     End Sub
 
     Public Sub MakeSrcPrj()
-        SrcPrj = New TList(Of TSrc)(From fname In SrcFileNames Select New TSrc(fname))
+        SrcPrj = New TList(Of TSourceFile)(From fname In SrcFileNames Select New TSourceFile(fname))
     End Sub
 
     Public Sub Compile()
         Dim set_ref As TNavSetRef, set_ref_fnc As TNavSetRefFnc, set_var_ref As TNavSetVarRef
-        Dim i1 As Integer, cla2 As TCls
+        Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNavSetCall, nav_test As TNavTest, set_parent_stmt As TNavSetParentStmt, set_up_trm As TNavSetUpTrm
 
-        ParsePrj = New TParseBas(Me)
+        ParsePrj = New TBasicParser(Me)
         ' for ???
         For Each src_f In SrcPrj
             ParsePrj.ParseAllLines(src_f)
@@ -846,7 +846,7 @@ Public Class TPrj
         For Each cla1 In vGenCla
             Debug.Assert(Not vCla.Contains(cla1))
         Next
-        vAllClass = New TList(Of TCls)(vCla)
+        vAllClass = New TList(Of TClass)(vCla)
         vAllClass.AddRange(vGenCla)
 
         ' サブクラスをセットする
@@ -905,62 +905,62 @@ Public Class TPrj
 
     End Sub
 
-    Public Function GetTermType(trm1 As TTerm) As TCls
-        Dim ref1 As TRef
-        Dim app1 As TApp
-        Dim cns1 As TCns
-        Dim fnc1 As TFnc
-        Dim cla1 As TCls, cla2 As TCls
+    Public Function GetTermType(trm1 As TTerm) As TClass
+        Dim ref1 As TReference
+        Dim app1 As TApply
+        Dim cns1 As TConstant
+        Dim fnc1 As TFunction
+        Dim cla1 As TClass, cla2 As TClass
         Dim frm1 As TFrom
 
         If trm1 IsNot Nothing Then
-            If TypeOf trm1 Is TCns Then
-                cns1 = CType(trm1, TCns)
+            If TypeOf trm1 Is TConstant Then
+                cns1 = CType(trm1, TConstant)
                 Select Case cns1.TypeAtm
-                    Case ETkn.eString
+                    Case EToken.eString
                         Return StringType
-                    Case ETkn.eInt, ETkn.eHex
+                    Case EToken.eInt, EToken.eHex
                         Return IntType
-                    Case ETkn.eChar
+                    Case EToken.eChar
                         Return CharType
                     Case Else
                         Debug.WriteLine("@h")
                         Return Nothing
                 End Select
             ElseIf TypeOf trm1 Is TArray Then
-            ElseIf TypeOf trm1 Is TRef Then
-                ref1 = CType(trm1, TRef)
+            ElseIf TypeOf trm1 Is TReference Then
+                ref1 = CType(trm1, TReference)
                 If ref1.VarRef IsNot Nothing Then
-                    If TypeOf ref1.VarRef Is TFnc Then
-                        Return CType(ref1.VarRef, TFnc).RetType
-                    ElseIf TypeOf ref1.VarRef Is TCls Then
-                        Return CType(ref1.VarRef, TCls)
+                    If TypeOf ref1.VarRef Is TFunction Then
+                        Return CType(ref1.VarRef, TFunction).RetType
+                    ElseIf TypeOf ref1.VarRef Is TClass Then
+                        Return CType(ref1.VarRef, TClass)
                     Else
                         Return ref1.VarRef.TypeVar
                     End If
                 End If
             ElseIf trm1.IsApp() Then
-                app1 = CType(trm1, TApp)
+                app1 = CType(trm1, TApply)
                 Select Case app1.TypeApp
-                    Case ETkn.eADD, ETkn.eMns, ETkn.eMUL, ETkn.eDIV, ETkn.eMOD
+                    Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
                         Return GetTermType(app1.ArgApp(0))
-                    Case ETkn.eAppCall
-                        If TypeOf app1.FncApp Is TRef Then
-                            ref1 = CType(app1.FncApp, TRef)
-                            If TypeOf ref1.VarRef Is TFnc Then
-                                fnc1 = CType(ref1.VarRef, TFnc)
+                    Case EToken.eAppCall
+                        If TypeOf app1.FncApp Is TReference Then
+                            ref1 = CType(app1.FncApp, TReference)
+                            If TypeOf ref1.VarRef Is TFunction Then
+                                fnc1 = CType(ref1.VarRef, TFunction)
                                 Return fnc1.RetType
                             Else
                                 Select Case app1.KndApp
-                                    Case EApp.eArrayApp
+                                    Case EApply.eArrayApp
                                         Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                         Return ref1.VarRef.TypeVar.GenCla(0)
-                                    Case EApp.eStringApp
+                                    Case EApply.eStringApp
                                         Return CharType
-                                    Case EApp.eListApp
+                                    Case EApply.eListApp
                                         Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                         Return ref1.VarRef.TypeVar.GenCla(0)
-                                    Case EApp.eDictionaryApp
+                                    Case EApply.eDictionaryApp
                                         Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 2)
                                         Return ref1.VarRef.TypeVar.GenCla(1)
                                     Case Else
@@ -974,25 +974,25 @@ Public Class TPrj
                             Return CharType
                         End If
                         Return cla1
-                    Case ETkn.eBaseCall
+                    Case EToken.eBaseCall
                         Return Nothing
-                    Case ETkn.eBaseNew
+                    Case EToken.eBaseNew
                         Return Nothing
-                    Case ETkn.eAs, ETkn.eCast
+                    Case EToken.eAs, EToken.eCast
                         Return app1.ClassApp
-                    Case ETkn.eQUE
+                    Case EToken.eQUE
                         Return GetTermType(app1.ArgApp(1))
-                    Case ETkn.eTypeof
+                    Case EToken.eTypeof
                         Return BoolType
-                    Case ETkn.eNew
+                    Case EToken.eNew
                         Return app1.NewApp
 
-                    Case ETkn.eAddressOf
-                        ref1 = CType(app1.ArgApp(0), TRef)
-                        Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFnc)
-                        Return New TDelegate(CType(ref1.VarRef, TFnc))
+                    Case EToken.eAddressOf
+                        ref1 = CType(app1.ArgApp(0), TReference)
+                        Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
+                        Return New TDelegate(CType(ref1.VarRef, TFunction))
 
-                    Case ETkn.eGetType
+                    Case EToken.eGetType
                         Return TypeType
 
                     Case Else
@@ -1000,11 +1000,11 @@ Public Class TPrj
                         Debug.Assert(False)
                 End Select
             ElseIf trm1.IsLog() Then
-                If CType(trm1, TApp).IsRel() Then
+                If CType(trm1, TApply).IsRel() Then
                     Return BoolType
                 End If
-            ElseIf TypeOf trm1 Is TPar Then
-                Return GetTermType(CType(trm1, TPar).TrmPar)
+            ElseIf TypeOf trm1 Is TParenthesis Then
+                Return GetTermType(CType(trm1, TParenthesis).TrmPar)
             ElseIf TypeOf trm1 Is TFrom Then
 
                 frm1 = CType(trm1, TFrom)
@@ -1031,7 +1031,7 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Public Function ElementType(type1 As TCls) As TCls
+    Public Function ElementType(type1 As TClass) As TClass
         chk(type1 IsNot Nothing)
         If type1.DimCla <> 0 OrElse type1.NameType() = "List" OrElse type1.NameType() = "TList" OrElse type1.NameType() = "IEnumerable" Then
             Debug.Assert(type1.GenCla IsNot Nothing AndAlso type1.GenCla.Count = 1)
@@ -1049,23 +1049,23 @@ Public Class TPrj
         End If
     End Function
 
-    Public Function GetOperatorFunction(type1 As ETkn, trm1 As TTerm) As TFnc
-        Dim tp1 As TCls, name1 As String
+    Public Function GetOperatorFunction(type1 As EToken, trm1 As TTerm) As TFunction
+        Dim tp1 As TClass, name1 As String
 
         Select Case type1
-            Case ETkn.eADD
+            Case EToken.eADD
                 name1 = "+"
-            Case ETkn.eMns
+            Case EToken.eMns
                 name1 = "-"
-            Case ETkn.eMUL
+            Case EToken.eMUL
                 name1 = "*"
-            Case ETkn.eDIV
+            Case EToken.eDIV
                 name1 = "/"
-            Case ETkn.eMOD
+            Case EToken.eMOD
                 name1 = "Mod"
-            Case ETkn.eEq
+            Case EToken.eEq
                 name1 = "="
-            Case ETkn.eNE
+            Case EToken.eNE
                 name1 = "<>"
             Case Else
                 Return Nothing
@@ -1079,7 +1079,7 @@ Public Class TPrj
         ' for Find
         For Each fnc In tp1.FncCla
 
-            If fnc.TypeFnc = ETkn.eOperator AndAlso fnc.NameFnc() = name1 Then
+            If fnc.TypeFnc = EToken.eOperator AndAlso fnc.NameFnc() = name1 Then
                 ' 演算子オーバーロード関数で名前が同じ場合
 
                 Return fnc
@@ -1089,13 +1089,13 @@ Public Class TPrj
         Return Nothing
     End Function
 
-    Sub Pop(vvvar As TList(Of TList(Of TVar)))
+    Sub Pop(vvvar As TList(Of TList(Of TVariable)))
         vvvar.RemoveAt(vvvar.Count - 1)
     End Sub
 
     ' オーバーロードしているメソッド(OvrFnc)とオーバーロードされているメソッド(OvredFnc)をセットする
-    Public Sub SetOvrFncSub(cla1 As TCls, fnc1 As TFnc)
-        Dim i1 As Integer, tp1 As TCls, tp2 As TCls, all_eq As Boolean
+    Public Sub SetOvrFncSub(cla1 As TClass, fnc1 As TFunction)
+        Dim i1 As Integer, tp1 As TClass, tp2 As TClass, all_eq As Boolean
 
         ' すべてのスーパークラスに対し
         For Each cla2 In cla1.SuperCla
@@ -1143,7 +1143,7 @@ Public Class TPrj
     End Sub
 
     ' fnc1をオーバーロードしているメソッド(OvredFnc)の子孫をセットする
-    Public Sub SetEqOvredFncAll(fnc1 As TFnc, vfnc As TList(Of TFnc))
+    Public Sub SetEqOvredFncAll(fnc1 As TFunction, vfnc As TList(Of TFunction))
         For Each fnc2 In fnc1.OvredFnc
             vfnc.Add(fnc2)
 
@@ -1212,7 +1212,7 @@ Public Class TPrj
 
     ' 間接呼び出しをセットする
     Public Sub SetCallAll()
-        Dim changed As Boolean, v As New TList(Of TFnc), i1 As Integer
+        Dim changed As Boolean, v As New TList(Of TFunction), i1 As Integer
 
         '  すべてのクラスに対し
         For Each cla1 In vCla
@@ -1324,7 +1324,7 @@ Public Class TPrj
         Next
     End Sub
 
-    Sub FncHtml(sw As TStringWriter, fnc1 As TFnc)
+    Sub FncHtml(sw As TStringWriter, fnc1 As TFunction)
         Dim fname As String
 
         If fnc1.ClaFnc IsNot Nothing AndAlso fnc1.ClaFnc.SrcCla IsNot Nothing Then
@@ -1338,7 +1338,7 @@ Public Class TPrj
 
     ' 間接呼び出しをCallToAll.htmlに書く
     Sub DmpCallToAll()
-        Dim v1 As New TList(Of TFnc), v2 As New TList(Of TFnc), fnc1 As TFnc
+        Dim v1 As New TList(Of TFunction), v2 As New TList(Of TFunction), fnc1 As TFunction
         Dim sw As TStringWriter
 
         sw = New TStringWriter()
@@ -1399,8 +1399,8 @@ Public Class TPrj
     End Sub
 
     ' 関数のノードをグラフに追加する
-    Public Function AddFncGraph(dic1 As Dictionary(Of Object, TFlowNode), fnc1 As TFnc) As TFncNode
-        Dim fncnd As TFncNode, fncnd2 As TFncNode, fnc2 As TFnc
+    Public Function AddFncGraph(dic1 As Dictionary(Of Object, TFlowNode), fnc1 As TFunction) As TFncNode
+        Dim fncnd As TFncNode, fncnd2 As TFncNode, fnc2 As TFunction
 
         ' 関数のノードを作る。
         fncnd = New TFncNode(fnc1)
@@ -1453,7 +1453,7 @@ Public Class TPrj
     End Function
 
     ' 変数参照のノードをグラフに追加する
-    Public Function AddRefGraph(dic1 As Dictionary(Of Object, TFlowNode), ref1 As TRef) As TRefNode
+    Public Function AddRefGraph(dic1 As Dictionary(Of Object, TFlowNode), ref1 As TReference) As TRefNode
         Dim refnd As TRefNode, fncnd As TFncNode
 
         ' 変数参照のノードを作る。
@@ -1485,7 +1485,7 @@ Public Class TPrj
 
     ' 変数参照のグラフを作る
     Public Sub MakeRefGraph()
-        Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode), vfnc As List(Of TFnc)
+        Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode), vfnc As List(Of TFunction)
         Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, idx As Integer, def_ref As Boolean
         Dim sw As New TStringWriter, file_name As String
 
@@ -1501,7 +1501,7 @@ Public Class TPrj
             ' すべてのフィールドに対し
             For Each fld1 In cla1.FldCla
 
-                If True OrElse cla1.NameVar = "TApp" AndAlso fld1.NameVar = "KndApp" Then
+                If True OrElse cla1.NameVar = "TApply" AndAlso fld1.NameVar = "KndApp" Then
 
                     For idx = 0 To 1
 
@@ -1510,7 +1510,7 @@ Public Class TPrj
                         ' ノードの辞書を初期化する
                         TFlowNode.CntNd = 0
                         dic1 = New Dictionary(Of Object, TFlowNode)()
-                        vfnc = New List(Of TFnc)()
+                        vfnc = New List(Of TFunction)()
 
                         ' すべてのフィールド参照に対し
                         For Each ref1 In fld1.RefVar
@@ -1636,7 +1636,7 @@ Public Class TPrj
         Next
     End Sub
 
-    Public Function WriteInheritanceHierarchy(class_sw As StringWriter, cls1 As TCls) As Integer
+    Public Function WriteInheritanceHierarchy(class_sw As StringWriter, cls1 As TClass) As Integer
         Dim indent As Integer
 
         If cls1.SuperCla.Count <> 0 Then
@@ -1653,7 +1653,7 @@ Public Class TPrj
     Public Sub MakeAllHtml(out_dir As String)
         Dim all_class_dir As String, class_dir As String, paht1 As String, sw As TStringWriter, index_sw As New StringWriter, class_sw As StringWriter
         Dim indent As Integer, com_str As String, fname As String, html_file_name As String, html_class_file_name As String, svg_file_name As String
-        Dim vfnc As List(Of TFnc), idx As Integer, def_ref As Boolean, vref As List(Of TRef), vfld As TList(Of TFld), fld2 As TFld
+        Dim vfnc As List(Of TFunction), idx As Integer, def_ref As Boolean, vref As List(Of TReference), vfld As TList(Of TField), fld2 As TField
 
         all_class_dir = out_dir + "html"
         index_sw.WriteLine(TCodeGenerator.HTMLHead)
@@ -1720,11 +1720,11 @@ Public Class TPrj
                                     def_ref = IIf(idx = 0, True, False)
                                     sw.WriteLine("<h2>{0}</h2>", IIf(def_ref, "このフィールドに値を代入している関数", "このフィールドの値を参照している関数"))
 
-                                    vref = New TList(Of TRef)(From ref1 In fld1.RefVar Where ref1.DefRef = def_ref)
+                                    vref = New TList(Of TReference)(From ref1 In fld1.RefVar Where ref1.DefRef = def_ref)
                                     If vref.Count = 0 Then
                                         sw.WriteLine("<h3>なし</h3>")
                                     Else
-                                        vfnc = New List(Of TFnc)()
+                                        vfnc = New List(Of TFunction)()
                                         sw.WriteLine("<ul>")
                                         For Each ref1 In vref
                                             If Not vfnc.Contains(ref1.FncRef) Then
@@ -1813,14 +1813,14 @@ Public Class TPrj
                                     def_ref = IIf(idx = 0, True, False)
                                     sw.WriteLine("<h2>{0}</h2>", IIf(def_ref, "この関数が値を代入しているフィールド", "この関数が値を参照しているフィールド"))
 
-                                    vref = New TList(Of TRef)(From ref1 In fnc1.RefFnc Where ref1.DefRef = def_ref AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFld)
+                                    vref = New TList(Of TReference)(From ref1 In fnc1.RefFnc Where ref1.DefRef = def_ref AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TField)
                                     If vref.Count = 0 Then
                                         sw.WriteLine("<h3>なし</h3>")
                                     Else
-                                        vfld = New TList(Of TFld)()
+                                        vfld = New TList(Of TField)()
                                         sw.WriteLine("<ul>")
                                         For Each ref1 In vref
-                                            fld2 = CType(ref1.VarRef, TFld)
+                                            fld2 = CType(ref1.VarRef, TField)
                                             If Not vfld.Contains(fld2) Then
                                                 ' 未処理の場合
 
@@ -1861,7 +1861,7 @@ Public Class TPrj
     Public Sub MakePrjAllSrc()
         Dim out_dir As String
         Dim java_code As TJavaCodeGenerator, sw As TStringWriter
-        Dim dic1 As Dictionary(Of String, ETkn), vtkn_name As Dictionary(Of ETkn, String)
+        Dim dic1 As Dictionary(Of String, EToken), vtkn_name As Dictionary(Of EToken, String)
         Dim fname As String
 
         out_dir = OutDir + "\"
@@ -1928,10 +1928,10 @@ Public Class TPrj
         Return sw.ToString()
     End Function
 
-    Public Shared Function GetHtmlFileName(cls_fld_fnc As TVar) As String
-        If TypeOf cls_fld_fnc Is TCls OrElse TypeOf cls_fld_fnc Is TFld Then
+    Public Shared Function GetHtmlFileName(cls_fld_fnc As TVariable) As String
+        If TypeOf cls_fld_fnc Is TClass OrElse TypeOf cls_fld_fnc Is TField Then
             Return HexString(cls_fld_fnc.NameVar)
-        ElseIf TypeOf cls_fld_fnc Is TFnc Then
+        ElseIf TypeOf cls_fld_fnc Is TFunction Then
             Return cls_fld_fnc.IdxVar.ToString()
         Else
             Debug.Assert(False)
@@ -1939,7 +1939,7 @@ Public Class TPrj
         End If
     End Function
 
-    Public Sub CheckRefVar(ref1 As TRef)
+    Public Sub CheckRefVar(ref1 As TReference)
         Dim fname As String
 
         If ref1.VarRef Is Nothing Then
@@ -1951,10 +1951,10 @@ Public Class TPrj
 End Class
 
 Public Class TDelegatePair
-    Public ClaDel As TCls
-    Public FncDel As TFnc
+    Public ClaDel As TClass
+    Public FncDel As TFunction
 
-    Public Sub New(cla1 As TCls, fnc1 As TFnc)
+    Public Sub New(cla1 As TClass, fnc1 As TFunction)
         ClaDel = cla1
         FncDel = fnc1
     End Sub
@@ -1970,9 +1970,9 @@ End Class
 
 Public Class TRefNode
     Inherits TFlowNode
-    Public RefNode As TRef
+    Public RefNode As TReference
 
-    Public Sub New(ref1 As TRef)
+    Public Sub New(ref1 As TReference)
         CntNd = CntNd + 1
         IdxNd = CntNd
         RefNode = ref1
@@ -1981,9 +1981,9 @@ End Class
 
 Public Class TFncNode
     Inherits TFlowNode
-    Public FncNode As TFnc
+    Public FncNode As TFunction
 
-    Public Sub New(fnc1 As TFnc)
+    Public Sub New(fnc1 As TFunction)
         CntNd = CntNd + 1
         IdxNd = CntNd
         FncNode = fnc1

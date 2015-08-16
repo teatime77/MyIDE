@@ -8,7 +8,7 @@ Partial Public Class MainPage
     Inherits UserControl
 
     Dim gApp As TApplication
-    Dim gPrj As TPrj
+    Dim gPrj As TProject
     Dim gTimerInterval As Integer
     Dim gTimer As DispatcherTimer
     Dim gDataflowTimer As DispatcherTimer
@@ -63,9 +63,9 @@ Partial Public Class MainPage
     End Sub
 
     Async Sub LoadPrj()
-        Dim prj1 As TPrj, nav2 As TNavCSE, data_flow As TDataflow
+        Dim prj1 As TProject, nav2 As TNavCSE, data_flow As TDataflow
 
-        prj1 = New TPrj()
+        prj1 = New TProject()
         prj1.SrcFileNames = PrjFiles(PrjIdx)
 
         ' オリジナルのソースを読む
@@ -76,14 +76,14 @@ Partial Public Class MainPage
         prj1.MainFunctionName = "GlobalRule"
 
         For Each fname In prj1.SrcFileNames
-            Dim src1 As TSrc, s As String, vtext As String()
+            Dim src1 As TSourceFile, s As String, vtext As String()
 
             s = Await gClient.GetStringAsync(New Uri(prj1.SrcDir + "/" + fname))
             vtext = s.Replace(vbCr, "").Split(New Char() {vbLf(0)})
             If fname = "lib.txt" Then
-                src1 = New TSrc("@lib.txt", vtext)
+                src1 = New TSourceFile("@lib.txt", vtext)
             Else
-                src1 = New TSrc(fname, vtext)
+                src1 = New TSourceFile(fname, vtext)
             End If
             prj1.SrcPrj.Add(src1)
 
@@ -92,7 +92,7 @@ Partial Public Class MainPage
 
         prj1.Compile()
 
-        Dim src2 As TSrc
+        Dim src2 As TSourceFile
 
         src2 = prj1.SrcPrj(2)
 
@@ -159,14 +159,14 @@ Partial Public Class MainPage
         font1.CharWFont = 6.9
     End Sub
 
-    Public Sub MakeTextLineFig(dc As TDrawCmp, pos As TPnt, line As FLine, font1 As TFont, sel_ref As TRef)
+    Public Sub MakeTextLineFig(dc As TDrawCmp, pos As TPnt, line As FLine, font1 As TFont, sel_ref As TReference)
         Dim x2 As Integer, brs As TColor, s As String, w As Integer
 
         x2 = 2
         ' for ???
         For Each txt In line.TextLine
 
-            If sel_ref IsNot Nothing AndAlso TypeOf txt.ObjFig Is TRef AndAlso sel_ref.VarRef Is CType(txt.ObjFig, TRef).VarRef Then
+            If sel_ref IsNot Nothing AndAlso TypeOf txt.ObjFig Is TReference AndAlso sel_ref.VarRef Is CType(txt.ObjFig, TReference).VarRef Then
                 brs = TColor.Orange
             Else
                 Select Case txt.TypeTxt
@@ -199,16 +199,16 @@ Partial Public Class MainPage
                     End If
                 Case EFigType.eResFig
                     Select Case txt.TknTxt
-                        Case ETkn.eAs, ETkn.eTo, ETkn.eIs, ETkn.eIsNot
+                        Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot
                             s = " " + txt.TextTxt + " "
-                        Case ETkn.eThen
+                        Case EToken.eThen
                             s = " " + txt.TextTxt
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
                 Case EFigType.eRefFig
                     Select Case txt.TknTxt
-                        Case ETkn.eRef
+                        Case EToken.eRef
                             If txt.TextTxt = "null" Then
                                 s = "Nothing"
                             ElseIf txt.TextTxt = "this" Then
@@ -254,13 +254,13 @@ Partial Public Class MainPage
             Return code_gen
         End If
 
-        If TypeOf obj Is TStmt Then
-            Dim stmt1 As TStmt = CType(obj, TStmt)
+        If TypeOf obj Is TStatement Then
+            Dim stmt1 As TStatement = CType(obj, TStatement)
 
 
-            If TypeOf stmt1 Is TAsn OrElse TypeOf stmt1 Is TCall Then
+            If TypeOf stmt1 Is TAssignment OrElse TypeOf stmt1 Is TCall Then
                 code_gen.StmtSrc(stmt1, 0)
-            ElseIf TypeOf stmt1 Is TIfBlc Then
+            ElseIf TypeOf stmt1 Is TIfBlock Then
                 code_gen.IfBlcHeadSrc(stmt1, 0)
                 code_gen.NL(stmt1)
             ElseIf TypeOf stmt1 Is TSelect Then
@@ -273,11 +273,11 @@ Partial Public Class MainPage
             code_gen.TrmSrc(CType(obj, TTerm))
             code_gen.NL(obj)
 
-        ElseIf TypeOf obj Is TSrc Then
-            code_gen.MakeBasicSrc(CType(obj, TSrc))
+        ElseIf TypeOf obj Is TSourceFile Then
+            code_gen.MakeBasicSrc(CType(obj, TSourceFile))
 
-        ElseIf TypeOf obj Is TFnc Then
-            code_gen.FncSrc(CType(obj, TFnc))
+        ElseIf TypeOf obj Is TFunction Then
+            code_gen.FncSrc(CType(obj, TFunction))
 
         Else
 
@@ -356,7 +356,7 @@ Partial Public Class MainPage
                 ShowObj(canRefChangeableUpStmt, gDataflow.RefChangeableUpStmt)
 
             Case EAnalyzeChangeableFld.ValueChangePropagation
-                Dim stmt1 As TStmt = TDataflow.UpStmt(gDataflow.ChangePropagation.RefChn)
+                Dim stmt1 As TStatement = TDataflow.UpStmt(gDataflow.ChangePropagation.RefChn)
 
                 ShowObj(canChangePropagation, stmt1)
 

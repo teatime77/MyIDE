@@ -20,8 +20,8 @@ Public Class TNavCSE
 
                 For Each trm2 In dat1.vTrm
                     If Sys.IsEqTrm(trm1, trm2) Then
-                        s1 = TPrj.TrmStr(dat1.BFM, trm1)
-                        s2 = TPrj.TrmStr(dat1.BFM, trm2)
+                        s1 = TProject.TrmStr(dat1.BFM, trm1)
+                        s2 = TProject.TrmStr(dat1.BFM, trm2)
                         Debug.Assert(s1 = s2)
                         '                        Debug.WriteLine("共通部分式 {0} {1}", dat1.FncCSE.FullName(), s1)
                         Exit For
@@ -33,7 +33,7 @@ Public Class TNavCSE
         End If
     End Sub
 
-    Public Overrides Sub NavFnc(fnc1 As TFnc, arg1 As Object)
+    Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
         Dim dat1 As New TNavCSEDat
 
         If fnc1.BlcFnc IsNot Nothing Then
@@ -45,12 +45,12 @@ End Class
 
 ' -------------------------------------------------------------------------------- TNavCSEDat
 Public Class TNavCSEDat
-    Public FncCSE As TFnc
+    Public FncCSE As TFunction
     Public vTrm As New TList(Of TTerm)
     Public BFM As TBasicCodeGenerator
 
     Public Sub New()
-        BFM = New TBasicCodeGenerator(TPrj.Prj)
+        BFM = New TBasicCodeGenerator(TProject.Prj)
     End Sub
 End Class
 
@@ -73,21 +73,21 @@ Public Class TDataflow
     Public Const CurrentPrefix As String = "_current"
     Public Const ChildPrefix As String = "_child"
     Public Changed As Boolean
-    Public RuleFnc As TFnc
-    Public DoneVar As New TList(Of TVar)
-    Public ChangeableFldList As TList(Of TFld)
-    Public PrjDF As TPrj
-    Public GlobalRule As TFnc
-    Public RuleCp As TFnc
-    Public ChangeableFld As TFld
+    Public RuleFnc As TFunction
+    Public DoneVar As New TList(Of TVariable)
+    Public ChangeableFldList As TList(Of TField)
+    Public PrjDF As TProject
+    Public GlobalRule As TFunction
+    Public RuleCp As TFunction
+    Public ChangeableFld As TField
     Public Change As TChange
-    Public RefChangeable As TRef
-    Public RefChangeableUpStmt As TStmt
-    Public NormalizedCondition As TApp
-    Public PreCondition As TApp
+    Public RefChangeable As TReference
+    Public RefChangeableUpStmt As TStatement
+    Public NormalizedCondition As TApply
+    Public PreCondition As TApply
     Public ChangePropagation As TChange
-    Public LocalVariableAssignment As TAsn
-    Public SyncFldList As New TList(Of TFld)
+    Public LocalVariableAssignment As TAssignment
+    Public SyncFldList As New TList(Of TField)
     Public RuleCodeGen As TBasicCodeGenerator
     Public SyncClassName As String
     Public SyncClassSrc As String
@@ -107,33 +107,33 @@ Public Class TDataflow
             Return UpStmt(CType(obj1, TTerm).UpTrm)
         ElseIf TypeOf obj1 Is IUpList Then
             Return UpStmt(CType(obj1, IUpList).GetUpList())
-        ElseIf TypeOf obj1 Is TBlc Then
-            Return UpStmt(CType(obj1, TBlc).ParentStmt)
-        ElseIf TypeOf obj1 Is TStmt Then
-            Return CType(obj1, TStmt)
-        ElseIf TypeOf obj1 Is TFnc Then
+        ElseIf TypeOf obj1 Is TBlock Then
+            Return UpStmt(CType(obj1, TBlock).ParentStmt)
+        ElseIf TypeOf obj1 Is TStatement Then
+            Return CType(obj1, TStatement)
+        ElseIf TypeOf obj1 Is TFunction Then
             Return obj1
-        ElseIf TypeOf obj1 Is TVar Then
-            Return UpStmt(CType(obj1, TVar).UpVar)
+        ElseIf TypeOf obj1 Is TVariable Then
+            Return UpStmt(CType(obj1, TVariable).UpVar)
         Else
             Debug.WriteLine("@i")
             Return Nothing
         End If
     End Function
 
-    Public Shared Function UpStmtProper(obj1 As Object) As TStmt
+    Public Shared Function UpStmtProper(obj1 As Object) As TStatement
         Dim up_obj As Object
 
         up_obj = UpStmt(obj1)
-        If TypeOf up_obj Is TStmt Then
-            Return CType(up_obj, TStmt)
+        If TypeOf up_obj Is TStatement Then
+            Return CType(up_obj, TStatement)
         Else
             Return Nothing
         End If
     End Function
 
     Public Shared Function UpWith(obj1 As Object) As TWith
-        Dim stmt1 As TStmt
+        Dim stmt1 As TStatement
 
         stmt1 = UpStmtProper(obj1)
         Do While stmt1 IsNot Nothing
@@ -147,7 +147,7 @@ Public Class TDataflow
     End Function
 
     Public Shared Function UpFor(obj1 As Object) As TFor
-        Dim stmt1 As TStmt
+        Dim stmt1 As TStatement
 
         stmt1 = UpStmtProper(obj1)
         Do While stmt1 IsNot Nothing
@@ -161,8 +161,8 @@ Public Class TDataflow
     End Function
 
     ' 値が変化したときの条件を正規化する。
-    Public Function NormalizeValueChangedCondition(change As TChange, ref1 As TRef, ref_type As ERefType) As TApp
-        Dim J As TApp
+    Public Function NormalizeValueChangedCondition(change As TChange, ref1 As TReference, ref_type As ERefType) As TApply
+        Dim J As TApply
         Dim trans As TTransRelative
 
         Select Case ref_type
@@ -175,7 +175,7 @@ Public Class TDataflow
                     trans = New TTransRelative(E相対位置.直前)
                 End If
 
-                J = TApp.NewOpr(ETkn.eAnd)
+                J = TApply.NewOpr(EToken.eAnd)
                 For Each trm In change.ConditionChn.ArgApp
                     Dim trm_trans As TTerm
 
@@ -206,27 +206,27 @@ Public Class TDataflow
     End Function
 
     ' 影響され得る文のリストを得る
-    Public Function GetMayBeAffectedStmtList(stmt As TStmt) As TList(Of TStmt)
-        Dim may_be_affected_stmt As New TList(Of TStmt)
+    Public Function GetMayBeAffectedStmtList(stmt As TStatement) As TList(Of TStatement)
+        Dim may_be_affected_stmt As New TList(Of TStatement)
 
-        If TypeOf stmt Is TAsn Then
+        If TypeOf stmt Is TAssignment Then
             ' 代入文の場合
 
             ' 代入先の変数の値の変化を波及させる。
-            may_be_affected_stmt.Add(CType(stmt, TAsn))
+            may_be_affected_stmt.Add(CType(stmt, TAssignment))
 
         ElseIf TypeOf stmt Is TCall Then
             ' メソッド呼び出しの場合
 
-            Dim call1 As TCall, ref_assert As TRef
+            Dim call1 As TCall, ref_assert As TReference
 
             call1 = CType(stmt, TCall)
-            ref_assert = CType(call1.AppCall.FncApp, TRef)
+            ref_assert = CType(call1.AppCall.FncApp, TReference)
 
             ' メソッド呼び出しはAssertのみ
             Debug.Assert(ref_assert.NameRef = "Assert")
 
-        ElseIf TypeOf stmt Is TIfBlc Then
+        ElseIf TypeOf stmt Is TIfBlock Then
             ' Ifブロックの場合
 
             Dim up_if As TIf, eq_after As Boolean = False
@@ -274,15 +274,15 @@ Public Class TDataflow
     End Function
 
     ' 有効な文を波及させる。
-    Public Sub PropagateValidStmt(valid_stmt As Dictionary(Of TStmt, TStmt))
+    Public Sub PropagateValidStmt(valid_stmt As Dictionary(Of TStatement, TStatement))
 
-        Dim vwork_stmt As TList(Of TStmt)
+        Dim vwork_stmt As TList(Of TStatement)
         Dim enum_localRef As TEnumInnerLocalRef
 
         enum_localRef = New TEnumInnerLocalRef()
-        vwork_stmt = New TList(Of TStmt)(valid_stmt.Values)
+        vwork_stmt = New TList(Of TStatement)(valid_stmt.Values)
         Do While vwork_stmt.Count <> 0
-            Dim wk_stmt As TStmt, up_stmt As TStmt, asn_stmt As TAsn
+            Dim wk_stmt As TStatement, up_stmt As TStatement, asn_stmt As TAssignment
 
             wk_stmt = vwork_stmt(0)
             vwork_stmt.RemoveAt(0)
@@ -312,7 +312,7 @@ Public Class TDataflow
                         ' 代入の場合
 
                         ' 有効な文が局所変数の値を参照する場合、局所変数への代入文も有効とする。
-                        asn_stmt = CType(UpStmt(ref_f), TAsn)
+                        asn_stmt = CType(UpStmt(ref_f), TAssignment)
                         If Not valid_stmt.ContainsKey(asn_stmt) Then
                             ' 未処理の場合
 
@@ -321,10 +321,10 @@ Public Class TDataflow
 
                             ' 局所変数の宣言文も有効とする。
                             Dim decl_stmt = UpStmt(var_f)
-                            Debug.Assert(decl_stmt IsNot Nothing AndAlso TypeOf decl_stmt Is TVarDecl)
-                            If Not valid_stmt.ContainsKey(CType(decl_stmt, TVarDecl)) Then
+                            Debug.Assert(decl_stmt IsNot Nothing AndAlso TypeOf decl_stmt Is TVariableDeclaration)
+                            If Not valid_stmt.ContainsKey(CType(decl_stmt, TVariableDeclaration)) Then
 
-                                valid_stmt.Add(CType(decl_stmt, TVarDecl), CType(decl_stmt, TVarDecl))
+                                valid_stmt.Add(CType(decl_stmt, TVariableDeclaration), CType(decl_stmt, TVariableDeclaration))
                             End If
 
                             '-------------------------------------------------- 局所変数への代入文を表示する。
@@ -340,28 +340,28 @@ Public Class TDataflow
 
     ' 値が変化し得るフィールドを解析する
     Public Sub AnalyzeChangeableFld()
-        Dim prj1 As TPrj = PrjDF
-        Dim rule As TFnc = GlobalRule
+        Dim prj1 As TProject = PrjDF
+        Dim rule As TFunction = GlobalRule
         Dim root_change As TChange
-        Dim valid_stmt As Dictionary(Of TStmt, TStmt)
-        Dim me_ref As TRef, typeof_app As TApp
+        Dim valid_stmt As Dictionary(Of TStatement, TStatement)
+        Dim me_ref As TReference, typeof_app As TApply
         Dim Unprocessed As New TList(Of TChange)      ' 未処理の(条件, 変数)のペアのリスト Unprocessed
         Dim vchange_all As New TList(Of TChange)    ' 処理済みの(条件, 変数)のペアのリスト Processed
-        Dim dic_may_be_affected_stmt_list As New Dictionary(Of TStmt, TList(Of TStmt))
+        Dim dic_may_be_affected_stmt_list As New Dictionary(Of TStatement, TList(Of TStatement))
 
         SyncClassName = "TSync_" + ChangeableFld.FullFldName()
 
         '-------------------------------------------------- 処理対象のフィールドを表示する。
 
-        valid_stmt = New Dictionary(Of TStmt, TStmt)()
+        valid_stmt = New Dictionary(Of TStatement, TStatement)()
 
         RuleCp = Sys.CopyFnc(rule)
         RuleCp.NameVar = RuleCp.NameVar + "_" + ChangeableFld.FullFldName()
         rule.ClaFnc.FncCla.Add(RuleCp)
 
         '            text_block_class = prj1.GetCla("TTextBlock")
-        me_ref = New TRef(RuleCp.ArgFnc(0))
-        typeof_app = TApp.NewTypeOf(me_ref, ChangeableFld.TypeVar)
+        me_ref = New TReference(RuleCp.ArgFnc(0))
+        typeof_app = TApply.NewTypeOf(me_ref, ChangeableFld.TypeVar)
 
         ' クラスTViewのオブジェクトのフィールドMarginLeftの値が変化した場合
         root_change = New TChange(Nothing, ChangeableFld, Nothing, typeof_app)
@@ -420,7 +420,7 @@ Public Class TDataflow
                         MakeInvokeCode(Change, ref_type)
 
                         ' 影響され得る文のリストを得る
-                        Dim may_be_affected_stmt_list As TList(Of TStmt)
+                        Dim may_be_affected_stmt_list As TList(Of TStatement)
 
                         If dic_may_be_affected_stmt_list.ContainsKey(RefChangeableUpStmt) Then
 
@@ -435,11 +435,11 @@ Public Class TDataflow
                         '-------------------------------------------------- 影響され得る文のリストを表示する。
 
                         ' 影響され得る代入文から代入先の変数の値の変化を波及させる。
-                        For Each asn1 In (From x In may_be_affected_stmt_list Where TypeOf x Is TAsn Select CType(x, TAsn))
-                            Dim ref_asn As TRef
+                        For Each asn1 In (From x In may_be_affected_stmt_list Where TypeOf x Is TAssignment Select CType(x, TAssignment))
+                            Dim ref_asn As TReference
 
                             ' 代入先の変数参照を得る。
-                            ref_asn = CType(asn1.RelAsn.ArgApp(0), TRef)
+                            ref_asn = CType(asn1.RelAsn.ArgApp(0), TReference)
 
                             ' 代入先の変数参照が処理済みか調べる
                             Dim vchn = (From c In vchange_all Where c.RefChn Is ref_asn Select c).ToList()
@@ -613,7 +613,7 @@ Public Class TDataflow
     End Sub
 
     ' データフローのソースを作る。
-    Public Sub MakeDataflowSrc(prj1 As TPrj, valid_stmt As Dictionary(Of TStmt, TStmt))
+    Public Sub MakeDataflowSrc(prj1 As TProject, valid_stmt As Dictionary(Of TStatement, TStatement))
         ' 同期が必要なフィールドを探す
         Dim find_sync_field As New TFindSyncField
 
@@ -626,9 +626,9 @@ Public Class TDataflow
         nav_parallel_for_each.NavFnc(RuleCp, Nothing)
 
         For Each call_f In nav_parallel_for_each.ParallelForEachList
-            Dim children_fld As TFld
+            Dim children_fld As TField
 
-            children_fld = CType(CType(call_f.AppCall.ArgApp(0), TDot).VarRef, TFld)
+            children_fld = CType(CType(call_f.AppCall.ArgApp(0), TDot).VarRef, TField)
             MakeParallelForEach(prj1, RuleCp, ChangeableFld, SyncFldList, call_f, children_fld)
         Next
 
@@ -637,7 +637,7 @@ Public Class TDataflow
         nav_all_stmt.NavFnc(RuleCp, Nothing)
 
         ' _Set_* の呼び出しのソースを作る。
-        Dim vasn = From x In nav_all_stmt.AllStmts Where TypeOf (x) Is TAsn Select CType(x, TAsn)
+        Dim vasn = From x In nav_all_stmt.AllStmts Where TypeOf (x) Is TAssignment Select CType(x, TAssignment)
         For Each x In vasn
             If TypeOf x.RelAsn.ArgApp(0) Is TDot Then
                 Dim dot1 As TDot = CType(x.RelAsn.ArgApp(0), TDot)
@@ -645,13 +645,13 @@ Public Class TDataflow
                 If dot1.TrmDot Is Nothing Then
                     ' 自身のフィールドへの代入の場合
 
-                    Dim fld1 As TFld = CType(dot1.VarRef, TFld)
+                    Dim fld1 As TField = CType(dot1.VarRef, TField)
 
                     Dim with1 As TWith = UpWith(x.ParentStmt)
                     Debug.Assert(with1 IsNot Nothing)
 
-                    Dim with_cls As TCls = prj1.GetTermType(with1.TermWith)
-                    Dim set_fnc As TFnc = TPrj.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm))
+                    Dim with_cls As TClass = prj1.GetTermType(with1.TermWith)
+                    Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm))
                     If set_fnc IsNot Nothing Then
 
                         x.AfterSrc += "." + set_fnc.NameVar + "()" + vbCrLf
@@ -664,7 +664,7 @@ Public Class TDataflow
         Next
 
         For Each stmt_f In nav_all_stmt.AllStmts
-            If TypeOf stmt_f Is TVarDecl Then
+            If TypeOf stmt_f Is TVariableDeclaration Then
                 stmt_f.ValidStmt = True
             Else
                 stmt_f.ValidStmt = valid_stmt.ContainsKey(stmt_f)
@@ -717,14 +717,14 @@ Public Class TDataflow
     End Sub
 
     ' 規則のソースを作る
-    Public Sub MakeRuleSrc(prj1 As TPrj, changeable_fld As TFld)
+    Public Sub MakeRuleSrc(prj1 As TProject, changeable_fld As TField)
 
-        Dim self_var As TVar, sync_var As TVar
+        Dim self_var As TVariable, sync_var As TVariable
 
         RuleCodeGen = New TBasicCodeGenerator(prj1)
 
         self_var = RuleCp.ArgFnc(0)
-        sync_var = New TVar("_sync", New TCls(SyncClassName))
+        sync_var = New TVariable("_sync", New TClass(SyncClassName))
 
         RuleCp.BlcFnc.StmtBlc(0).BeforeSrc = String.Format("Dim {0} As {1} = CType(_sync.SelfSync,{1})", self_var.NameVar, self_var.TypeVar.NameVar)
 
@@ -736,9 +736,9 @@ Public Class TDataflow
 
             For Each ref1 In sync_fld.RefVar
                 If ref1.FncRef Is RuleCp Then
-                    Dim stmt1 As TStmt = UpStmt(ref1)
+                    Dim stmt1 As TStatement = UpStmt(ref1)
                     If ref1.DefRef Then
-                        Debug.Assert(TypeOf stmt1 Is TAsn)
+                        Debug.Assert(TypeOf stmt1 Is TAssignment)
 
                         Dim sync_set As String = String.Format("CType(.Sync, {0}).{1}.Set()", SyncClassName, signal_name)
                         If stmt1.ValidStmt Then
@@ -748,7 +748,7 @@ Public Class TDataflow
                         Else
                             ' 無効な文の場合
 
-                            Dim stmt2 As TStmt = stmt1, up_stmt As TStmt
+                            Dim stmt2 As TStatement = stmt1, up_stmt As TStatement
 
                             up_stmt = UpStmtProper(stmt2.ParentStmt)
                             Do While up_stmt IsNot Nothing
@@ -756,7 +756,7 @@ Public Class TDataflow
                                 If up_stmt.ValidStmt Then
                                     ' 有効の場合
 
-                                    If Not (TypeOf up_stmt Is TIf OrElse TypeOf up_stmt Is TIfBlc OrElse TypeOf up_stmt Is TSelect OrElse TypeOf up_stmt Is TCase OrElse TypeOf up_stmt Is TWith) Then
+                                    If Not (TypeOf up_stmt Is TIf OrElse TypeOf up_stmt Is TIfBlock OrElse TypeOf up_stmt Is TSelect OrElse TypeOf up_stmt Is TCase OrElse TypeOf up_stmt Is TWith) Then
 
                                         Debug.WriteLine("sync set {0}", up_stmt.GetType())
                                         Debug.Assert(False)
@@ -770,7 +770,7 @@ Public Class TDataflow
                             Loop
                         End If
                     Else
-                        Debug.Assert(TypeOf stmt1 Is TAsn)
+                        Debug.Assert(TypeOf stmt1 Is TAssignment)
 
                         Dim ref_type = TDataflow.GetRefType(ref1)
                         Select Case ref_type
@@ -780,7 +780,7 @@ Public Class TDataflow
                             Case ERefType.不特定の子のフィールド
                                 Dim sw1 As New StringWriter
 
-                                Dim children_fld As TFld = AsnAggregateChildrenFld(CType(stmt1, TAsn))
+                                Dim children_fld As TField = AsnAggregateChildrenFld(CType(stmt1, TAssignment))
 
                                 sw1.WriteLine("WaitAll(From _x In .{0} Select CType(_x.Sync, {1}).{2})", children_fld.NameVar, SyncClassName, WaitSyncFldName(sync_fld))
 
@@ -808,7 +808,7 @@ Public Class TDataflow
     End Sub
 
     ' 値が変化し得るフィールドのリストを得る
-    Public Sub SetChangeableFldList(prj1 As TPrj)
+    Public Sub SetChangeableFldList(prj1 As TProject)
         Dim nav_changeable_field As TNavChangeableField
 
         PrjDF = prj1
@@ -817,12 +817,12 @@ Public Class TDataflow
         nav_changeable_field = New TNavChangeableField()
         nav_changeable_field.NavFnc(GlobalRule, Nothing)
 
-        ChangeableFldList = New TList(Of TFld)(nav_changeable_field.dicChangeableFld.Values)
+        ChangeableFldList = New TList(Of TField)(nav_changeable_field.dicChangeableFld.Values)
 
     End Sub
 
     ' 同期用のクラスのソースを作る
-    Public Function MakeSyncClassSrc(prj1 As TPrj, changeable_fld As TFld, sync_fld_list As TList(Of TFld)) As String
+    Public Function MakeSyncClassSrc(prj1 As TProject, changeable_fld As TField, sync_fld_list As TList(Of TField)) As String
         Dim sw As New StringWriter
 
         sw.WriteLine("Public Class {0}", SyncClassName)
@@ -846,22 +846,22 @@ Public Class TDataflow
     End Function
 
     ' 同期のイベントのフィールドの名前を返す
-    Function WaitSyncFldName(sync_fld As TFld) As String
+    Function WaitSyncFldName(sync_fld As TField) As String
         Return "Wait_" + sync_fld.FullFldName()
     End Function
 
     ' 集計の代入文の子のフィールドを返す
-    Function AsnAggregateChildrenFld(asn1 As TAsn) As TFld
+    Function AsnAggregateChildrenFld(asn1 As TAssignment) As TField
         Dim aggr1 As TAggregate = asn1.RelAsn.ArgApp(1)
         Dim dot1 As TDot = CType(aggr1.SeqAggr, TDot)
 
         Debug.Assert(dot1.TrmDot Is Nothing)
 
-        Return CType(dot1.VarRef, TFld)
+        Return CType(dot1.VarRef, TField)
     End Function
 
     ' 並行処理のソースを作る
-    Public Sub MakeParallelForEach(prj1 As TPrj, rule_cp As TFnc, changeable_fld As TFld, sync_fld_list As TList(Of TFld), call1 As TCall, children_fld As TFld)
+    Public Sub MakeParallelForEach(prj1 As TProject, rule_cp As TFunction, changeable_fld As TField, sync_fld_list As TList(Of TField), call1 As TCall, children_fld As TField)
         Dim sw As New StringWriter
 
         sw.WriteLine("Dim _prev As Object = Nothing")
@@ -878,10 +878,10 @@ Public Class TDataflow
         call1.BeforeSrc = sw.ToString()
     End Sub
 
-    Public Shared Function GetRefType(trm1 As TRef) As ERefType
+    Public Shared Function GetRefType(trm1 As TReference) As ERefType
 
         If TypeOf trm1 Is TDot Then
-            Dim dot1 As TDot, dot2 As TDot, ref2 As TRef
+            Dim dot1 As TDot, dot2 As TDot, ref2 As TReference
 
             dot1 = CType(trm1, TDot)
             If dot1.TrmDot Is Nothing Then
@@ -906,19 +906,19 @@ Public Class TDataflow
                         End If
                     End If
 
-                ElseIf TypeOf dot1.TrmDot Is TRef Then
+                ElseIf TypeOf dot1.TrmDot Is TReference Then
 
-                    ref2 = CType(dot1.TrmDot, TRef)
+                    ref2 = CType(dot1.TrmDot, TReference)
                     If ref2.NameRef.StartsWith(ChildPrefix) Then
                         Return ERefType.不特定の子のフィールド
                     End If
                 End If
             End If
 
-        ElseIf TypeOf trm1 Is TRef Then
-            Dim ref1 As TRef
+        ElseIf TypeOf trm1 Is TReference Then
+            Dim ref1 As TReference
 
-            ref1 = CType(trm1, TRef)
+            ref1 = CType(trm1, TReference)
             If ref1.NameRef.StartsWith(CurrentPrefix) Then
                 Return ERefType.自分自身
             Else
@@ -930,16 +930,16 @@ Public Class TDataflow
     End Function
 
     ' 条件を追加する
-    Public Sub AddCondition(stmt1 As TStmt, up_stmt As TStmt, is_parent As Boolean, and1 As TApp)
-        Dim if_blc As TIfBlc, case1 As TCase, if1 As TIf, not1 As TApp, cnd1 As TTerm
+    Public Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, is_parent As Boolean, and1 As TApply)
+        Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
         Dim trans As TTransRelative, is_invalid As Boolean
 
         If TypeOf up_stmt Is TIf Then
-            Debug.Assert(TypeOf stmt1 Is TIfBlc)
-            if_blc = CType(stmt1, TIfBlc)
+            Debug.Assert(TypeOf stmt1 Is TIfBlock)
+            if_blc = CType(stmt1, TIfBlock)
 
-        ElseIf TypeOf up_stmt Is TIfBlc Then
-            if_blc = CType(up_stmt, TIfBlc)
+        ElseIf TypeOf up_stmt Is TIfBlock Then
+            if_blc = CType(up_stmt, TIfBlock)
             if1 = CType(UpStmt(up_stmt.ParentStmt), TIf)
             For Each _child In if1.IfBlc
                 If is_parent Then
@@ -957,7 +957,7 @@ Public Class TDataflow
                     If Not is_invalid Then
 
                         ' 否定の条件を追加する
-                        not1 = TApp.NewOpr(ETkn.eNot)
+                        not1 = TApply.NewOpr(EToken.eNot)
 
                         not1.AddInArg(cnd1)
                     End If
@@ -985,11 +985,11 @@ Public Class TDataflow
     End Sub
 
     ' 余分な条件を取り除いた前提条件を返す
-    Public Function GetPreConditionClean(stmt As TStmt) As TApp
-        Dim pre_cond As TApp
+    Public Function GetPreConditionClean(stmt As TStatement) As TApply
+        Dim pre_cond As TApply
 
         ' 文を実行する前提条件を返す
-        pre_cond = TApp.NewOpr(ETkn.eAnd)
+        pre_cond = TApply.NewOpr(EToken.eAnd)
         CalcPreCondition(stmt, False, pre_cond)
 
         ' 余分な条件を取り除く
@@ -999,13 +999,13 @@ Public Class TDataflow
     End Function
 
     ' 文を実行する前提条件を返す
-    Public Sub CalcPreCondition(stmt1 As TStmt, is_parent As Boolean, and1 As TApp)
-        Dim up_stmt As TStmt, up_obj As Object
+    Public Sub CalcPreCondition(stmt1 As TStatement, is_parent As Boolean, and1 As TApply)
+        Dim up_stmt As TStatement, up_obj As Object
 
-        If TypeOf stmt1 Is TAsn Then
+        If TypeOf stmt1 Is TAssignment Then
         ElseIf TypeOf stmt1 Is TCall Then
         ElseIf TypeOf stmt1 Is TIf Then
-        ElseIf TypeOf stmt1 Is TIfBlc Then
+        ElseIf TypeOf stmt1 Is TIfBlock Then
         ElseIf TypeOf stmt1 Is TSelect Then
         ElseIf TypeOf stmt1 Is TCase Then
         ElseIf TypeOf stmt1 Is TWith Then
@@ -1014,13 +1014,13 @@ Public Class TDataflow
             Debug.Assert(False)
         End If
 
-        If stmt1.TypeStmt = ETkn.eProtected Then
+        If stmt1.TypeStmt = EToken.eProtected Then
             Debug.Assert(False)
         End If
 
         up_obj = UpStmt(stmt1.ParentStmt)
-        If TypeOf up_obj Is TStmt Then
-            up_stmt = CType(up_obj, TStmt)
+        If TypeOf up_obj Is TStatement Then
+            up_stmt = CType(up_obj, TStatement)
 
             '            Debug.WriteLine("前提条件 {0} > {1}", stmt1.TypeStmt, up_stmt.ToString())
 
@@ -1033,7 +1033,7 @@ Public Class TDataflow
                 CalcPreCondition(up_stmt, is_parent, and1)
             End If
 
-        ElseIf TypeOf up_obj Is TFnc Then
+        ElseIf TypeOf up_obj Is TFunction Then
 
         Else
             Debug.Assert(False)
@@ -1041,13 +1041,13 @@ Public Class TDataflow
     End Sub
 
     ' 2個の論理式から得られる推論の結果を得る
-    Public Function BinomialInference(P As TApp, Q As TApp) As EBinomialInference
-        Dim A As TCls, B As TCls, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
+    Public Function BinomialInference(P As TApply, Q As TApply) As EBinomialInference
+        Dim A As TClass, B As TClass, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
 
         Select Case P.TypeApp
-            Case ETkn.eTypeof
-                A = CType(P.ArgApp(1), TRef).VarRef
-                B = CType(Q.ArgApp(1), TRef).VarRef
+            Case EToken.eTypeof
+                A = CType(P.ArgApp(1), TReference).VarRef
+                B = CType(Q.ArgApp(1), TReference).VarRef
 
                 A_subset_B = A.IsSubsetOf(B)
                 B_subset_A = B.IsSubsetOf(A)
@@ -1098,7 +1098,7 @@ Public Class TDataflow
                     End If
                 End If
 
-            Case ETkn.eIs, ETkn.eEq
+            Case EToken.eIs, EToken.eEq
                 Debug.WriteLine("is {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
                 A_EQ_B = Sys.IsEqTrm(P.ArgApp(1), Q.ArgApp(1))
                 If Not P.Negation Then
@@ -1135,7 +1135,7 @@ Public Class TDataflow
                     End If
                 End If
 
-            Case ETkn.eLT
+            Case EToken.eLT
                 Debug.WriteLine("eq {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
                 If Not P.Negation Then
                     If Not Q.Negation Then
@@ -1156,21 +1156,21 @@ Public Class TDataflow
     End Function
 
     ' 余分な条件を取り除く
-    Public Sub CleanCondition(and1 As TApp)
-        Dim i1 As Integer, i2 As Integer, app1 As TApp, app2 As TApp, inf As EBinomialInference
+    Public Sub CleanCondition(and1 As TApply)
+        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
         Dim v As Boolean()
 
         For Each trm In and1.ArgApp
-            If TypeOf trm Is TApp Then
-                app1 = CType(trm, TApp)
+            If TypeOf trm Is TApply Then
+                app1 = CType(trm, TApply)
                 Select Case app1.TypeApp
-                    Case ETkn.eIsNot
+                    Case EToken.eIsNot
                         app1.Negation = Not app1.Negation
-                        app1.TypeApp = ETkn.eIs
+                        app1.TypeApp = EToken.eIs
 
-                    Case ETkn.eNE
+                    Case EToken.eNE
                         app1.Negation = Not app1.Negation
-                        app1.TypeApp = ETkn.eEq
+                        app1.TypeApp = EToken.eEq
                 End Select
             End If
         Next
@@ -1178,14 +1178,14 @@ Public Class TDataflow
         ReDim v(and1.ArgApp.Count - 1)
 
         For i1 = 0 To and1.ArgApp.Count - 1
-            If TypeOf and1.ArgApp(i1) Is TApp Then
-                app1 = CType(and1.ArgApp(i1), TApp)
+            If TypeOf and1.ArgApp(i1) Is TApply Then
+                app1 = CType(and1.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case ETkn.eTypeof, ETkn.eIs, ETkn.eEq
+                    Case EToken.eTypeof, EToken.eIs, EToken.eEq
 
                         For i2 = i1 + 1 To and1.ArgApp.Count - 1
-                            If TypeOf and1.ArgApp(i2) Is TApp Then
-                                app2 = CType(and1.ArgApp(i2), TApp)
+                            If TypeOf and1.ArgApp(i2) Is TApply Then
+                                app2 = CType(and1.ArgApp(i2), TApply)
 
                                 If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
                                     ' 対象が同じ場合
@@ -1215,20 +1215,20 @@ Public Class TDataflow
     End Sub
 
     ' P ∧ Q が無矛盾なら true を返す。
-    Public Function Consistent(P As TApp, Q As TApp) As Boolean
-        Dim i1 As Integer, i2 As Integer, app1 As TApp, app2 As TApp, inf As EBinomialInference
+    Public Function Consistent(P As TApply, Q As TApply) As Boolean
+        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
 
         i1 = 0
         Do While i1 < P.ArgApp.Count
-            If TypeOf P.ArgApp(i1) Is TApp Then
-                app1 = CType(P.ArgApp(i1), TApp)
+            If TypeOf P.ArgApp(i1) Is TApply Then
+                app1 = CType(P.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case ETkn.eTypeof, ETkn.eIs, ETkn.eEq
+                    Case EToken.eTypeof, EToken.eIs, EToken.eEq
 
                         i2 = 0
                         Do While i2 < Q.ArgApp.Count
-                            If TypeOf Q.ArgApp(i2) Is TApp Then
-                                app2 = CType(Q.ArgApp(i2), TApp)
+                            If TypeOf Q.ArgApp(i2) Is TApply Then
+                                app2 = CType(Q.ArgApp(i2), TApply)
 
                                 If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
                                     ' 対象が同じ場合
@@ -1251,8 +1251,8 @@ Public Class TDataflow
         Return True
     End Function
 
-    Public Shared Function GetFieldBy相対位置(cls1 As TCls, rel_pos As E相対位置) As TFld
-        Dim fld1 As TFld, prefix As String = Nothing
+    Public Shared Function GetFieldBy相対位置(cls1 As TClass, rel_pos As E相対位置) As TField
+        Dim fld1 As TField, prefix As String = Nothing
 
         Select Case rel_pos
             Case E相対位置.親
@@ -1309,13 +1309,13 @@ Public Enum EBinomialInference
 End Enum
 
 Public Class TChange
-    Public AsnChn As TAsn
-    Public VariableChn As TVar      ' 値が変化した変数
-    Public RefChn As TRef           ' 値の代入箇所
-    Public ConditionChn As TApp     ' 値が変化したときの条件
+    Public AsnChn As TAssignment
+    Public VariableChn As TVariable      ' 値が変化した変数
+    Public RefChn As TReference           ' 値の代入箇所
+    Public ConditionChn As TApply     ' 値が変化したときの条件
     Public AffectedRefList As New TList(Of TAffectedRef)
 
-    Public Sub New(asn1 As TAsn, var1 As TVar, ref1 As TRef, cnd1 As TApp)
+    Public Sub New(asn1 As TAssignment, var1 As TVariable, ref1 As TReference, cnd1 As TApply)
         AsnChn = asn1
         VariableChn = var1
         RefChn = ref1
@@ -1325,12 +1325,12 @@ End Class
 
 Public Class TAffectedRef
     Public SrcChange As TChange
-    Public RefAfr As TRef
+    Public RefAfr As TReference
     Public RefTypeAfr As ERefType
-    Public StmtAfr As TStmt
+    Public StmtAfr As TStatement
     Public DstChangeList As New TList(Of TChange)
 
-    Public Sub New(src_change As TChange, ref1 As TRef, ref_type As ERefType, stmt1 As TStmt)
+    Public Sub New(src_change As TChange, ref1 As TReference, ref_type As ERefType, stmt1 As TStatement)
         src_change.AffectedRefList.Add(Me)
         SrcChange = src_change
 
@@ -1348,19 +1348,19 @@ Public Class TTrans
 
         If trm1 IsNot Nothing Then
             Try
-                If TypeOf trm1 Is TCns Then
+                If TypeOf trm1 Is TConstant Then
                 ElseIf TypeOf trm1 Is TArray Then
                     Debug.Assert(False)
                 ElseIf TypeOf trm1 Is TDot Then
                     trm2 = TransDot(CType(trm1, TDot), arg1)
-                ElseIf TypeOf trm1 Is TRef Then
-                    trm2 = TransRef(CType(trm1, TRef), arg1)
+                ElseIf TypeOf trm1 Is TReference Then
+                    trm2 = TransRef(CType(trm1, TReference), arg1)
                 ElseIf trm1.IsApp() Then
-                    trm2 = TransApp(CType(trm1, TApp), arg1)
+                    trm2 = TransApp(CType(trm1, TApply), arg1)
                 ElseIf trm1.IsLog() Then
-                    trm2 = TransApp(CType(trm1, TApp), arg1)
-                ElseIf TypeOf trm1 Is TPar Then
-                    trm2 = TransPar(CType(trm1, TPar).TrmPar, arg1)
+                    trm2 = TransApp(CType(trm1, TApply), arg1)
+                ElseIf TypeOf trm1 Is TParenthesis Then
+                    trm2 = TransPar(CType(trm1, TParenthesis).TrmPar, arg1)
                 ElseIf TypeOf trm1 Is TFrom Then
                     Debug.Assert(False)
                 ElseIf TypeOf trm1 Is TAggregate Then
@@ -1368,7 +1368,7 @@ Public Class TTrans
                 Else
                     Debug.Assert(False)
                 End If
-            Catch ex As TErr
+            Catch ex As TError
                 Debug.Assert(False)
             End Try
         End If
@@ -1381,19 +1381,19 @@ Public Class TTrans
         Return Sys.CopyDot(dot1, Nothing)
     End Function
 
-    Public Overridable Function TransRef(ref1 As TRef, arg1 As Object) As TTerm
+    Public Overridable Function TransRef(ref1 As TReference, arg1 As Object) As TTerm
         Return Sys.CopyRef(ref1, Nothing)
     End Function
 
-    Public Overridable Function TransApp(app1 As TApp, arg1 As Object) As TTerm
+    Public Overridable Function TransApp(app1 As TApply, arg1 As Object) As TTerm
         Return Sys.CopyApp(app1, Nothing)
     End Function
 
-    Public Overridable Function TransPar(par1 As TPar, arg1 As Object) As TTerm
+    Public Overridable Function TransPar(par1 As TParenthesis, arg1 As Object) As TTerm
         Return Sys.CopyPar(par1, Nothing)
     End Function
 
-    Public Overridable Function TransCns(cns1 As TCns, arg1 As Object) As TTerm
+    Public Overridable Function TransCns(cns1 As TConstant, arg1 As Object) As TTerm
         Return Sys.CopyCns(cns1, Nothing)
     End Function
 End Class
@@ -1411,7 +1411,7 @@ Public Class TTransRelative
 
     Public Overrides Function TransDot(dot1 As TDot, arg1 As Object) As TTerm
         Dim 参照のされ方 As ERefType
-        Dim parent_fld As TFld, prev_fld As TFld, F As TFld
+        Dim parent_fld As TField, prev_fld As TField, F As TField
 
         If Not 無効 Then
 
@@ -1420,7 +1420,7 @@ Public Class TTransRelative
             If 参照のされ方 = ERefType.自身のフィールド Then
 
                 Debug.Assert(dot1.TrmDot Is Nothing)
-                F = CType(dot1.VarRef, TFld)
+                F = CType(dot1.VarRef, TField)
                 Select Case 相対位置
                     Case E相対位置.親
                         ' .F を .Parent.Fにする。
@@ -1441,9 +1441,9 @@ Public Class TTransRelative
         Return Nothing
     End Function
 
-    Public Overrides Function TransRef(ref1 As TRef, arg1 As Object) As TTerm
+    Public Overrides Function TransRef(ref1 As TReference, arg1 As Object) As TTerm
         Dim 参照のされ方 As ERefType
-        Dim parent_fld As TFld, prev_fld As TFld
+        Dim parent_fld As TField, prev_fld As TField
 
         If Not 無効 Then
 
@@ -1474,10 +1474,10 @@ End Class
 Public Class TEnumInnerLocalRef
     Inherits TNavPrj
 
-    Public vVar As New TList(Of TVar)
-    Public vNewVar As New TList(Of TVar)
+    Public vVar As New TList(Of TVariable)
+    Public vNewVar As New TList(Of TVariable)
 
-    Public Overrides Function StartRef(ref1 As TRef, arg1 As Object) As Object
+    Public Overrides Function StartRef(ref1 As TReference, arg1 As Object) As Object
         If Not ref1.DefRef AndAlso Not ref1.NameRef.StartsWith(TDataflow.CurrentPrefix) AndAlso Not ref1.NameRef.StartsWith(TDataflow.ChildPrefix) Then
             ' 代入ではなく、自身や子でない場合
 
@@ -1496,9 +1496,9 @@ End Class
 ' 内部の文を列挙する
 Public Class TEnumInnerStmt
     Inherits TNavPrj
-    Public vStmt As New TList(Of TStmt)
+    Public vStmt As New TList(Of TStatement)
 
-    Public Overrides Function StartStmt(stmt1 As TStmt, arg1 As Object) As Object
+    Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
             vStmt.Add(stmt1)
         End If
@@ -1509,22 +1509,22 @@ End Class
 Public Class TNavChangeableField
     Inherits TNavPrj
 
-    Public dicFld As New Dictionary(Of String, TFld)
-    Public dicChangeableFld As New Dictionary(Of String, TFld)
+    Public dicFld As New Dictionary(Of String, TField)
+    Public dicChangeableFld As New Dictionary(Of String, TField)
 
     Public Overrides Function StartDot(dot1 As TDot, arg1 As Object) As Object
-        Dim fld1 As TFld
+        Dim fld1 As TField
 
-        If TypeOf dot1.VarRef Is TFld AndAlso dot1.NameRef(0) <> "_"c AndAlso Not dicFld.ContainsKey(dot1.VarRef.ToString()) Then
+        If TypeOf dot1.VarRef Is TField AndAlso dot1.NameRef(0) <> "_"c AndAlso Not dicFld.ContainsKey(dot1.VarRef.ToString()) Then
             ' 未処理のフィールドの場合
 
-            fld1 = CType(dot1.VarRef, TFld)
+            fld1 = CType(dot1.VarRef, TField)
             dicFld.Add(dot1.VarRef.ToString(), fld1)
 
             If fld1.ClaFld.KndCla = EClass.eClassCla OrElse fld1.ClaFld.KndCla = EClass.eStructCla Then
 
-                Dim vref As TList(Of TRef)
-                vref = New TList(Of TRef)(From ref1 In dot1.VarRef.RefVar Where ref1.DefRef)
+                Dim vref As TList(Of TReference)
+                vref = New TList(Of TReference)(From ref1 In dot1.VarRef.RefVar Where ref1.DefRef)
                 If vref.Count = 0 Then
                     ' 代入されない場合
 
@@ -1543,13 +1543,13 @@ End Class
 Public Class TFindSyncField
     Inherits TNavPrj
 
-    Public ValidStmt As Dictionary(Of TStmt, TStmt)
-    Public GetFld As New TList(Of TFld)
-    Public SetFld As New TList(Of TFld)
-    Public SyncFldList As New TList(Of TFld)
+    Public ValidStmt As Dictionary(Of TStatement, TStatement)
+    Public GetFld As New TList(Of TField)
+    Public SetFld As New TList(Of TField)
+    Public SyncFldList As New TList(Of TField)
 
     Public Overrides Function StartDot(dot1 As TDot, arg1 As Object) As Object
-        Dim stmt1 As TStmt, ref_type As ERefType, fld1 As TFld
+        Dim stmt1 As TStatement, ref_type As ERefType, fld1 As TField
 
         stmt1 = TDataflow.UpStmt(dot1)
         If ValidStmt.ContainsKey(stmt1) Then
@@ -1558,7 +1558,7 @@ Public Class TFindSyncField
             ref_type = TDataflow.GetRefType(dot1)
             Select Case ref_type
                 Case ERefType.自身のフィールド
-                    fld1 = CType(dot1.VarRef, TFld)
+                    fld1 = CType(dot1.VarRef, TField)
                     If dot1.DefRef AndAlso Not SetFld.Contains(fld1) Then
                         ' 自身のフィールドへの代入で、未処理の場合
 
@@ -1573,7 +1573,7 @@ Public Class TFindSyncField
 
                 Case ERefType.親のフィールド, ERefType.不特定の子のフィールド, ERefType.直前のフィールド
 
-                    fld1 = CType(dot1.VarRef, TFld)
+                    fld1 = CType(dot1.VarRef, TField)
                     If Not dot1.DefRef AndAlso Not GetFld.Contains(fld1) Then
                         ' 親・子・直前のフィールドで参照され、未処理の場合
                         GetFld.Add(fld1)
@@ -1598,10 +1598,10 @@ Public Class TNavParallelForEach
     Public ParallelForEachList As New TList(Of TCall)
 
     Public Overrides Sub NavCall(call1 As TCall, arg1 As Object)
-        Dim ref1 As TRef
+        Dim ref1 As TReference
 
-        If TypeOf call1.AppCall.FncApp Is TRef Then
-            ref1 = CType(call1.AppCall.FncApp, TRef)
+        If TypeOf call1.AppCall.FncApp Is TReference Then
+            ref1 = CType(call1.AppCall.FncApp, TReference)
             If ref1.VarRef.NameVar = "ParallelForEach" Then
                 ParallelForEachList.Add(call1)
             End If
@@ -1611,14 +1611,14 @@ Public Class TNavParallelForEach
 End Class
 
 Public Class TCopy
-    Public dctVar As New Dictionary(Of TVar, TVar)
-    Public CurFncCpy As TFnc
+    Public dctVar As New Dictionary(Of TVariable, TVariable)
+    Public CurFncCpy As TFunction
 End Class
 
 Public Class Sys
     Public Shared Function IsEqTrm(trm1 As TTerm, trm2 As TTerm) As Boolean
-        Dim cns1 As TCns, arr1 As TArray, dot1 As TDot, ref1 As TRef, app1 As TApp, opr1 As TApp, par1 As TPar
-        Dim cns2 As TCns, arr2 As TArray, dot2 As TDot, ref2 As TRef, app2 As TApp, opr2 As TApp, par2 As TPar
+        Dim cns1 As TConstant, arr1 As TArray, dot1 As TDot, ref1 As TReference, app1 As TApply, opr1 As TApply, par1 As TParenthesis
+        Dim cns2 As TConstant, arr2 As TArray, dot2 As TDot, ref2 As TReference, app2 As TApply, opr2 As TApply, par2 As TParenthesis
         Dim i1 As Integer
 
         If trm1 Is trm2 Then
@@ -1633,9 +1633,9 @@ Public Class Sys
             Return False
         End If
 
-        If TypeOf trm1 Is TCns Then
-            cns1 = CType(trm1, TCns)
-            cns2 = CType(trm2, TCns)
+        If TypeOf trm1 Is TConstant Then
+            cns1 = CType(trm1, TConstant)
+            cns2 = CType(trm2, TConstant)
 
             Return cns1.NameRef = cns2.NameRef AndAlso cns1.TypeAtm = cns2.TypeAtm
 
@@ -1658,16 +1658,16 @@ Public Class Sys
             Debug.Assert(dot1.VarRef IsNot Nothing AndAlso dot2.VarRef IsNot Nothing)
             Return dot1.VarRef Is dot2.VarRef AndAlso IsEqTrm(dot1.TrmDot, dot2.TrmDot)
 
-        ElseIf TypeOf trm1 Is TRef Then
-            ref1 = CType(trm1, TRef)
-            ref2 = CType(trm2, TRef)
+        ElseIf TypeOf trm1 Is TReference Then
+            ref1 = CType(trm1, TReference)
+            ref2 = CType(trm2, TReference)
 
             Debug.Assert(ref1.VarRef IsNot Nothing AndAlso ref2.VarRef IsNot Nothing)
             Return ref1.VarRef Is ref2.VarRef
 
         ElseIf trm1.IsApp() Then
-            app1 = CType(trm1, TApp)
-            app2 = CType(trm2, TApp)
+            app1 = CType(trm1, TApply)
+            app2 = CType(trm2, TApply)
             If app1.TypeApp <> app2.TypeApp OrElse app1.KndApp <> app2.KndApp OrElse app1.ArgApp.Count <> app2.ArgApp.Count Then
                 Return False
             End If
@@ -1696,8 +1696,8 @@ Public Class Sys
             Return True
 
         ElseIf trm1.IsLog() Then
-            opr1 = CType(trm1, TApp)
-            opr2 = CType(trm2, TApp)
+            opr1 = CType(trm1, TApply)
+            opr2 = CType(trm2, TApply)
 
             If opr1.TypeApp <> opr2.TypeApp OrElse opr1.ArgApp.Count <> opr2.ArgApp.Count Then
                 Return False
@@ -1710,9 +1710,9 @@ Public Class Sys
             Next
             Return True
 
-        ElseIf TypeOf trm1 Is TPar Then
-            par1 = CType(trm1, TPar)
-            par2 = CType(trm2, TPar)
+        ElseIf TypeOf trm1 Is TParenthesis Then
+            par1 = CType(trm1, TParenthesis)
+            par2 = CType(trm2, TParenthesis)
 
             Return IsEqTrm(par1.TrmPar, par2.TrmPar)
 
@@ -1727,19 +1727,19 @@ Public Class Sys
 
         If trm1 IsNot Nothing Then
             Try
-                If TypeOf trm1 Is TCns Then
+                If TypeOf trm1 Is TConstant Then
                 ElseIf TypeOf trm1 Is TArray Then
                     Debug.Assert(False)
                 ElseIf TypeOf trm1 Is TDot Then
                     trm2 = CopyDot(CType(trm1, TDot), cpy)
-                ElseIf TypeOf trm1 Is TRef Then
-                    trm2 = CopyRef(CType(trm1, TRef), cpy)
+                ElseIf TypeOf trm1 Is TReference Then
+                    trm2 = CopyRef(CType(trm1, TReference), cpy)
                 ElseIf trm1.IsApp() Then
-                    trm2 = CopyApp(CType(trm1, TApp), cpy)
+                    trm2 = CopyApp(CType(trm1, TApply), cpy)
                 ElseIf trm1.IsLog() Then
-                    trm2 = CopyApp(CType(trm1, TApp), cpy)
-                ElseIf TypeOf trm1 Is TPar Then
-                    trm2 = CopyPar(CType(trm1, TPar), cpy)
+                    trm2 = CopyApp(CType(trm1, TApply), cpy)
+                ElseIf TypeOf trm1 Is TParenthesis Then
+                    trm2 = CopyPar(CType(trm1, TParenthesis), cpy)
                 ElseIf TypeOf trm1 Is TFrom Then
                     Debug.Assert(False)
                 ElseIf TypeOf trm1 Is TAggregate Then
@@ -1747,7 +1747,7 @@ Public Class Sys
                 Else
                     Debug.Assert(False)
                 End If
-            Catch ex As TErr
+            Catch ex As TError
                 Debug.Assert(False)
             End Try
         End If
@@ -1783,8 +1783,8 @@ Public Class Sys
         Return dot2
     End Function
 
-    Public Shared Function CopyRef(ref1 As TRef, cpy As TCopy) As TRef
-        Dim ref2 As New TRef
+    Public Shared Function CopyRef(ref1 As TReference, cpy As TCopy) As TReference
+        Dim ref2 As New TReference
 
         If ref1 Is Nothing Then
             Return Nothing
@@ -1792,7 +1792,7 @@ Public Class Sys
 
         ref2.NameRef = ref1.NameRef
         If ref1.VarRef IsNot Nothing Then
-            If cpy Is Nothing OrElse TypeOf ref1.VarRef Is TCls OrElse TypeOf ref1.VarRef Is TFld OrElse TypeOf ref1.VarRef Is TFnc Then
+            If cpy Is Nothing OrElse TypeOf ref1.VarRef Is TClass OrElse TypeOf ref1.VarRef Is TField OrElse TypeOf ref1.VarRef Is TFunction Then
                 ref2.VarRef = ref1.VarRef
             Else
                 Debug.Assert(cpy.dctVar.ContainsKey(ref1.VarRef))
@@ -1813,10 +1813,10 @@ Public Class Sys
         Return ref2
     End Function
 
-    Public Shared Function CopyApp(app1 As TApp, cpy As TCopy) As TApp
-        Dim app2 As TApp, trm2 As TTerm
+    Public Shared Function CopyApp(app1 As TApply, cpy As TCopy) As TApply
+        Dim app2 As TApply, trm2 As TTerm
 
-        app2 = New TApp()
+        app2 = New TApply()
 
         app2.TypeApp = app1.TypeApp
         app2.Negation = app1.Negation
@@ -1833,17 +1833,17 @@ Public Class Sys
         Return app2
     End Function
 
-    Public Shared Function CopyPar(par1 As TPar, cpy As TCopy) As TPar
-        Return New TPar(CopyTrm(par1.TrmPar, cpy))
+    Public Shared Function CopyPar(par1 As TParenthesis, cpy As TCopy) As TParenthesis
+        Return New TParenthesis(CopyTrm(par1.TrmPar, cpy))
     End Function
 
-    Public Shared Function CopyCns(cns1 As TCns, cpy As TCopy) As TCns
-        Return New TCns(cns1.TypeAtm, cns1.NameRef)
+    Public Shared Function CopyCns(cns1 As TConstant, cpy As TCopy) As TConstant
+        Return New TConstant(cns1.TypeAtm, cns1.NameRef)
     End Function
 
 
-    Public Shared Function CopyAsn(asn1 As TAsn, cpy As TCopy) As TAsn
-        Return New TAsn(CopyApp(asn1.RelAsn, cpy))
+    Public Shared Function CopyAsn(asn1 As TAssignment, cpy As TCopy) As TAssignment
+        Return New TAssignment(CopyApp(asn1.RelAsn, cpy))
     End Function
 
     Public Shared Function CopyCall(call1 As TCall, cpy As TCopy) As TCall
@@ -1860,8 +1860,8 @@ Public Class Sys
         Return if2
     End Function
 
-    Public Shared Function CopyIfBlc(if_blc As TIfBlc, cpy As TCopy) As TIfBlc
-        Dim if_blc2 As New TIfBlc
+    Public Shared Function CopyIfBlc(if_blc As TIfBlock, cpy As TCopy) As TIfBlock
+        Dim if_blc2 As New TIfBlock
 
         if_blc2.BlcIf = CopyBlc(if_blc.BlcIf, cpy)
         if_blc2.CndIf = CopyTrm(if_blc.CndIf, cpy)
@@ -1922,8 +1922,8 @@ Public Class Sys
         Return for2
     End Function
 
-    Public Shared Function CopyBlc(blc1 As TBlc, cpy As TCopy) As TBlc
-        Dim blc2 As New TBlc
+    Public Shared Function CopyBlc(blc1 As TBlock, cpy As TCopy) As TBlock
+        Dim blc2 As New TBlock
 
         If blc1 Is Nothing Then
             Return Nothing
@@ -1949,8 +1949,8 @@ Public Class Sys
         Return com2
     End Function
 
-    Public Shared Function CopyVarDecl(dcl1 As TVarDecl, cpy As TCopy) As TVarDecl
-        Dim dcl2 As New TVarDecl
+    Public Shared Function CopyVarDecl(dcl1 As TVariableDeclaration, cpy As TCopy) As TVariableDeclaration
+        Dim dcl2 As New TVariableDeclaration
 
         dcl2.ModDecl = dcl1.ModDecl
         dcl2.TypeDecl = dcl1.TypeDecl
@@ -1961,19 +1961,19 @@ Public Class Sys
         Return dcl2
     End Function
 
-    Public Shared Function CopyStmt(stmt1 As TStmt, cpy As TCopy) As TStmt
+    Public Shared Function CopyStmt(stmt1 As TStatement, cpy As TCopy) As TStatement
         If stmt1 Is Nothing Then
             Return Nothing
         End If
 
-        If TypeOf stmt1 Is TAsn Then
-            Return CopyAsn(CType(stmt1, TAsn), cpy)
+        If TypeOf stmt1 Is TAssignment Then
+            Return CopyAsn(CType(stmt1, TAssignment), cpy)
         ElseIf TypeOf stmt1 Is TCall Then
             Return CopyCall(CType(stmt1, TCall), cpy)
         ElseIf TypeOf stmt1 Is TIf Then
             Return CopyIf(CType(stmt1, TIf), cpy)
-        ElseIf TypeOf stmt1 Is TIfBlc Then
-            Return CopyIfBlc(CType(stmt1, TIfBlc), cpy)
+        ElseIf TypeOf stmt1 Is TIfBlock Then
+            Return CopyIfBlc(CType(stmt1, TIfBlock), cpy)
         ElseIf TypeOf stmt1 Is TSelect Then
             Return CopySelect(CType(stmt1, TSelect), cpy)
         ElseIf TypeOf stmt1 Is TCase Then
@@ -1984,8 +1984,8 @@ Public Class Sys
             Return CopyFor(CType(stmt1, TFor), cpy)
         ElseIf TypeOf stmt1 Is TComment Then
             Return CopyComment(CType(stmt1, TComment), cpy)
-        ElseIf TypeOf stmt1 Is TVarDecl Then
-            Return CopyVarDecl(CType(stmt1, TVarDecl), cpy)
+        ElseIf TypeOf stmt1 Is TVariableDeclaration Then
+            Return CopyVarDecl(CType(stmt1, TVariableDeclaration), cpy)
         Else
             Debug.Assert(False)
             Return Nothing
@@ -1993,8 +1993,8 @@ Public Class Sys
 
     End Function
 
-    Public Shared Function CopyVar(var1 As TVar, cpy As TCopy) As TVar
-        Dim var2 As TVar
+    Public Shared Function CopyVar(var1 As TVariable, cpy As TCopy) As TVariable
+        Dim var2 As TVariable
 
         If var1 Is Nothing Then
             Return Nothing
@@ -2006,7 +2006,7 @@ Public Class Sys
             Return cpy.dctVar(var1)
         End If
 
-        var2 = New TVar(var1.NameVar, var1.TypeVar)
+        var2 = New TVariable(var1.NameVar, var1.TypeVar)
         var2.ParamArrayVar = var1.ParamArrayVar
         var2.InitVar = CopyTrm(var1.InitVar, cpy)
         cpy.dctVar.Add(var1, var2)
@@ -2014,15 +2014,15 @@ Public Class Sys
         Return var2
     End Function
 
-    Public Shared Function CopyFnc(fnc1 As TFnc) As TFnc
-        Dim fnc2 As TFnc, cpy As TCopy
+    Public Shared Function CopyFnc(fnc1 As TFunction) As TFunction
+        Dim fnc2 As TFunction, cpy As TCopy
         Dim set_parent_stmt As TNavSetParentStmt
 
         If fnc1 Is Nothing Then
             Return Nothing
         End If
 
-        fnc2 = New TFnc(fnc1.NameVar, fnc1.RetType)
+        fnc2 = New TFunction(fnc1.NameVar, fnc1.RetType)
 
         cpy = New TCopy()
         cpy.CurFncCpy = fnc2

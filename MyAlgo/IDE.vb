@@ -3,13 +3,13 @@
 Public Class GNode
     Public NameNd As String
     Public ToNd As TList(Of GNode)
-    Public DataNd As TFnc
+    Public DataNd As TFunction
     Public XNd As Double
     Public YNd As Double
 
     Public Sub New(name1 As String, dt As Object)
         NameNd = name1
-        DataNd = CType(dt, TFnc)
+        DataNd = CType(dt, TFunction)
     End Sub
 
     ' ノード間の距離を返す
@@ -29,7 +29,7 @@ Public Class TIDE
 
     Public Shared theIDE As TIDE
     Public Shared SrcBrwsrMenu As TPopup
-    Public PrjIDE As TPrj
+    Public PrjIDE As TProject
     Public SrcTB As TSrcEdit
     Public SrcBrwsr As TSrcBrowser
     Public SrcLB As TListBox
@@ -258,7 +258,7 @@ Public Class TIDE
 
 
     ' 変数参照のグラフを作る
-    Public Sub MakeRefSugiyamaGraph(prj1 As TPrj)
+    Public Sub MakeRefSugiyamaGraph(prj1 As TProject)
         Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode)
         Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, L As TList(Of TList(Of TNode))
 
@@ -272,7 +272,7 @@ Public Class TIDE
             ' すべてのフィールドに対し
             For Each fld1 In cla1.FldCla
 
-                If cla1.NameCla() = "TApp" AndAlso fld1.NameVar = "TypeApp" Then
+                If cla1.NameCla() = "TApply" AndAlso fld1.NameVar = "TypeApp" Then
 
 
                     ' ノードの辞書を初期化する
@@ -313,10 +313,10 @@ Public Class TIDE
     End Sub
 
     Public Sub TestView()
-        Dim prj1 As TPrj, nav2 As TNavCSE
+        Dim prj1 As TProject, nav2 As TNavCSE
 
         ' オリジナルのソースを読む
-        prj1 = New TPrj()
+        prj1 = New TProject()
         prj1.SrcFileNames = New String() {"@lib.vb", "System.vb", "View.vb", "ViewTest.vb"}
         If TSys.IsWeb Then
             prj1.SrcDir = "http://localhost:8801/MyView"
@@ -349,11 +349,11 @@ Public Class TIDE
     End Sub
 
     Public Sub Test()
-        Dim prj1 As TPrj, nav2 As TNavCSE
+        Dim prj1 As TProject, nav2 As TNavCSE
 
 
         ' オリジナルのソースを読む
-        prj1 = New TPrj()
+        prj1 = New TProject()
         prj1.SrcFileNames = New String() {"@lib.vb", "Invariant.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
         If TSys.IsWeb Then
             prj1.SrcDir = "http://localhost:8801/MyAlgo"
@@ -385,9 +385,9 @@ Public Class TIDE
     End Sub
 
     Public Sub TestMiyu()
-        Dim prj1 As TPrj
+        Dim prj1 As TProject
 
-        prj1 = New TPrj()
+        prj1 = New TProject()
         prj1.ClassNameTable = TProgramTransformation.ReadClassNameTable("C:\usr\prj\MyIDE\etc\Translation", "NameTable.txt", 2)
         prj1.SrcFileNames = New String() {"@lib.vb", "Invariant.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
         If TSys.IsWeb Then
@@ -468,13 +468,13 @@ Public Class TIDE
         SrcBrwsr.SetSrcBrw()
         SrcBrwsr.RemakeDrawFig()
 
-        LoadPrj(TPrj.Prj)
+        LoadPrj(TProject.Prj)
     End Sub
 
 
     ' 呼び出しグラフを作る
-    Public Function MakeCallGraphNode(prj1 As TPrj) As TList(Of GNode)
-        Dim dic1 As New Dictionary(Of TFnc, GNode), nd1 As GNode = Nothing, nd2 As GNode = Nothing
+    Public Function MakeCallGraphNode(prj1 As TProject) As TList(Of GNode)
+        Dim dic1 As New Dictionary(Of TFunction, GNode), nd1 As GNode = Nothing, nd2 As GNode = Nothing
 
         '  すべてのクラスに対し
         ' for ???
@@ -509,7 +509,7 @@ Public Class TIDE
         Return New TList(Of GNode)(dic1.Values)
     End Function
 
-    Public Sub LoadPrj(prj As TPrj)
+    Public Sub LoadPrj(prj As TProject)
         Dim n1 As Integer, i As Integer, j As Integer, k As Integer
 
         PrjIDE = prj

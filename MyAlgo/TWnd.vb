@@ -1598,7 +1598,7 @@ Public Class TAbsTextBox
     Inherits TScrollView
 
     Public vTknPos As New TList(Of TTknPos)
-    Public SelRef As TRef
+    Public SelRef As TReference
 
     Public Sub MakeTextLineFig(dc As TDrawCmp, pos As TPnt, line As FLine)
         Dim x2 As Integer, brs As TColor, s As String, tpos As TTknPos, w As Integer
@@ -1613,7 +1613,7 @@ Public Class TAbsTextBox
             '    Debug.WriteLine("draw {0} {1} {2} {3}", txt.TextTxt, txt.TypeTxt, txt.TknTxt, txt.ObjFig.GetType())
             'End If
 
-            If SelRef IsNot Nothing AndAlso TypeOf txt.ObjFig Is TRef AndAlso SelRef.VarRef Is CType(txt.ObjFig, TRef).VarRef Then
+            If SelRef IsNot Nothing AndAlso TypeOf txt.ObjFig Is TReference AndAlso SelRef.VarRef Is CType(txt.ObjFig, TReference).VarRef Then
                 brs = TColor.Orange
             Else
                 Select Case txt.TypeTxt
@@ -1646,16 +1646,16 @@ Public Class TAbsTextBox
                     End If
                 Case EFigType.eResFig
                     Select Case txt.TknTxt
-                        Case ETkn.eAs, ETkn.eTo, ETkn.eIs, ETkn.eIsNot
+                        Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot
                             s = " " + txt.TextTxt + " "
-                        Case ETkn.eThen
+                        Case EToken.eThen
                             s = " " + txt.TextTxt
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
                 Case EFigType.eRefFig
                     Select Case txt.TknTxt
-                        Case ETkn.eRef
+                        Case EToken.eRef
                             If txt.TextTxt = "null" Then
                                 s = "Nothing"
                             ElseIf txt.TextTxt = "this" Then
@@ -2189,7 +2189,7 @@ End Class
 '-------------------------------------------------------------------------------- TSrcEditAbs
 Public Class TSrcEditAbs
     Inherits TTextBox
-    Public SrcEdit As TSrc
+    Public SrcEdit As TSourceFile
     Public Shared BrsSrc As TColor()
 
     Public Sub New()
@@ -2197,7 +2197,7 @@ Public Class TSrcEditAbs
         Dim cnt As Integer, i As Integer, black_brs As TColor = TColor.Black, blue_brs As TColor = TColor.Blue, green_brs As TColor = TColor.Green
         Dim red_brs As TColor = TColor.Red
 
-        cnt = CType(ETkn.eMAX_ETkn, Integer)
+        cnt = CType(EToken.eMAX_ETkn, Integer)
 
         If BrsSrc IsNot Nothing Then
             Exit Sub
@@ -2208,46 +2208,46 @@ Public Class TSrcEditAbs
             BrsSrc(i) = blue_brs
         Next
 
-        BrsSrc(ETkn.eId) = black_brs
-        BrsSrc(ETkn.eInt) = black_brs
+        BrsSrc(EToken.eId) = black_brs
+        BrsSrc(EToken.eInt) = black_brs
 
-        BrsSrc(ETkn.eDot) = black_brs
-        BrsSrc(ETkn.eLP) = black_brs
-        BrsSrc(ETkn.eRP) = black_brs
-        BrsSrc(ETkn.eLB) = black_brs
-        BrsSrc(ETkn.eRB) = black_brs
-        BrsSrc(ETkn.eLC) = black_brs
-        BrsSrc(ETkn.eRC) = black_brs
-        BrsSrc(ETkn.eComma) = black_brs
-        BrsSrc(ETkn.eMMB) = black_brs
+        BrsSrc(EToken.eDot) = black_brs
+        BrsSrc(EToken.eLP) = black_brs
+        BrsSrc(EToken.eRP) = black_brs
+        BrsSrc(EToken.eLB) = black_brs
+        BrsSrc(EToken.eRB) = black_brs
+        BrsSrc(EToken.eLC) = black_brs
+        BrsSrc(EToken.eRC) = black_brs
+        BrsSrc(EToken.eComma) = black_brs
+        BrsSrc(EToken.eMMB) = black_brs
 
-        BrsSrc(ETkn.eADD) = black_brs
-        BrsSrc(ETkn.eMns) = black_brs
-        BrsSrc(ETkn.eMUL) = black_brs
-        BrsSrc(ETkn.eDIV) = black_brs
-        BrsSrc(ETkn.eMOD) = black_brs
-        BrsSrc(ETkn.eQUE) = black_brs
+        BrsSrc(EToken.eADD) = black_brs
+        BrsSrc(EToken.eMns) = black_brs
+        BrsSrc(EToken.eMUL) = black_brs
+        BrsSrc(EToken.eDIV) = black_brs
+        BrsSrc(EToken.eMOD) = black_brs
+        BrsSrc(EToken.eQUE) = black_brs
 
-        BrsSrc(ETkn.eEq) = black_brs
-        BrsSrc(ETkn.eNE) = black_brs
-        BrsSrc(ETkn.eASN) = black_brs
-        BrsSrc(ETkn.eLT) = black_brs
-        BrsSrc(ETkn.eGT) = black_brs
-        BrsSrc(ETkn.eLE) = black_brs
-        BrsSrc(ETkn.eGE) = black_brs
-        BrsSrc(ETkn.eADDEQ) = black_brs
-        BrsSrc(ETkn.eSUBEQ) = black_brs
-        BrsSrc(ETkn.eMULEQ) = black_brs
-        BrsSrc(ETkn.eDIVEQ) = black_brs
-        BrsSrc(ETkn.eMODEQ) = black_brs
+        BrsSrc(EToken.eEq) = black_brs
+        BrsSrc(EToken.eNE) = black_brs
+        BrsSrc(EToken.eASN) = black_brs
+        BrsSrc(EToken.eLT) = black_brs
+        BrsSrc(EToken.eGT) = black_brs
+        BrsSrc(EToken.eLE) = black_brs
+        BrsSrc(EToken.eGE) = black_brs
+        BrsSrc(EToken.eADDEQ) = black_brs
+        BrsSrc(EToken.eSUBEQ) = black_brs
+        BrsSrc(EToken.eMULEQ) = black_brs
+        BrsSrc(EToken.eDIVEQ) = black_brs
+        BrsSrc(EToken.eMODEQ) = black_brs
 
-        BrsSrc(ETkn.eString) = red_brs
-        BrsSrc(ETkn.eChar) = red_brs
+        BrsSrc(EToken.eString) = red_brs
+        BrsSrc(EToken.eChar) = red_brs
 
-        BrsSrc(ETkn.eLineComment) = green_brs
-        BrsSrc(ETkn.eBlockComment) = green_brs
+        BrsSrc(EToken.eLineComment) = green_brs
+        BrsSrc(EToken.eBlockComment) = green_brs
 
-        '		BrsSrc(ETkn) = black_brs
+        '		BrsSrc(EToken) = black_brs
     End Sub
 End Class
 
@@ -2260,7 +2260,7 @@ Public Class TSrcEdit
     End Sub
 
     Public Overrides Function DrawTextLineFig(ln As Integer, pos As TPnt) As TDraw
-        Dim x2 As Integer, stmt1 As TStmt
+        Dim x2 As Integer, stmt1 As TStatement
         Dim dc As TDrawCmp
 
         dc = New TDrawCmp()
@@ -2269,10 +2269,10 @@ Public Class TSrcEdit
         ElseIf SrcEdit IsNot Nothing AndAlso SrcEdit.StmtSrc IsNot Nothing AndAlso ln < SrcEdit.StmtSrc.Count Then
             stmt1 = SrcEdit.StmtSrc(ln)
             If stmt1 Is Nothing Then
-                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(ETkn.eLineComment), pos))
+                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.eLineComment), pos))
 
             ElseIf stmt1.vTknStmt Is Nothing Then
-                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(ETkn.eLineComment), pos))
+                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.eLineComment), pos))
             Else
                 x2 = 0
 
@@ -2282,10 +2282,10 @@ Public Class TSrcEdit
                         x2 += tkn.SpcTkn * CharW
                     End If
                     Select Case tkn.TypeTkn
-                        Case ETkn.eString
+                        Case EToken.eString
                             dc.AddDrawCmp(New TDrawString("""" + tkn.StrTkn + """", FntTxt, BrsSrc(tkn.TypeTkn), pos + New TPnt(x2, 0)))
                             x2 += 2 * CharW
-                        Case ETkn.eChar
+                        Case EToken.eChar
                             dc.AddDrawCmp(New TDrawString("""" + tkn.StrTkn + """c", FntTxt, BrsSrc(tkn.TypeTkn), pos + New TPnt(x2, 0)))
                             x2 += 3 * CharW
                         Case Else
@@ -2303,7 +2303,7 @@ Public Class TSrcEdit
 
     Public Overrides Sub DiffEdit(st_line As Integer, st_col As Integer, old_ed_line As Integer, old_ed_col As Integer, new_txt As String(), dif1 As TDiff)
         Dim ln As Integer, new_cnt As Integer, old_cnt As Integer
-        Dim stmt1 As TStmt, par1 As TParseBas
+        Dim stmt1 As TStatement, par1 As TBasicParser
 
         MyBase.DiffEdit(st_line, st_col, old_ed_line, old_ed_col, new_txt, dif1)
 
@@ -2396,7 +2396,7 @@ Public Class TSrcBrowser
 
         ln2 = 0
         ' for ???
-        For Each src In TPrj.Prj.SrcPrj
+        For Each src In TProject.Prj.SrcPrj
             If src.FigSrc IsNot Nothing Then
                 obj = Nothing
                 exp = EExpand.eNone
@@ -2418,7 +2418,7 @@ Public Class TSrcBrowser
                         ' 空行やコメントでなくオブジェクトが設定されている場合
 
                         txt1 = line.TextLine(0)
-                        If txt1.TknTxt = ETkn.eEnd Then
+                        If txt1.TknTxt = EToken.eEnd Then
                             ' 終了の場合
 
                             If cur_obj Is txt1.ObjFig Then
@@ -2433,7 +2433,7 @@ Public Class TSrcBrowser
                             If txt1.ObjFig IsNot prv_obj Then
                                 ' オブジェクトが変わった場合
 
-                                If TypeOf txt1.ObjFig Is TCls OrElse (TypeOf txt1.ObjFig Is TFnc AndAlso CType(txt1.ObjFig, TFnc).BlcFnc IsNot Nothing) Then
+                                If TypeOf txt1.ObjFig Is TClass OrElse (TypeOf txt1.ObjFig Is TFunction AndAlso CType(txt1.ObjFig, TFunction).BlcFnc IsNot Nothing) Then
                                     ' クラスかメソッドの開始の場合
 
                                     vexp.Push(exp)
@@ -2482,7 +2482,7 @@ Public Class TSrcBrowser
         DrawFig = cd
     End Sub
 
-    Public Function DrawTextLineFig(src As TSrc, ln As Integer, pos As TPnt) As TDraw
+    Public Function DrawTextLineFig(src As TSourceFile, ln As Integer, pos As TPnt) As TDraw
         Dim dc As TDrawCmp, line As FLine, brs As TColor, tpos As TTknPos
 
         dc = New TDrawCmp()
@@ -2534,7 +2534,7 @@ Public Class TSrcBrowser
         ' 全ソースの行数を数える
         cnt = 0
         ' for ???
-        For Each src In TPrj.Prj.SrcPrj
+        For Each src In TProject.Prj.SrcPrj
             If src.FigSrc IsNot Nothing Then
                 cnt += src.FigSrc.vLineFig.Count
             End If
@@ -2544,8 +2544,8 @@ Public Class TSrcBrowser
     End Sub
 
     Public Overrides Sub OnMouseDown(ev As TMouseEvent)
-        Dim pt As TPnt, var1 As TVar, line As FLine
-        Dim stmt1 As TStmt
+        Dim pt As TPnt, var1 As TVariable, line As FLine
+        Dim stmt1 As TStatement
 
         ' クライアント領域の先頭からのマウスダウン位置を得る
         pt = ev.PosEv - AbsPosC()
@@ -2557,21 +2557,21 @@ Public Class TSrcBrowser
                     Select Case tpos.TypePos
                         Case ETknPos.eTextTknPos
                             If tpos.ObjPos IsNot Nothing Then
-                                If TypeOf tpos.ObjPos Is TRef Then
-                                    SelRef = CType(tpos.ObjPos, TRef)
+                                If TypeOf tpos.ObjPos Is TReference Then
+                                    SelRef = CType(tpos.ObjPos, TReference)
                                     Debug.WriteLine("Ref {0}", SelRef.NameRef)
                                     TIDE.SrcBrwsrMenu.SetPos(ev.PosEv)
                                     RootWnd.ActivePopup = TIDE.SrcBrwsrMenu
                                     RootWnd.RemakeDrawFig()
 
                                     ' for ???
-                                    For Each src In TPrj.Prj.SrcPrj
+                                    For Each src In TProject.Prj.SrcPrj
                                         If src.FigSrc IsNot Nothing Then
                                             ' for ???
                                             For Each line2 In src.FigSrc.vLineFig
-                                                If line2.ObjFig IsNot Nothing AndAlso TypeOf line2.ObjFig Is TStmt Then
+                                                If line2.ObjFig IsNot Nothing AndAlso TypeOf line2.ObjFig Is TStatement Then
 
-                                                    stmt1 = CType(line2.ObjFig, TStmt)
+                                                    stmt1 = CType(line2.ObjFig, TStatement)
                                                     ' for Find
                                                     For Each ref1 In stmt1.RefStmt
                                                         If ref1.VarRef Is SelRef.VarRef Then
@@ -2585,8 +2585,8 @@ Public Class TSrcBrowser
                                     Next
 
                                     RemakeDrawFig()
-                                ElseIf TypeOf tpos.ObjPos Is TVar Then
-                                    var1 = CType(tpos.ObjPos, TVar)
+                                ElseIf TypeOf tpos.ObjPos Is TVariable Then
+                                    var1 = CType(tpos.ObjPos, TVariable)
                                     Debug.WriteLine("Var {0} {1}", var1.NameVar, var1)
                                 Else
                                     Debug.WriteLine("brw {0}", tpos.ObjPos)

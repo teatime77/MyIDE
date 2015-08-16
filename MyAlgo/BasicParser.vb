@@ -1,23 +1,23 @@
 ﻿Imports System.Diagnostics
 
-'-------------------------------------------------------------------------------- TParseBas
+'-------------------------------------------------------------------------------- TBasicParser
 ' Basicの構文解析
-Public Class TParseBas
-    Public PrjParse As TPrj
-    Public vTknName As Dictionary(Of ETkn, String)
+Public Class TBasicParser
+    Public PrjParse As TProject
+    Public vTknName As Dictionary(Of EToken, String)
 
-    Public vTkn As New Dictionary(Of String, ETkn)
-    Public CurBlc As TBlc
+    Public vTkn As New Dictionary(Of String, EToken)
+    Public CurBlc As TBlock
     Public CurPos As Integer
-    Public CurTkn As TTkn
-    Public NxtTkn As TTkn
-    Dim EOTTkn As TTkn
-    Public CurVTkn As TList(Of TTkn)
-    Dim CurStmt As TStmt
+    Public CurTkn As TToken
+    Public NxtTkn As TToken
+    Dim EOTTkn As TToken
+    Public CurVTkn As TList(Of TToken)
+    Dim CurStmt As TStatement
     Public CurLineIdx As Integer
     Dim CurLineStr As String
 
-    Public Sub New(prj1 As TPrj)
+    Public Sub New(prj1 As TProject)
         PrjParse = prj1
         RegTkn()
     End Sub
@@ -33,10 +33,10 @@ Public Class TParseBas
         CurLineStr = ""
     End Sub
 
-    Public Function GetTkn(type1 As ETkn) As TTkn
-        Dim tkn1 As TTkn
+    Public Function GetTkn(type1 As EToken) As TToken
+        Dim tkn1 As TToken
 
-        If type1 = CurTkn.TypeTkn OrElse type1 = ETkn.eUnknown Then
+        If type1 = CurTkn.TypeTkn OrElse type1 = EToken.eUnknown Then
             tkn1 = CurTkn
             CurPos = CurPos + 1
             If CurPos < CurVTkn.Count Then
@@ -58,25 +58,25 @@ Public Class TParseBas
         End If
     End Function
 
-    Function ReadImports() As TStmt
+    Function ReadImports() As TStatement
         Dim stmt1 As New TImports
-        Dim id1 As TTkn
-        Dim tkn1 As TTkn
+        Dim id1 As TToken
+        Dim tkn1 As TToken
         Dim sb1 As TStringWriter
 
-        stmt1.TypeStmt = ETkn.eImports
-        GetTkn(ETkn.eImports)
+        stmt1.TypeStmt = EToken.eImports
+        GetTkn(EToken.eImports)
 
         sb1 = New TStringWriter()
         Do While True
-            id1 = GetTkn(ETkn.eId)
+            id1 = GetTkn(EToken.eId)
             sb1.Append(id1.StrTkn)
 
             Select Case CurTkn.TypeTkn
-                Case ETkn.eEOT
+                Case EToken.eEOT
                     Exit Do
-                Case ETkn.eDot
-                    tkn1 = GetTkn(ETkn.eDot)
+                Case EToken.eDot
+                    tkn1 = GetTkn(EToken.eDot)
                     sb1.Append(tkn1.StrTkn)
                 Case Else
                     Chk(False)
@@ -88,42 +88,42 @@ Public Class TParseBas
         Return stmt1
     End Function
 
-    Function ReadModule() As TStmt
+    Function ReadModule() As TStatement
         Dim stmt1 As New TModule
-        Dim id1 As TTkn
+        Dim id1 As TToken
 
-        stmt1.TypeStmt = ETkn.eModule
-        GetTkn(ETkn.eModule)
-        id1 = GetTkn(ETkn.eId)
+        stmt1.TypeStmt = EToken.eModule
+        GetTkn(EToken.eModule)
+        id1 = GetTkn(EToken.eId)
         stmt1.NameMod = id1.StrTkn
 
         Return stmt1
     End Function
 
-    Function ReadEnum() As TStmt
+    Function ReadEnum() As TStatement
         Dim stmt1 As New TEnumStatement
-        Dim id1 As TTkn
+        Dim id1 As TToken
 
-        stmt1.TypeStmt = ETkn.eEnum
-        GetTkn(ETkn.eEnum)
-        id1 = GetTkn(ETkn.eId)
+        stmt1.TypeStmt = EToken.eEnum
+        GetTkn(EToken.eEnum)
+        id1 = GetTkn(EToken.eId)
         stmt1.NameEnumStmt = id1.StrTkn
         Return stmt1
     End Function
 
     ' クラスやデリケートの宣言でジェネリックのパラメータを読む
-    Sub ReadGenCla(cla1 As TCls, is_delegate As Boolean)
-        Dim cla2 As TCls, id2 As TTkn
+    Sub ReadGenCla(cla1 As TClass, is_delegate As Boolean)
+        Dim cla2 As TClass, id2 As TToken
 
         Debug.Assert(cla1.GenCla Is Nothing)
-        cla1.GenCla = New TList(Of TCls)()
+        cla1.GenCla = New TList(Of TClass)()
 
-        GetTkn(ETkn.eLP)
-        GetTkn(ETkn.eOf)
+        GetTkn(EToken.eLP)
+        GetTkn(EToken.eOf)
         Do While True
-            id2 = GetTkn(ETkn.eId)
+            id2 = GetTkn(EToken.eId)
 
-            cla2 = New TCls(id2.StrTkn)
+            cla2 = New TClass(id2.StrTkn)
             cla1.GenCla.Add(cla2)
 
             If Not is_delegate Then
@@ -131,37 +131,37 @@ Public Class TParseBas
                 PrjParse.dicGenCla.Add(cla2.NameCla(), cla2)
             End If
 
-            If CurTkn.TypeTkn = ETkn.eRP Then
+            If CurTkn.TypeTkn = EToken.eRP Then
                 Exit Do
             End If
-            GetTkn(ETkn.eComma)
+            GetTkn(EToken.eComma)
         Loop
-        GetTkn(ETkn.eRP)
+        GetTkn(EToken.eRP)
     End Sub
 
-    Function ReadClass(mod1 As TModifier) As TStmt
-        Dim stmt1 As New TClassStatement, cla1 As TCls
-        Dim id1 As TTkn
+    Function ReadClass(mod1 As TModifier) As TStatement
+        Dim stmt1 As New TClassStatement, cla1 As TClass
+        Dim id1 As TToken
 
         PrjParse.dicGenCla.Clear()
 
-        stmt1.TypeStmt = ETkn.eClass
+        stmt1.TypeStmt = EToken.eClass
         Select Case CurTkn.TypeTkn
-            Case ETkn.eClass
+            Case EToken.eClass
                 stmt1.KndClaStmt = EClass.eClassCla
-            Case ETkn.eStruct
+            Case EToken.eStruct
                 stmt1.KndClaStmt = EClass.eStructCla
-            Case ETkn.eInterface
+            Case EToken.eInterface
                 stmt1.KndClaStmt = EClass.eInterfaceCla
         End Select
-        GetTkn(ETkn.eUnknown)
-        id1 = GetTkn(ETkn.eId)
+        GetTkn(EToken.eUnknown)
+        id1 = GetTkn(EToken.eId)
         cla1 = PrjParse.GetCla(id1.StrTkn)
         Debug.Assert(cla1 IsNot Nothing)
         cla1.ModVar = mod1
         stmt1.ClaClaStmt = cla1
 
-        If CurTkn.TypeTkn = ETkn.eLP Then
+        If CurTkn.TypeTkn = EToken.eLP Then
             ' ジェネリック クラスの場合
 
             '            ReadGenCla(cla1, False)
@@ -170,74 +170,74 @@ Public Class TParseBas
                 PrjParse.dicGenCla.Add(cla2.NameCla(), cla2)
             Next
 
-            GetTkn(ETkn.eLP)
-            GetTkn(ETkn.eOf)
+            GetTkn(EToken.eLP)
+            GetTkn(EToken.eOf)
 
             Do While True
-                GetTkn(ETkn.eId)
-                If CurTkn.TypeTkn = ETkn.eRP Then
-                    GetTkn(ETkn.eRP)
+                GetTkn(EToken.eId)
+                If CurTkn.TypeTkn = EToken.eRP Then
+                    GetTkn(EToken.eRP)
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
         End If
 
         Return stmt1
     End Function
 
-    Function ReadInherits() As TStmt
-        Dim stmt1 As New TInheritsStatement, id1 As TTkn, id2 As TTkn
+    Function ReadInherits() As TStatement
+        Dim stmt1 As New TInheritsStatement, id1 As TToken, id2 As TToken
 
-        stmt1.TypeStmt = ETkn.eInherits
-        GetTkn(ETkn.eInherits)
-        id1 = GetTkn(ETkn.eId)
+        stmt1.TypeStmt = EToken.eInherits
+        GetTkn(EToken.eInherits)
+        id1 = GetTkn(EToken.eId)
         stmt1.ClassNameInheritsStmt = id1.StrTkn
 
-        If CurTkn.TypeTkn = ETkn.eLP Then
+        If CurTkn.TypeTkn = EToken.eLP Then
 
-            GetTkn(ETkn.eLP)
-            GetTkn(ETkn.eOf)
+            GetTkn(EToken.eLP)
+            GetTkn(EToken.eOf)
 
             stmt1.ParamName = New TList(Of String)()
             Do While True
-                id2 = GetTkn(ETkn.eId)
+                id2 = GetTkn(EToken.eId)
                 stmt1.ParamName.Add(id2.StrTkn)
 
-                If CurTkn.TypeTkn <> ETkn.eComma Then
+                If CurTkn.TypeTkn <> EToken.eComma Then
 
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
-            GetTkn(ETkn.eRP)
+            GetTkn(EToken.eRP)
 
         End If
         Return stmt1
     End Function
 
-    Function ReadImplements() As TStmt
+    Function ReadImplements() As TStatement
         Dim stmt1 As New TImplementsStatement
-        Dim cla1 As TCls
+        Dim cla1 As TClass
 
-        stmt1.TypeStmt = ETkn.eImplements
-        GetTkn(ETkn.eImplements)
+        stmt1.TypeStmt = EToken.eImplements
+        GetTkn(EToken.eImplements)
         Do While True
             cla1 = ReadType(False)
             stmt1.ClassImplementsStmt.Add(cla1)
 
-            If CurTkn.TypeTkn <> ETkn.eComma Then
+            If CurTkn.TypeTkn <> EToken.eComma Then
                 Exit Do
             End If
-            GetTkn(ETkn.eComma)
+            GetTkn(EToken.eComma)
         Loop
         Return stmt1
     End Function
 
-    Function ReadSubFunction(mod1 As TModifier, is_delegate As Boolean) As TStmt
+    Function ReadSubFunction(mod1 As TModifier, is_delegate As Boolean) As TStatement
         Dim stmt1 As New TFunctionStatement
-        Dim id1 As TTkn, id2 As TTkn, id3 As TTkn
-        Dim var1 As TVar
+        Dim id1 As TToken, id2 As TToken, id3 As TToken
+        Dim var1 As TVariable
         Dim by_ref As Boolean, param_array As Boolean
         Dim cla1 As TDelegate
 
@@ -248,21 +248,21 @@ Public Class TParseBas
         stmt1.TypeStmt = CurTkn.TypeTkn
         stmt1.ModifierFncStmt = mod1
         stmt1.IsDelegateFncStmt = is_delegate
-        GetTkn(ETkn.eUnknown)
-        If CurTkn.TypeTkn = ETkn.eNew Then
-            GetTkn(ETkn.eNew)
-            stmt1.TypeStmt = ETkn.eNew
+        GetTkn(EToken.eUnknown)
+        If CurTkn.TypeTkn = EToken.eNew Then
+            GetTkn(EToken.eNew)
+            stmt1.TypeStmt = EToken.eNew
         Else
-            If stmt1.TypeStmt = ETkn.eOperator Then
+            If stmt1.TypeStmt = EToken.eOperator Then
                 stmt1.OpFncStmt = CurTkn.TypeTkn
             Else
-                Debug.Assert(CurTkn.TypeTkn = ETkn.eId)
+                Debug.Assert(CurTkn.TypeTkn = EToken.eId)
             End If
-            id1 = GetTkn(ETkn.eUnknown)
+            id1 = GetTkn(EToken.eUnknown)
             stmt1.NameFncStmt = id1.StrTkn
             If is_delegate Then
                 cla1 = PrjParse.GetDelegate(stmt1.NameFncStmt)
-                If CurTkn.TypeTkn = ETkn.eLP AndAlso NxtTkn.TypeTkn = ETkn.eOf Then
+                If CurTkn.TypeTkn = EToken.eLP AndAlso NxtTkn.TypeTkn = EToken.eOf Then
 
                     ReadGenCla(cla1, True)
 
@@ -274,42 +274,42 @@ Public Class TParseBas
             End If
         End If
 
-        GetTkn(ETkn.eLP)
-        If CurTkn.TypeTkn <> ETkn.eRP Then
+        GetTkn(EToken.eLP)
+        If CurTkn.TypeTkn <> EToken.eRP Then
             Do While True
                 by_ref = False
                 param_array = False
                 Select Case CurTkn.TypeTkn
-                    Case ETkn.eRef
+                    Case EToken.eRef
                         by_ref = True
-                        GetTkn(ETkn.eRef)
-                    Case ETkn.eParamArray
+                        GetTkn(EToken.eRef)
+                    Case EToken.eParamArray
                         param_array = True
-                        GetTkn(ETkn.eParamArray)
+                        GetTkn(EToken.eParamArray)
                 End Select
                 var1 = ReadVariable(stmt1)
                 var1.ByRefVar = by_ref
                 var1.ParamArrayVar = param_array
                 stmt1.ArgumentFncStmt.Add(var1)
-                If CurTkn.TypeTkn <> ETkn.eComma Then
+                If CurTkn.TypeTkn <> EToken.eComma Then
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
         End If
-        GetTkn(ETkn.eRP)
+        GetTkn(EToken.eRP)
 
-        If stmt1.TypeStmt = ETkn.eFunction OrElse stmt1.TypeStmt = ETkn.eOperator Then
-            GetTkn(ETkn.eAs)
+        If stmt1.TypeStmt = EToken.eFunction OrElse stmt1.TypeStmt = EToken.eOperator Then
+            GetTkn(EToken.eAs)
             stmt1.RetType = ReadType(False)
         End If
 
-        If CurTkn.TypeTkn = ETkn.eImplements Then
-            GetTkn(ETkn.eImplements)
+        If CurTkn.TypeTkn = EToken.eImplements Then
+            GetTkn(EToken.eImplements)
 
-            id2 = GetTkn(ETkn.eId)
-            GetTkn(ETkn.eDot)
-            id3 = GetTkn(ETkn.eId)
+            id2 = GetTkn(EToken.eId)
+            GetTkn(EToken.eDot)
+            id3 = GetTkn(EToken.eId)
 
             stmt1.InterfaceFncStmt = PrjParse.GetCla(id2.StrTkn)
             Debug.Assert(stmt1.InterfaceFncStmt IsNot Nothing)
@@ -324,24 +324,24 @@ Public Class TParseBas
     End Function
 
     ' ジェネリック型の構文解析
-    Function ReadGenType(id1 As TTkn) As TCls
-        Dim tp1 As TCls, tp2 As TCls
-        Dim vtp As TList(Of TCls)
+    Function ReadGenType(id1 As TToken) As TClass
+        Dim tp1 As TClass, tp2 As TClass
+        Dim vtp As TList(Of TClass)
 
-        GetTkn(ETkn.eLP)
-        GetTkn(ETkn.eOf)
+        GetTkn(EToken.eLP)
+        GetTkn(EToken.eOf)
 
-        vtp = New TList(Of TCls)()
+        vtp = New TList(Of TClass)()
         Do While True
             tp2 = ReadType(False)
             vtp.Add(tp2)
-            If CurTkn.TypeTkn <> ETkn.eComma Then
+            If CurTkn.TypeTkn <> EToken.eComma Then
 
                 Exit Do
             End If
-            GetTkn(ETkn.eComma)
+            GetTkn(EToken.eComma)
         Loop
-        GetTkn(ETkn.eRP)
+        GetTkn(EToken.eRP)
 
         ' ジェネリック型のクラスを得る。
         tp1 = PrjParse.GetRegGenCla(id1.StrTkn, vtp)
@@ -349,12 +349,12 @@ Public Class TParseBas
         Return tp1
     End Function
 
-    Function ReadType(is_new As Boolean) As TCls
-        Dim tp1 As TCls
-        Dim id1 As TTkn, dim_cnt As Integer
+    Function ReadType(is_new As Boolean) As TClass
+        Dim tp1 As TClass
+        Dim id1 As TToken, dim_cnt As Integer
 
-        id1 = GetTkn(ETkn.eId)
-        If CurTkn.TypeTkn = ETkn.eLP AndAlso NxtTkn.TypeTkn = ETkn.eOf Then
+        id1 = GetTkn(EToken.eId)
+        If CurTkn.TypeTkn = EToken.eLP AndAlso NxtTkn.TypeTkn = EToken.eOf Then
             ' ジェネリック型の場合
 
             ' ジェネリック型の構文解析
@@ -363,17 +363,17 @@ Public Class TParseBas
 
             tp1 = PrjParse.GetCla(id1.StrTkn)
             If tp1 Is Nothing Then
-                Throw New TErr(String.Format("不明なクラス {0}", id1.StrTkn))
+                Throw New TError(String.Format("不明なクラス {0}", id1.StrTkn))
             End If
         End If
-        If CurTkn.TypeTkn = ETkn.eLP AndAlso (NxtTkn.TypeTkn = ETkn.eRP OrElse NxtTkn.TypeTkn = ETkn.eComma) Then
-            GetTkn(ETkn.eLP)
+        If CurTkn.TypeTkn = EToken.eLP AndAlso (NxtTkn.TypeTkn = EToken.eRP OrElse NxtTkn.TypeTkn = EToken.eComma) Then
+            GetTkn(EToken.eLP)
             dim_cnt = 1
-            Do While CurTkn.TypeTkn = ETkn.eComma
-                GetTkn(ETkn.eComma)
+            Do While CurTkn.TypeTkn = EToken.eComma
+                GetTkn(EToken.eComma)
                 dim_cnt += 1
             Loop
-            GetTkn(ETkn.eRP)
+            GetTkn(EToken.eRP)
             If Not is_new Then
                 tp1 = PrjParse.GetArrCla(tp1, dim_cnt)
             End If
@@ -382,19 +382,19 @@ Public Class TParseBas
         Return tp1
     End Function
 
-    Function ReadVariable(up1 As Object) As TVar
-        Dim var1 As New TVar
-        Dim id1 As TTkn
-        Dim app1 As TApp
+    Function ReadVariable(up1 As Object) As TVariable
+        Dim var1 As New TVariable
+        Dim id1 As TToken
+        Dim app1 As TApply
 
-        id1 = GetTkn(ETkn.eId)
+        id1 = GetTkn(EToken.eId)
         var1.NameVar = id1.StrTkn
 
-        If CurTkn.TypeTkn = ETkn.eAs Then
+        If CurTkn.TypeTkn = EToken.eAs Then
 
-            GetTkn(ETkn.eAs)
+            GetTkn(EToken.eAs)
 
-            If CurTkn.TypeTkn = ETkn.eNew Then
+            If CurTkn.TypeTkn = EToken.eNew Then
                 app1 = NewExpression()
                 var1.TypeVar = app1.NewApp
                 var1.InitVar = app1
@@ -405,8 +405,8 @@ Public Class TParseBas
             var1.TypeVar = ReadType(False)
         End If
 
-        If CurTkn.TypeTkn = ETkn.eEq Then
-            GetTkn(ETkn.eEq)
+        If CurTkn.TypeTkn = EToken.eEq Then
+            GetTkn(EToken.eEq)
 
             var1.InitVar = AdditiveExpression()
         End If
@@ -415,29 +415,29 @@ Public Class TParseBas
     End Function
 
     Function ReadTailCom() As String
-        Dim tkn1 As TTkn
+        Dim tkn1 As TToken
 
         If CurTkn Is EOTTkn Then
             Return ""
         Else
-            tkn1 = GetTkn(ETkn.eLineComment)
+            tkn1 = GetTkn(EToken.eLineComment)
             Return tkn1.StrTkn
         End If
     End Function
 
-    Function ReadDim(mod1 As TModifier) As TStmt
-        Dim stmt1 As New TVarDecl
-        Dim var1 As TVar
+    Function ReadDim(mod1 As TModifier) As TStatement
+        Dim stmt1 As New TVariableDeclaration
+        Dim var1 As TVariable
 
-        stmt1.TypeStmt = ETkn.eVarDecl
+        stmt1.TypeStmt = EToken.eVarDecl
         stmt1.ModDecl = mod1
         Do While True
             var1 = ReadVariable(stmt1)
             stmt1.VarDecl.Add(var1)
-            If CurTkn.TypeTkn <> ETkn.eComma Then
+            If CurTkn.TypeTkn <> EToken.eComma Then
                 Exit Do
             End If
-            GetTkn(ETkn.eComma)
+            GetTkn(EToken.eComma)
         Loop
 
         stmt1.TailCom = ReadTailCom()
@@ -445,178 +445,178 @@ Public Class TParseBas
         Return stmt1
     End Function
 
-    Function ReadReturn(type_tkn As ETkn) As TRet
+    Function ReadReturn(type_tkn As EToken) As TReturn
         GetTkn(type_tkn)
         If CurTkn Is EOTTkn Then
 
-            Return New TRet(Nothing, type_tkn = ETkn.eYield)
+            Return New TReturn(Nothing, type_tkn = EToken.eYield)
         End If
 
-        Return New TRet(TermExpression(), type_tkn = ETkn.eYield)
+        Return New TReturn(TermExpression(), type_tkn = EToken.eYield)
     End Function
 
-    Function ReadEnd() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadEnd() As TStatement
+        Dim stmt1 As New TStatement
 
-        GetTkn(ETkn.eEnd)
+        GetTkn(EToken.eEnd)
         Select Case CurTkn.TypeTkn
-            Case ETkn.eIf
-                stmt1.TypeStmt = ETkn.eEndIf
-            Case ETkn.eSub
-                stmt1.TypeStmt = ETkn.eEndSub
-            Case ETkn.eFunction
-                stmt1.TypeStmt = ETkn.eEndFunction
-            Case ETkn.eOperator
-                stmt1.TypeStmt = ETkn.eEndOperator
-            Case ETkn.eClass
+            Case EToken.eIf
+                stmt1.TypeStmt = EToken.eEndIf
+            Case EToken.eSub
+                stmt1.TypeStmt = EToken.eEndSub
+            Case EToken.eFunction
+                stmt1.TypeStmt = EToken.eEndFunction
+            Case EToken.eOperator
+                stmt1.TypeStmt = EToken.eEndOperator
+            Case EToken.eClass
                 PrjParse.dicGenCla.Clear()
-                stmt1.TypeStmt = ETkn.eEndClass
-            Case ETkn.eStruct
-                stmt1.TypeStmt = ETkn.eEndStruct
-            Case ETkn.eInterface
-                stmt1.TypeStmt = ETkn.eEndInterface
-            Case ETkn.eEnum
-                stmt1.TypeStmt = ETkn.eEndEnum
-            Case ETkn.eModule
-                stmt1.TypeStmt = ETkn.eEndModule
-            Case ETkn.eSelect
-                stmt1.TypeStmt = ETkn.eEndSelect
-            Case ETkn.eTry
-                stmt1.TypeStmt = ETkn.eEndTry
-            Case ETkn.eWith
-                stmt1.TypeStmt = ETkn.eEndWith
+                stmt1.TypeStmt = EToken.eEndClass
+            Case EToken.eStruct
+                stmt1.TypeStmt = EToken.eEndStruct
+            Case EToken.eInterface
+                stmt1.TypeStmt = EToken.eEndInterface
+            Case EToken.eEnum
+                stmt1.TypeStmt = EToken.eEndEnum
+            Case EToken.eModule
+                stmt1.TypeStmt = EToken.eEndModule
+            Case EToken.eSelect
+                stmt1.TypeStmt = EToken.eEndSelect
+            Case EToken.eTry
+                stmt1.TypeStmt = EToken.eEndTry
+            Case EToken.eWith
+                stmt1.TypeStmt = EToken.eEndWith
             Case Else
                 Chk(False)
         End Select
-        GetTkn(ETkn.eUnknown)
+        GetTkn(EToken.eUnknown)
 
         Return stmt1
     End Function
 
-    Function ReadIf() As TStmt
+    Function ReadIf() As TStatement
         Dim stmt1 As New TIfStatement
 
-        stmt1.TypeStmt = ETkn.eIf
-        GetTkn(ETkn.eIf)
+        stmt1.TypeStmt = EToken.eIf
+        GetTkn(EToken.eIf)
         stmt1.CndIfStmt = CType(TermExpression(), TTerm)
-        GetTkn(ETkn.eThen)
+        GetTkn(EToken.eThen)
         Return stmt1
     End Function
 
-    Function ReadElseIf() As TStmt
+    Function ReadElseIf() As TStatement
         Dim stmt1 As New TElseIf
 
-        stmt1.TypeStmt = ETkn.eElseIf
-        GetTkn(ETkn.eElseIf)
+        stmt1.TypeStmt = EToken.eElseIf
+        GetTkn(EToken.eElseIf)
         stmt1.CndElseIf = CType(TermExpression(), TTerm)
-        GetTkn(ETkn.eThen)
+        GetTkn(EToken.eThen)
         Return stmt1
     End Function
 
-    Function ReadElse() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadElse() As TStatement
+        Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = ETkn.eElse
-        GetTkn(ETkn.eElse)
+        stmt1.TypeStmt = EToken.eElse
+        GetTkn(EToken.eElse)
         Return stmt1
     End Function
 
-    Function ReadDo() As TStmt
+    Function ReadDo() As TStatement
         Dim stmt1 As New TDoStmt
 
-        stmt1.TypeStmt = ETkn.eDo
-        GetTkn(ETkn.eDo)
-        GetTkn(ETkn.eWhile)
+        stmt1.TypeStmt = EToken.eDo
+        GetTkn(EToken.eDo)
+        GetTkn(EToken.eWhile)
         stmt1.CndDo = CType(TermExpression(), TTerm)
         Return stmt1
     End Function
 
-    Function ReadLoop() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadLoop() As TStatement
+        Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = ETkn.eLoop
-        GetTkn(ETkn.eLoop)
+        stmt1.TypeStmt = EToken.eLoop
+        GetTkn(EToken.eLoop)
 
         Return stmt1
     End Function
 
-    Function ReadSelect() As TStmt
+    Function ReadSelect() As TStatement
         Dim stmt1 As New TSelectStatement
 
-        stmt1.TypeStmt = ETkn.eSelect
-        GetTkn(ETkn.eSelect)
-        GetTkn(ETkn.eCase)
+        stmt1.TypeStmt = EToken.eSelect
+        GetTkn(EToken.eSelect)
+        GetTkn(EToken.eCase)
         stmt1.TermSelectStatement = CType(TermExpression(), TTerm)
         Return stmt1
     End Function
 
-    Function ReadCase() As TStmt
+    Function ReadCase() As TStatement
         Dim stmt1 As New TCaseStatement
         Dim trm1 As TTerm
 
-        stmt1.TypeStmt = ETkn.eCase
-        GetTkn(ETkn.eCase)
+        stmt1.TypeStmt = EToken.eCase
+        GetTkn(EToken.eCase)
 
-        If CurTkn.TypeTkn = ETkn.eElse Then
-            GetTkn(ETkn.eElse)
+        If CurTkn.TypeTkn = EToken.eElse Then
+            GetTkn(EToken.eElse)
             stmt1.IsCaseElse = True
         Else
             Do While True
                 trm1 = CType(TermExpression(), TTerm)
                 stmt1.TermCaseStmt.Add(trm1)
-                If CurTkn.TypeTkn <> ETkn.eComma Then
+                If CurTkn.TypeTkn <> EToken.eComma Then
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
         End If
 
         Return stmt1
     End Function
 
-    Function ReadFor() As TStmt
-        Dim stmt1 As New TForStatement, id1 As TTkn
+    Function ReadFor() As TStatement
+        Dim stmt1 As New TForStatement, id1 As TToken
 
-        stmt1.TypeStmt = ETkn.eFor
-        GetTkn(ETkn.eFor)
+        stmt1.TypeStmt = EToken.eFor
+        GetTkn(EToken.eFor)
 
-        If CurTkn.TypeTkn = ETkn.eId Then
+        If CurTkn.TypeTkn = EToken.eId Then
 
-            id1 = GetTkn(ETkn.eId)
-            stmt1.IdxForStmt = New TRef(id1)
-            GetTkn(ETkn.eEq)
+            id1 = GetTkn(EToken.eId)
+            stmt1.IdxForStmt = New TReference(id1)
+            GetTkn(EToken.eEq)
             stmt1.FromForStmt = CType(TermExpression(), TTerm)
-            GetTkn(ETkn.eTo)
+            GetTkn(EToken.eTo)
             stmt1.ToForStmt = CType(TermExpression(), TTerm)
 
-            If CurTkn.TypeTkn = ETkn.eStep Then
-                GetTkn(ETkn.eStep)
+            If CurTkn.TypeTkn = EToken.eStep Then
+                GetTkn(EToken.eStep)
                 stmt1.StepForStmt = CType(TermExpression(), TTerm)
             End If
         Else
 
-            GetTkn(ETkn.eEach)
+            GetTkn(EToken.eEach)
 
-            If CurTkn.TypeTkn = ETkn.eId Then
+            If CurTkn.TypeTkn = EToken.eId Then
 
-                id1 = GetTkn(ETkn.eId)
-                stmt1.InVarForStmt = New TVar(id1.StrTkn, Nothing)
+                id1 = GetTkn(EToken.eId)
+                stmt1.InVarForStmt = New TVariable(id1.StrTkn, Nothing)
             End If
 
-            If CurTkn.TypeTkn = ETkn.eAt Then
+            If CurTkn.TypeTkn = EToken.eAt Then
 
-                GetTkn(ETkn.eAt)
+                GetTkn(EToken.eAt)
 
                 Do While True
-                    GetTkn(ETkn.eId)
-                    If CurTkn.TypeTkn <> ETkn.eComma Then
+                    GetTkn(EToken.eId)
+                    If CurTkn.TypeTkn <> EToken.eComma Then
                         Exit Do
                     End If
-                    GetTkn(ETkn.eComma)
+                    GetTkn(EToken.eComma)
                 Loop
             End If
 
-            GetTkn(ETkn.eIn)
+            GetTkn(EToken.eIn)
 
             stmt1.InTrmForStmt = CType(TermExpression(), TTerm)
         End If
@@ -624,89 +624,89 @@ Public Class TParseBas
         Return stmt1
     End Function
 
-    Function ReadNext() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadNext() As TStatement
+        Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = ETkn.eNext
-        GetTkn(ETkn.eNext)
+        stmt1.TypeStmt = EToken.eNext
+        GetTkn(EToken.eNext)
 
         Return stmt1
     End Function
 
-    Function ReadExit() As TStmt
+    Function ReadExit() As TStatement
         Dim stmt1 As New TExit
 
-        GetTkn(ETkn.eExit)
+        GetTkn(EToken.eExit)
         Select Case CurTkn.TypeTkn
-            Case ETkn.eDo
-                stmt1.TypeStmt = ETkn.eExitDo
-            Case ETkn.eFor
-                stmt1.TypeStmt = ETkn.eExitFor
-            Case ETkn.eSub
-                stmt1.TypeStmt = ETkn.eExitSub
+            Case EToken.eDo
+                stmt1.TypeStmt = EToken.eExitDo
+            Case EToken.eFor
+                stmt1.TypeStmt = EToken.eExitFor
+            Case EToken.eSub
+                stmt1.TypeStmt = EToken.eExitSub
             Case Else
                 Chk(False)
         End Select
-        GetTkn(ETkn.eUnknown)
+        GetTkn(EToken.eUnknown)
 
         Return stmt1
     End Function
 
-    Function ReadTry() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadTry() As TStatement
+        Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = ETkn.eTry
-        GetTkn(ETkn.eTry)
+        stmt1.TypeStmt = EToken.eTry
+        GetTkn(EToken.eTry)
         Return stmt1
     End Function
 
-    Function ReadCatch() As TStmt
+    Function ReadCatch() As TStatement
         Dim stmt1 As New TCatchStatement
 
-        stmt1.TypeStmt = ETkn.eCatch
-        GetTkn(ETkn.eCatch)
+        stmt1.TypeStmt = EToken.eCatch
+        GetTkn(EToken.eCatch)
         stmt1.VariableCatchStmt = ReadVariable(stmt1)
         Return stmt1
     End Function
 
-    Function ReadWith() As TStmt
+    Function ReadWith() As TStatement
         Dim stmt1 As New TWithStmt
 
-        stmt1.TypeStmt = ETkn.eWith
-        GetTkn(ETkn.eWith)
+        stmt1.TypeStmt = EToken.eWith
+        GetTkn(EToken.eWith)
         stmt1.TermWith = TermExpression()
 
         Return stmt1
     End Function
 
-    Function ReadThrow() As TStmt
+    Function ReadThrow() As TStatement
         Dim stmt1 As TThrow
 
-        GetTkn(ETkn.eThrow)
+        GetTkn(EToken.eThrow)
         stmt1 = New TThrow(CType(TermExpression(), TTerm))
 
         Return stmt1
     End Function
 
-    Function ReadReDim() As TStmt
-        Dim stmt1 As TReDim, trm1 As TTerm, app1 As TApp
+    Function ReadReDim() As TStatement
+        Dim stmt1 As TReDim, trm1 As TTerm, app1 As TApply
 
-        GetTkn(ETkn.eReDim)
+        GetTkn(EToken.eReDim)
 
         trm1 = TermExpression()
         Debug.Assert(trm1.IsApp())
-        app1 = CType(trm1, TApp)
+        app1 = CType(trm1, TApply)
         Debug.Assert(app1.FncApp IsNot Nothing AndAlso app1.ArgApp.Count <> 0)
         stmt1 = New TReDim(app1.FncApp, app1.ArgApp)
 
         Return stmt1
     End Function
 
-    Function ReadLineComment() As TStmt
-        Dim stmt1 As New TStmt
+    Function ReadLineComment() As TStatement
+        Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = ETkn.eLineComment
-        GetTkn(ETkn.eLineComment)
+        stmt1.TypeStmt = EToken.eLineComment
+        GetTkn(EToken.eLineComment)
         Return stmt1
     End Function
 
@@ -721,35 +721,35 @@ Public Class TParseBas
         Chk(b1, "")
     End Sub
 
-    Sub MakeModule(src1 As TSrc)
-        Dim fnc1 As TFnc, is_module As Boolean = False, cla1 As TClassStatement, cla2 As TCls, com1 As TComment = Nothing
+    Sub MakeModule(src1 As TSourceFile)
+        Dim fnc1 As TFunction, is_module As Boolean = False, cla1 As TClassStatement, cla2 As TClass, com1 As TComment = Nothing
 
         CurLineIdx = 0
         Do While True
             CurStmt = GetNextStatement()
-            If CurStmt Is Nothing OrElse CurStmt.TypeStmt <> ETkn.eImports Then
+            If CurStmt Is Nothing OrElse CurStmt.TypeStmt <> EToken.eImports Then
                 Exit Do
             End If
         Loop
 
-        is_module = (CurStmt.TypeStmt = ETkn.eModule)
+        is_module = (CurStmt.TypeStmt = EToken.eModule)
         If is_module Then
-            GetStatement(ETkn.eModule)
+            GetStatement(EToken.eModule)
         End If
-        Do While CurStmt IsNot Nothing AndAlso CurStmt.TypeStmt <> ETkn.eEndModule
+        Do While CurStmt IsNot Nothing AndAlso CurStmt.TypeStmt <> EToken.eEndModule
             Select Case CurStmt.TypeStmt
-                Case ETkn.eClass
+                Case EToken.eClass
                     cla1 = CType(CurStmt, TClassStatement)
                     cla2 = MakeClass()
                     cla2.ComVar = com1
                     cla2.SrcCla = PrjParse.CurSrc
                     com1 = Nothing
-                Case ETkn.eEnum
+                Case EToken.eEnum
                     cla2 = MakeEnum()
                     cla2.ComVar = com1
                     cla2.SrcCla = PrjParse.CurSrc
                     com1 = Nothing
-                Case ETkn.eSub, ETkn.eFunction
+                Case EToken.eSub, EToken.eFunction
                     If CType(CurStmt, TFunctionStatement).IsDelegateFncStmt Then
                         cla2 = MakeDelegate()
                         cla2.ComVar = com1
@@ -759,27 +759,27 @@ Public Class TParseBas
                         fnc1.ComVar = com1
                     End If
                     com1 = Nothing
-                Case ETkn.eComment
+                Case EToken.eComment
                     com1 = CType(CurStmt, TComment)
-                    GetStatement(ETkn.eComment)
+                    GetStatement(EToken.eComment)
                 Case Else
                     Chk(False)
             End Select
         Loop
 
         If is_module Then
-            GetStatement(ETkn.eEndModule)
+            GetStatement(EToken.eEndModule)
         End If
     End Sub
 
-    Public Function MakeEnum() As TCls
-        Dim cla1 As TCls
-        Dim fld1 As TFld
+    Public Function MakeEnum() As TClass
+        Dim cla1 As TClass
+        Dim fld1 As TField
         Dim enum1 As TEnumStatement
-        Dim ele1 As TEnumEle
-        Dim type1 As TCls
+        Dim ele1 As TEnumElement
+        Dim type1 As TClass
 
-        enum1 = CType(GetStatement(ETkn.eEnum), TEnumStatement)
+        enum1 = CType(GetStatement(EToken.eEnum), TEnumStatement)
         cla1 = PrjParse.GetCla(enum1.NameEnumStmt)
         Debug.Assert(cla1 IsNot Nothing)
         PrjParse.CurSrc.ClaSrc.Add(cla1)
@@ -788,22 +788,22 @@ Public Class TParseBas
         cla1.SuperCla.Add(PrjParse.ObjectType)
         type1 = cla1
 
-        Do While CurStmt.TypeStmt <> ETkn.eEndEnum
-            ele1 = CType(GetStatement(ETkn.eId), TEnumEle)
-            fld1 = New TFld(ele1.NameEnumEle, type1)
+        Do While CurStmt.TypeStmt <> EToken.eEndEnum
+            ele1 = CType(GetStatement(EToken.eId), TEnumElement)
+            fld1 = New TField(ele1.NameEnumEle, type1)
             cla1.AddFld(fld1)
         Loop
-        GetStatement(ETkn.eEndEnum)
+        GetStatement(EToken.eEndEnum)
 
         Return cla1
     End Function
 
-    Public Function MakeClass() As TCls
-        Dim cla1 As TCls, spr_cla As TCls, vtp As TList(Of TCls)
-        Dim fld1 As TFld
-        Dim fnc1 As TFnc
+    Public Function MakeClass() As TClass
+        Dim cla1 As TClass, spr_cla As TClass, vtp As TList(Of TClass)
+        Dim fld1 As TField
+        Dim fnc1 As TFunction
         Dim cla_stmt As TClassStatement
-        Dim var_decl As TVarDecl
+        Dim var_decl As TVariableDeclaration
         Dim instmt As TInheritsStatement, implstmt As TImplementsStatement, com1 As TComment = Nothing
 
         cla_stmt = CType(CurStmt, TClassStatement)
@@ -822,14 +822,14 @@ Public Class TParseBas
             Next
         End If
 
-        GetStatement(ETkn.eClass)
+        GetStatement(EToken.eClass)
 
-        If CurStmt.TypeStmt = ETkn.eInherits Then
-            instmt = CType(GetStatement(ETkn.eInherits), TInheritsStatement)
+        If CurStmt.TypeStmt = EToken.eInherits Then
+            instmt = CType(GetStatement(EToken.eInherits), TInheritsStatement)
             If instmt.ParamName Is Nothing Then
                 spr_cla = PrjParse.GetCla(instmt.ClassNameInheritsStmt)
             Else
-                vtp = New TList(Of TCls)()
+                vtp = New TList(Of TClass)()
                 For Each s In instmt.ParamName
                     vtp.Add(PrjParse.GetCla(s))
                 Next
@@ -839,8 +839,8 @@ Public Class TParseBas
 
         End If
 
-        If CurStmt.TypeStmt = ETkn.eImplements Then
-            implstmt = CType(GetStatement(ETkn.eImplements), TImplementsStatement)
+        If CurStmt.TypeStmt = EToken.eImplements Then
+            implstmt = CType(GetStatement(EToken.eImplements), TImplementsStatement)
 
             cla1.InterfacesCls = implstmt.ClassImplementsStmt
         End If
@@ -874,20 +874,20 @@ Public Class TParseBas
             cla1.SuperCla.Add(PrjParse.ObjectType)
         End If
 
-        Do While CurStmt.TypeStmt <> ETkn.eEndClass AndAlso CurStmt.TypeStmt <> ETkn.eEndStruct AndAlso CurStmt.TypeStmt <> ETkn.eEndInterface
-            If CurStmt.TypeStmt = ETkn.eVarDecl Then
-                var_decl = CType(GetStatement(ETkn.eVarDecl), TVarDecl)
+        Do While CurStmt.TypeStmt <> EToken.eEndClass AndAlso CurStmt.TypeStmt <> EToken.eEndStruct AndAlso CurStmt.TypeStmt <> EToken.eEndInterface
+            If CurStmt.TypeStmt = EToken.eVarDecl Then
+                var_decl = CType(GetStatement(EToken.eVarDecl), TVariableDeclaration)
                 ' for Add
                 For Each var_f In var_decl.VarDecl
-                    fld1 = New TFld(var_f.NameVar, var_f.TypeVar, var_f.InitVar)
+                    fld1 = New TField(var_f.NameVar, var_f.TypeVar, var_f.InitVar)
                     fld1.ComVar = com1
                     com1 = Nothing
                     fld1.ModVar = var_decl.ModDecl
                     fld1.TailCom = var_decl.TailCom
                     cla1.AddFld(fld1)
                 Next
-            ElseIf CurStmt.TypeStmt = ETkn.eComment Then
-                com1 = CType(GetStatement(ETkn.eComment), TComment)
+            ElseIf CurStmt.TypeStmt = EToken.eComment Then
+                com1 = CType(GetStatement(EToken.eComment), TComment)
             Else
                 fnc1 = MakeSubFnc(cla1)
                 fnc1.ComVar = com1
@@ -896,7 +896,7 @@ Public Class TParseBas
                 cla1.FncCla.Add(fnc1)
             End If
         Loop
-        GetStatement(ETkn.eUnknown)
+        GetStatement(EToken.eUnknown)
 
         PrjParse.dicGenCla.Clear()
 
@@ -904,10 +904,10 @@ Public Class TParseBas
     End Function
 
     '  ブロックの構文解析をする
-    Function BlcParse(up1 As Object) As TBlc
-        Dim blc1 As TBlc
-        Dim blc_sv As TBlc
-        Dim var_decl As TVarDecl
+    Function BlcParse(up1 As Object) As TBlock
+        Dim blc1 As TBlock
+        Dim blc_sv As TBlock
+        Dim var_decl As TVariableDeclaration
         Dim if1 As TIfStatement
         Dim if2 As TIf
         Dim for1 As TForStatement
@@ -921,44 +921,44 @@ Public Class TParseBas
         Dim try1 As TTry
         Dim catch1 As TCatchStatement
         Dim with1 As TWithStmt, with2 As TWith
-        Dim if_blc As TIfBlc
+        Dim if_blc As TIfBlock
 
-        blc1 = New TBlc()
+        blc1 = New TBlock()
 
         blc_sv = CurBlc
         CurBlc = blc1
 
         Do While True
             Select Case CurStmt.TypeStmt
-                Case ETkn.eASN, ETkn.eCall, ETkn.eReturn, ETkn.eThrow, ETkn.eExitDo, ETkn.eExitFor, ETkn.eExitSub, ETkn.eGoto, ETkn.eLabel, ETkn.eComment, ETkn.eReDim
+                Case EToken.eASN, EToken.eCall, EToken.eReturn, EToken.eThrow, EToken.eExitDo, EToken.eExitFor, EToken.eExitSub, EToken.eGoto, EToken.eLabel, EToken.eComment, EToken.eReDim
                     CurBlc.AddStmtBlc(CurStmt)
-                    GetStatement(ETkn.eUnknown)
-                Case ETkn.eIf
-                    if1 = CType(GetStatement(ETkn.eIf), TIfStatement)
+                    GetStatement(EToken.eUnknown)
+                Case EToken.eIf
+                    if1 = CType(GetStatement(EToken.eIf), TIfStatement)
                     if2 = New TIf()
                     CurBlc.AddStmtBlc(if2)
-                    if_blc = New TIfBlc(if1.CndIfStmt, BlcParse(if2))
+                    if_blc = New TIfBlock(if1.CndIfStmt, BlcParse(if2))
                     if2.IfBlc.Add(if_blc)
                     Do While True
                         Select Case CurStmt.TypeStmt
-                            Case ETkn.eElseIf
-                                eif1 = CType(GetStatement(ETkn.eElseIf), TElseIf)
-                                if_blc = New TIfBlc(eif1.CndElseIf, BlcParse(if2))
+                            Case EToken.eElseIf
+                                eif1 = CType(GetStatement(EToken.eElseIf), TElseIf)
+                                if_blc = New TIfBlock(eif1.CndElseIf, BlcParse(if2))
                                 if2.IfBlc.Add(if_blc)
-                            Case ETkn.eElse
-                                GetStatement(ETkn.eElse)
-                                if_blc = New TIfBlc(Nothing, BlcParse(if2))
+                            Case EToken.eElse
+                                GetStatement(EToken.eElse)
+                                if_blc = New TIfBlock(Nothing, BlcParse(if2))
                                 if2.IfBlc.Add(if_blc)
-                                GetStatement(ETkn.eEndIf)
+                                GetStatement(EToken.eEndIf)
                                 Exit Do
                             Case Else
-                                GetStatement(ETkn.eEndIf)
+                                GetStatement(EToken.eEndIf)
                                 Exit Do
                         End Select
                     Loop
 
-                Case ETkn.eFor
-                    for1 = CType(GetStatement(ETkn.eFor), TForStatement)
+                Case EToken.eFor
+                    for1 = CType(GetStatement(EToken.eFor), TForStatement)
                     for2 = New TFor()
 
                     for2.IdxFor = for1.IdxForStmt
@@ -970,60 +970,60 @@ Public Class TParseBas
 
                     for2.BlcFor = BlcParse(for2)
                     CurBlc.AddStmtBlc(for2)
-                    GetStatement(ETkn.eNext)
+                    GetStatement(EToken.eNext)
 
-                Case ETkn.eDo
-                    do1 = CType(GetStatement(ETkn.eDo), TDoStmt)
+                Case EToken.eDo
+                    do1 = CType(GetStatement(EToken.eDo), TDoStmt)
                     for2 = New TFor()
                     for2.IsDo = True
                     CurBlc.AddStmtBlc(for2)
                     for2.CndFor = do1.CndDo
                     for2.BlcFor = BlcParse(for2)
-                    GetStatement(ETkn.eLoop)
+                    GetStatement(EToken.eLoop)
 
-                Case ETkn.eSelect
-                    sel1 = CType(GetStatement(ETkn.eSelect), TSelectStatement)
+                Case EToken.eSelect
+                    sel1 = CType(GetStatement(EToken.eSelect), TSelectStatement)
                     sel2 = New TSelect()
                     sel2.TrmSel = sel1.TermSelectStatement
                     CurBlc.AddStmtBlc(sel2)
-                    Do While CurStmt.TypeStmt <> ETkn.eEndSelect
-                        case1 = CType(GetStatement(ETkn.eCase), TCaseStatement)
+                    Do While CurStmt.TypeStmt <> EToken.eEndSelect
+                        case1 = CType(GetStatement(EToken.eCase), TCaseStatement)
                         case2 = New TCase()
                         case2.TrmCase = case1.TermCaseStmt
                         case2.DefaultCase = case1.IsCaseElse
                         sel2.CaseSel.Add(case2)
                         case2.BlcCase = BlcParse(sel1)
                     Loop
-                    GetStatement(ETkn.eEndSelect)
+                    GetStatement(EToken.eEndSelect)
 
-                Case ETkn.eTry
-                    GetStatement(ETkn.eTry)
+                Case EToken.eTry
+                    GetStatement(EToken.eTry)
                     try1 = New TTry()
                     CurBlc.AddStmtBlc(try1)
                     try1.BlcTry = BlcParse(try1)
-                    catch1 = CType(GetStatement(ETkn.eCatch), TCatchStatement)
-                    try1.VarCatch = New TList(Of TVar)()
+                    catch1 = CType(GetStatement(EToken.eCatch), TCatchStatement)
+                    try1.VarCatch = New TList(Of TVariable)()
                     try1.VarCatch.Add(catch1.VariableCatchStmt)
                     try1.BlcCatch = BlcParse(try1)
-                    GetStatement(ETkn.eEndTry)
+                    GetStatement(EToken.eEndTry)
 
-                Case ETkn.eWith
-                    with1 = CType(GetStatement(ETkn.eWith), TWithStmt)
+                Case EToken.eWith
+                    with1 = CType(GetStatement(EToken.eWith), TWithStmt)
                     with2 = New TWith()
                     with2.TermWith = with1.TermWith
                     CurBlc.AddStmtBlc(with2)
                     with2.BlcWith = BlcParse(with2)
-                    GetStatement(ETkn.eEndWith)
+                    GetStatement(EToken.eEndWith)
 
-                Case ETkn.eVarDecl
-                    var_decl = CType(GetStatement(ETkn.eVarDecl), TVarDecl)
+                Case EToken.eVarDecl
+                    var_decl = CType(GetStatement(EToken.eVarDecl), TVariableDeclaration)
                     CurBlc.AddStmtBlc(var_decl)
                     ' for Add
                     For Each var1 In var_decl.VarDecl
                         CurBlc.VarBlc.Add(var1)
                     Next
 
-                Case ETkn.eExit
+                Case EToken.eExit
                     Chk(False)
                 Case Else
                     Exit Do
@@ -1035,21 +1035,21 @@ Public Class TParseBas
         Return blc1
     End Function
 
-    Public Function MakeDelegate() As TCls
+    Public Function MakeDelegate() As TClass
         Dim stmt1 As TFunctionStatement
         Dim dlg1 As TDelegate
-        Dim fnc1 As TFnc
+        Dim fnc1 As TFunction
 
-        stmt1 = CType(GetStatement(ETkn.eUnknown), TFunctionStatement)
+        stmt1 = CType(GetStatement(EToken.eUnknown), TFunctionStatement)
         dlg1 = PrjParse.GetDelegate(stmt1.NameFncStmt)
 
         dlg1.KndCla = EClass.eDelegateCla
         dlg1.RetDlg = stmt1.RetType
         dlg1.ArgDlg = stmt1.ArgumentFncStmt
-        fnc1 = New TFnc("Invoke", stmt1.RetType)
+        fnc1 = New TFunction("Invoke", stmt1.RetType)
         fnc1.SetModFnc(stmt1.ModifierFncStmt)
         fnc1.ArgFnc = stmt1.ArgumentFncStmt
-        fnc1.ThisFnc = New TVar("Me", dlg1)
+        fnc1.ThisFnc = New TVariable("Me", dlg1)
         fnc1.ClaFnc = dlg1
         dlg1.FncCla.Add(fnc1)
 
@@ -1058,26 +1058,26 @@ Public Class TParseBas
         Return dlg1
     End Function
 
-    Public Function MakeSubFnc(cla1 As TCls) As TFnc
+    Public Function MakeSubFnc(cla1 As TClass) As TFunction
         Dim fnc1 As TFunctionStatement
-        Dim fnc2 As TFnc, fnc_name As String
+        Dim fnc2 As TFunction, fnc_name As String
 
-        Chk(CurStmt.TypeStmt = ETkn.eSub OrElse CurStmt.TypeStmt = ETkn.eFunction OrElse CurStmt.TypeStmt = ETkn.eNew OrElse CurStmt.TypeStmt = ETkn.eOperator)
-        fnc1 = CType(GetStatement(ETkn.eUnknown), TFunctionStatement)
-        If fnc1.TypeStmt = ETkn.eNew Then
+        Chk(CurStmt.TypeStmt = EToken.eSub OrElse CurStmt.TypeStmt = EToken.eFunction OrElse CurStmt.TypeStmt = EToken.eNew OrElse CurStmt.TypeStmt = EToken.eOperator)
+        fnc1 = CType(GetStatement(EToken.eUnknown), TFunctionStatement)
+        If fnc1.TypeStmt = EToken.eNew Then
             fnc_name = "New@" + cla1.NameCla()
         Else
             fnc_name = fnc1.NameFncStmt
         End If
-        fnc2 = New TFnc(fnc_name, fnc1.RetType)
+        fnc2 = New TFunction(fnc_name, fnc1.RetType)
         fnc2.SetModFnc(fnc1.ModifierFncStmt)
         fnc2.TypeFnc = fnc1.TypeStmt
         fnc2.OpFnc = fnc1.OpFncStmt
         fnc2.ArgFnc.AddRange(fnc1.ArgumentFncStmt)
-        fnc2.ThisFnc = New TVar("Me", cla1)
+        fnc2.ThisFnc = New TVariable("Me", cla1)
         fnc2.InterfaceFnc = fnc1.InterfaceFncStmt
-        fnc2.ImplFnc = New TRef(fnc1.InterfaceFncName)
-        fnc2.IsNew = (fnc1.TypeStmt = ETkn.eNew)
+        fnc2.ImplFnc = New TReference(fnc1.InterfaceFncName)
+        fnc2.IsNew = (fnc1.TypeStmt = EToken.eNew)
 
         If fnc2.ModFnc().isMustOverride Then
             Return fnc2
@@ -1087,8 +1087,8 @@ Public Class TParseBas
             ' インターフェイスでない場合
 
             fnc2.BlcFnc = BlcParse(fnc2)
-            Chk(CurStmt.TypeStmt = ETkn.eEndSub OrElse CurStmt.TypeStmt = ETkn.eEndFunction OrElse CurStmt.TypeStmt = ETkn.eEndOperator)
-            GetStatement(ETkn.eUnknown)
+            Chk(CurStmt.TypeStmt = EToken.eEndSub OrElse CurStmt.TypeStmt = EToken.eEndFunction OrElse CurStmt.TypeStmt = EToken.eEndOperator)
+            GetStatement(EToken.eUnknown)
         End If
 
         Return fnc2
@@ -1096,10 +1096,10 @@ Public Class TParseBas
 
     Public Sub ReadAllStatement()
         Dim i1 As Integer, is_err As Boolean = False
-        Dim com1 As TComment, stmt1 As TStmt, cla1 As TCls
+        Dim com1 As TComment, stmt1 As TStatement, cla1 As TClass
 
         ' 文の配列を初期化する
-        PrjParse.CurSrc.StmtSrc = New TList(Of TStmt)()
+        PrjParse.CurSrc.StmtSrc = New TList(Of TStatement)()
         ' for Add
         For i1 = 0 To PrjParse.CurSrc.vTextSrc.Length - 1
             PrjParse.CurSrc.StmtSrc.Add(Nothing)
@@ -1115,7 +1115,7 @@ Public Class TParseBas
                 '  空行の場合
 
                 com1.LineCom.Add("")
-            ElseIf CurVTkn(0).TypeTkn = ETkn.eLineComment Then
+            ElseIf CurVTkn(0).TypeTkn = EToken.eLineComment Then
                 '  コメントの場合
 
                 com1.LineCom.Add(CurVTkn(0).StrTkn)
@@ -1150,12 +1150,12 @@ Public Class TParseBas
                             Next
                         End If
 
-                    ElseIf stmt1.TypeStmt = ETkn.eEndClass Then
+                    ElseIf stmt1.TypeStmt = EToken.eEndClass Then
                         ' クラス定義の終わりの場合
 
                         PrjParse.dicGenCla.Clear()
                     End If
-                Catch ex As TErr
+                Catch ex As TError
                     is_err = True
                 End Try
             End If
@@ -1171,37 +1171,37 @@ Public Class TParseBas
         mod1.ValidMod = False
         Do While True
             Select Case CurTkn.TypeTkn
-                Case ETkn.ePartial
+                Case EToken.ePartial
                     mod1.isPartial = True
-                Case ETkn.ePublic
+                Case EToken.ePublic
                     mod1.isPublic = True
-                Case ETkn.eShared
+                Case EToken.eShared
                     mod1.isShared = True
-                Case ETkn.eConst
+                Case EToken.eConst
                     mod1.isConst = True
-                Case ETkn.eAbstract
+                Case EToken.eAbstract
                     mod1.isAbstract = True
-                Case ETkn.eVirtual
+                Case EToken.eVirtual
                     mod1.isVirtual = True
-                Case ETkn.eMustOverride
+                Case EToken.eMustOverride
                     mod1.isMustOverride = True
-                Case ETkn.eOverride
+                Case EToken.eOverride
                     mod1.isOverride = True
-                Case ETkn.eIterator
+                Case EToken.eIterator
                     mod1.isIterator = True
-                Case ETkn.eProtected, ETkn.eFriend, ETkn.ePrivate
+                Case EToken.eProtected, EToken.eFriend, EToken.ePrivate
                 Case Else
                     Exit Do
             End Select
-            GetTkn(ETkn.eUnknown)
+            GetTkn(EToken.eUnknown)
             mod1.ValidMod = True
         Loop
 
         Return mod1
     End Function
 
-    Function ReadStatement() As TStmt
-        Dim mod1 As TModifier, stmt1 As TStmt
+    Function ReadStatement() As TStatement
+        Dim mod1 As TModifier, stmt1 As TStatement
 
 
         CurPos = 0
@@ -1217,101 +1217,101 @@ Public Class TParseBas
 
         mod1 = ReadModifier()
 
-        If mod1.ValidMod AndAlso CurTkn.TypeTkn = ETkn.eId Then
+        If mod1.ValidMod AndAlso CurTkn.TypeTkn = EToken.eId Then
             '  変数宣言の場合
 
             stmt1 = ReadDim(mod1)
         Else
 
             Select Case CurTkn.TypeTkn
-                Case ETkn.eImports
+                Case EToken.eImports
                     stmt1 = ReadImports()
 
-                Case ETkn.eModule
+                Case EToken.eModule
                     stmt1 = ReadModule()
 
-                Case ETkn.eDelegate
-                    GetTkn(ETkn.eDelegate)
-                    Debug.Assert(CurTkn.TypeTkn = ETkn.eFunction OrElse CurTkn.TypeTkn = ETkn.eSub)
+                Case EToken.eDelegate
+                    GetTkn(EToken.eDelegate)
+                    Debug.Assert(CurTkn.TypeTkn = EToken.eFunction OrElse CurTkn.TypeTkn = EToken.eSub)
                     stmt1 = ReadSubFunction(mod1, True)
 
-                Case ETkn.eSub, ETkn.eFunction, ETkn.eOperator
+                Case EToken.eSub, EToken.eFunction, EToken.eOperator
                     stmt1 = ReadSubFunction(mod1, False)
 
-                Case ETkn.eEnd
+                Case EToken.eEnd
                     stmt1 = ReadEnd()
 
-                Case ETkn.eDim
-                    GetTkn(ETkn.eDim)
+                Case EToken.eDim
+                    GetTkn(EToken.eDim)
                     stmt1 = ReadDim(mod1)
 
-                Case ETkn.eIf
+                Case EToken.eIf
                     stmt1 = ReadIf()
 
-                Case ETkn.eElse
+                Case EToken.eElse
                     stmt1 = ReadElse()
 
-                Case ETkn.eReturn, ETkn.eYield
+                Case EToken.eReturn, EToken.eYield
                     stmt1 = ReadReturn(CurTkn.TypeTkn)
 
-                Case ETkn.eDo
+                Case EToken.eDo
                     stmt1 = ReadDo()
 
-                Case ETkn.eLoop
+                Case EToken.eLoop
                     stmt1 = ReadLoop()
 
-                Case ETkn.eSelect
+                Case EToken.eSelect
                     stmt1 = ReadSelect()
 
-                Case ETkn.eCase
+                Case EToken.eCase
                     stmt1 = ReadCase()
 
-                Case ETkn.eFor
+                Case EToken.eFor
                     stmt1 = ReadFor()
 
-                Case ETkn.eNext
+                Case EToken.eNext
                     stmt1 = ReadNext()
 
-                Case ETkn.eElseIf
+                Case EToken.eElseIf
                     stmt1 = ReadElseIf()
 
-                Case ETkn.eEnum
+                Case EToken.eEnum
                     stmt1 = ReadEnum()
 
-                Case ETkn.eClass, ETkn.eStruct, ETkn.eInterface
+                Case EToken.eClass, EToken.eStruct, EToken.eInterface
                     stmt1 = ReadClass(mod1)
 
-                Case ETkn.eInherits
+                Case EToken.eInherits
                     stmt1 = ReadInherits()
 
-                Case ETkn.eImplements
+                Case EToken.eImplements
                     stmt1 = ReadImplements()
 
-                Case ETkn.eExit
+                Case EToken.eExit
                     stmt1 = ReadExit()
 
-                Case ETkn.eId, ETkn.eBase, ETkn.eCType, ETkn.eDot
+                Case EToken.eId, EToken.eBase, EToken.eCType, EToken.eDot
                     stmt1 = AssignmentExpression()
 
-                Case ETkn.eTry
+                Case EToken.eTry
                     stmt1 = ReadTry()
 
-                Case ETkn.eCatch
+                Case EToken.eCatch
                     stmt1 = ReadCatch()
 
-                Case ETkn.eWith
+                Case EToken.eWith
                     stmt1 = ReadWith()
 
-                Case ETkn.eThrow
+                Case EToken.eThrow
                     stmt1 = ReadThrow()
 
-                Case ETkn.eReDim
+                Case EToken.eReDim
                     stmt1 = ReadReDim()
 
-                Case ETkn.eLineComment
+                Case EToken.eLineComment
                     stmt1 = ReadLineComment()
 
-                Case ETkn.eEOT
+                Case EToken.eEOT
                 Case Else
                     Chk(False)
             End Select
@@ -1326,8 +1326,8 @@ Public Class TParseBas
         Return stmt1
     End Function
 
-    Function GetNextStatement() As TStmt
-        Dim stmt1 As TStmt
+    Function GetNextStatement() As TStatement
+        Dim stmt1 As TStatement
 
         Do While CurLineIdx < PrjParse.CurSrc.vTextSrc.Length
             stmt1 = PrjParse.CurSrc.StmtSrc(CurLineIdx)
@@ -1344,22 +1344,22 @@ Public Class TParseBas
         Return Nothing
     End Function
 
-    Function GetStatement(type1 As ETkn) As TStmt
-        Dim stmt1 As TStmt
+    Function GetStatement(type1 As EToken) As TStatement
+        Dim stmt1 As TStatement
 
-        Chk(type1 = ETkn.eUnknown OrElse CurStmt IsNot Nothing)
+        Chk(type1 = EToken.eUnknown OrElse CurStmt IsNot Nothing)
 
-        Do While type1 <> ETkn.eUnknown AndAlso type1 <> ETkn.eComment AndAlso CurStmt.TypeStmt = ETkn.eComment
+        Do While type1 <> EToken.eUnknown AndAlso type1 <> EToken.eComment AndAlso CurStmt.TypeStmt = EToken.eComment
             CurStmt = GetNextStatement()
             Debug.Assert(CurStmt IsNot Nothing)
         Loop
 
-        If type1 = ETkn.eUnknown OrElse type1 = CurStmt.TypeStmt Then
+        If type1 = EToken.eUnknown OrElse type1 = CurStmt.TypeStmt Then
 
             stmt1 = CurStmt
             Do While True
                 CurStmt = GetNextStatement()
-                If CurStmt Is Nothing OrElse CurStmt.TypeStmt <> ETkn.eImports Then
+                If CurStmt Is Nothing OrElse CurStmt.TypeStmt <> EToken.eImports Then
                     Exit Do
                 End If
             Loop
@@ -1371,36 +1371,36 @@ Public Class TParseBas
         End If
     End Function
 
-    Public Sub ParseAllLines(src1 As TSrc)
+    Public Sub ParseAllLines(src1 As TSourceFile)
         If src1.vTextSrc Is Nothing Then
             src1.vTextSrc = TFile.ReadAllLines(PrjParse.SrcDir, src1.FileSrc)
         End If
 
-        src1.LineTkn = New TList(Of TList(Of TTkn))()
+        src1.LineTkn = New TList(Of TList(Of TToken))()
         ' for Add
         For Each line1 In src1.vTextSrc
             src1.LineTkn.Add(Lex(line1))
         Next
     End Sub
 
-    Public Sub RegAllClass(src1 As TSrc)
-        Dim id1 As TTkn, k1 As Integer, cla1 As TCls, cla2 As TCls, id2 As TTkn
+    Public Sub RegAllClass(src1 As TSourceFile)
+        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken
 
         For Each v In src1.LineTkn
 
-            If 3 <= v.Count AndAlso v(0).TypeTkn = ETkn.ePublic Then
+            If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
 
-                If v(1).TypeTkn = ETkn.eDelegate Then
-                    Debug.Assert(v(2).TypeTkn = ETkn.eSub OrElse v(2).TypeTkn = ETkn.eFunction)
+                If v(1).TypeTkn = EToken.eDelegate Then
+                    Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
                     id1 = v(3)
                     cla1 = PrjParse.RegDelegate(id1.StrTkn)
                 Else
                     Select Case v(1).TypeTkn
-                        Case ETkn.eClass, ETkn.eStruct, ETkn.eInterface, ETkn.eEnum
+                        Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
                             k1 = 2
-                        Case ETkn.eAbstract
+                        Case EToken.eAbstract
                             Select Case v(2).TypeTkn
-                                Case ETkn.eClass, ETkn.eStruct, ETkn.eInterface
+                                Case EToken.eClass, EToken.eStruct, EToken.eInterface
                                     k1 = 3
                                 Case Else
                                     Debug.Assert(False)
@@ -1414,25 +1414,25 @@ Public Class TParseBas
                         cla1 = PrjParse.RegCla(id1.StrTkn)
 
                         If k1 + 1 < v.Count Then
-                            Debug.Assert(v(k1 + 1).TypeTkn = ETkn.eLP)
-                            Debug.Assert(v(k1 + 2).TypeTkn = ETkn.eOf)
+                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eLP)
+                            Debug.Assert(v(k1 + 2).TypeTkn = EToken.eOf)
 
-                            cla1.GenCla = New TList(Of TCls)()
+                            cla1.GenCla = New TList(Of TClass)()
 
                             k1 += 3
                             Do While k1 < v.Count
                                 id2 = v(k1)
 
-                                cla2 = New TCls(id2.StrTkn)
+                                cla2 = New TClass(id2.StrTkn)
                                 cla2.IsParamCla = True
                                 cla1.GenCla.Add(cla2)
 
-                                If v(k1 + 1).TypeTkn = ETkn.eRP Then
+                                If v(k1 + 1).TypeTkn = EToken.eRP Then
                                     Debug.Assert(k1 + 2 = v.Count)
                                     Exit Do
                                 End If
 
-                                Debug.Assert(v(k1 + 1).TypeTkn = ETkn.eComma)
+                                Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
                                 k1 += 2
                             Loop
 
@@ -1445,136 +1445,136 @@ Public Class TParseBas
         Next
     End Sub
 
-    Public Sub Parse(src1 As TSrc)
+    Public Sub Parse(src1 As TSourceFile)
         MakeModule(src1)
     End Sub
 
     Public Sub RegTkn()
-        Dim dic1 As New Dictionary(Of String, ETkn)
+        Dim dic1 As New Dictionary(Of String, EToken)
 
-        EOTTkn = NewToken(ETkn.eEOT, "", 0)
+        EOTTkn = NewToken(EToken.eEOT, "", 0)
 
-        dic1.Add("Imports", ETkn.eImports)
-        dic1.Add("Module", ETkn.eModule)
-        dic1.Add("OrElse", ETkn.eOR)
-        dic1.Add("AndAlso", ETkn.eAnd)
-        dic1.Add("Not", ETkn.eNot)
-        dic1.Add("<>", ETkn.eNE)
-        dic1.Add("MustInherit", ETkn.eAbstract)
-        dic1.Add("MustOverride", ETkn.eMustOverride)
-        dic1.Add("AddressOf", ETkn.eAddressOf)
-        dic1.Add("Aggregate", ETkn.eAggregate)
-        dic1.Add("As", ETkn.eAs)
-        dic1.Add("At", ETkn.eAt)
-        dic1.Add("MyBase", ETkn.eBase)
-        dic1.Add("Break", ETkn.eBreak)
-        dic1.Add("Byval", ETkn.eByVal)
-        dic1.Add("Call", ETkn.eCall)
-        dic1.Add("Case", ETkn.eCase)
-        dic1.Add("Catch", ETkn.eCatch)
-        dic1.Add("Class", ETkn.eClass)
-        dic1.Add("Const", ETkn.eConst)
-        dic1.Add("CType", ETkn.eCType)
-        dic1.Add("Default", ETkn.eDefault)
-        dic1.Add("Delegate", ETkn.eDelegate)
-        dic1.Add("Dim", ETkn.eDim)
-        dic1.Add("Do", ETkn.eDo)
-        dic1.Add("Each", ETkn.eEach)
-        dic1.Add("Else", ETkn.eElse)
-        dic1.Add("Elseif", ETkn.eElseIf)
-        dic1.Add("End", ETkn.eEnd)
-        dic1.Add("Endif", ETkn.eEndIf)
-        dic1.Add("Enum", ETkn.eEnum)
-        dic1.Add("Exit", ETkn.eExit)
-        dic1.Add("Extends", ETkn.eExtends)
-        dic1.Add("For", ETkn.eFor)
-        dic1.Add("Foreach", ETkn.eForeach)
-        dic1.Add("From", ETkn.eFrom)
-        dic1.Add("Function", ETkn.eFunction)
-        dic1.Add("Get", ETkn.eGet)
-        dic1.Add("GetType", ETkn.eGetType)
-        dic1.Add("GoTo", ETkn.eGoto)
-        dic1.Add("Handles", ETkn.eHandles)
-        dic1.Add("If", ETkn.eIf)
-        '		dic1.Add("IIf", ETkn.eIIF)
-        dic1.Add("Implements", ETkn.eImplements)
-        dic1.Add("In", ETkn.eIn)
-        dic1.Add("Inherits", ETkn.eInherits)
-        dic1.Add("Interface", ETkn.eInterface)
-        dic1.Add("Into", ETkn.eInto)
-        dic1.Add("Is", ETkn.eIs)
-        dic1.Add("IsNot", ETkn.eIsNot)
-        dic1.Add("Iterator", ETkn.eIterator)
-        dic1.Add("Loop", ETkn.eLoop)
-        dic1.Add("Namespace", ETkn.eNamespace)
-        dic1.Add("New", ETkn.eNew)
-        dic1.Add("Next", ETkn.eNext)
-        dic1.Add("Of", ETkn.eOf)
-        dic1.Add("Operator", ETkn.eOperator)
-        dic1.Add("Out", ETkn.eOut)
-        dic1.Add("Overrides", ETkn.eOverride)
-        dic1.Add("ParamArray", ETkn.eParamArray)
-        dic1.Add("Partial", ETkn.ePartial)
-        dic1.Add("Public", ETkn.ePublic)
-        dic1.Add("Protected", ETkn.eProtected)
-        dic1.Add("Friend", ETkn.eFriend)
-        dic1.Add("Private", ETkn.ePrivate)
-        dic1.Add("ByRef", ETkn.eRef)
-        dic1.Add("ReDim", ETkn.eReDim)
-        dic1.Add("Return", ETkn.eReturn)
-        dic1.Add("Set", ETkn.eSet)
-        dic1.Add("Select", ETkn.eSelect)
-        dic1.Add("Shared", ETkn.eShared)
-        dic1.Add("Step", ETkn.eStep)
-        dic1.Add("Structure", ETkn.eStruct)
-        dic1.Add("Sub", ETkn.eSub)
-        dic1.Add("Take", ETkn.eTake)
-        dic1.Add("Then", ETkn.eThen)
-        dic1.Add("Throw", ETkn.eThrow)
-        dic1.Add("To", ETkn.eTo)
-        dic1.Add("Try", ETkn.eTry)
-        dic1.Add("TypeOf", ETkn.eTypeof)
-        dic1.Add("Var", ETkn.eVar)
-        dic1.Add("Overridable", ETkn.eVirtual)
-        dic1.Add("Where", ETkn.eWhere)
-        dic1.Add("While", ETkn.eWhile)
-        dic1.Add("With", ETkn.eWith)
-        dic1.Add("Yield", ETkn.eYield)
-        dic1.Add("@id", ETkn.eId)
-        dic1.Add("@int", ETkn.eInt)
-        dic1.Add("@hex", ETkn.eHex)
-        dic1.Add("/*", ETkn.eBlockComment)
-        dic1.Add("'", ETkn.eLineComment)
-        dic1.Add("=", ETkn.eEq)
-        dic1.Add("+=", ETkn.eADDEQ)
-        dic1.Add("-=", ETkn.eSUBEQ)
-        dic1.Add("*=", ETkn.eMULEQ)
-        dic1.Add("/=", ETkn.eDIVEQ)
-        dic1.Add("%=", ETkn.eMODEQ)
-        dic1.Add("+", ETkn.eADD)
-        dic1.Add("-", ETkn.eMns)
-        dic1.Add("Mod", ETkn.eMOD)
-        dic1.Add("And", ETkn.eAnp)
-        dic1.Add("(", ETkn.eLP)
-        dic1.Add(")", ETkn.eRP)
-        dic1.Add("*", ETkn.eMUL)
-        dic1.Add(",", ETkn.eComma)
-        dic1.Add(".", ETkn.eDot)
-        dic1.Add("/", ETkn.eDIV)
-        dic1.Add(":", ETkn.eMMB)
-        dic1.Add("", ETkn.eSM)
-        dic1.Add("?", ETkn.eQUE)
-        dic1.Add("[", ETkn.eLB)
-        dic1.Add("]", ETkn.eRB)
-        dic1.Add("^", ETkn.eHAT)
-        dic1.Add("{", ETkn.eLC)
-        dic1.Add("|", ETkn.eVLine)
-        dic1.Add("}", ETkn.eRC)
-        dic1.Add("~", ETkn.eTilde)
-        dic1.Add("<", ETkn.eLT)
-        dic1.Add(">", ETkn.eGT)
-        dic1.Add("<=", ETkn.eLE)
-        dic1.Add(">=", ETkn.eGE)
+        dic1.Add("Imports", EToken.eImports)
+        dic1.Add("Module", EToken.eModule)
+        dic1.Add("OrElse", EToken.eOR)
+        dic1.Add("AndAlso", EToken.eAnd)
+        dic1.Add("Not", EToken.eNot)
+        dic1.Add("<>", EToken.eNE)
+        dic1.Add("MustInherit", EToken.eAbstract)
+        dic1.Add("MustOverride", EToken.eMustOverride)
+        dic1.Add("AddressOf", EToken.eAddressOf)
+        dic1.Add("Aggregate", EToken.eAggregate)
+        dic1.Add("As", EToken.eAs)
+        dic1.Add("At", EToken.eAt)
+        dic1.Add("MyBase", EToken.eBase)
+        dic1.Add("Break", EToken.eBreak)
+        dic1.Add("Byval", EToken.eByVal)
+        dic1.Add("Call", EToken.eCall)
+        dic1.Add("Case", EToken.eCase)
+        dic1.Add("Catch", EToken.eCatch)
+        dic1.Add("Class", EToken.eClass)
+        dic1.Add("Const", EToken.eConst)
+        dic1.Add("CType", EToken.eCType)
+        dic1.Add("Default", EToken.eDefault)
+        dic1.Add("Delegate", EToken.eDelegate)
+        dic1.Add("Dim", EToken.eDim)
+        dic1.Add("Do", EToken.eDo)
+        dic1.Add("Each", EToken.eEach)
+        dic1.Add("Else", EToken.eElse)
+        dic1.Add("Elseif", EToken.eElseIf)
+        dic1.Add("End", EToken.eEnd)
+        dic1.Add("Endif", EToken.eEndIf)
+        dic1.Add("Enum", EToken.eEnum)
+        dic1.Add("Exit", EToken.eExit)
+        dic1.Add("Extends", EToken.eExtends)
+        dic1.Add("For", EToken.eFor)
+        dic1.Add("Foreach", EToken.eForeach)
+        dic1.Add("From", EToken.eFrom)
+        dic1.Add("Function", EToken.eFunction)
+        dic1.Add("Get", EToken.eGet)
+        dic1.Add("GetType", EToken.eGetType)
+        dic1.Add("GoTo", EToken.eGoto)
+        dic1.Add("Handles", EToken.eHandles)
+        dic1.Add("If", EToken.eIf)
+        '		dic1.Add("IIf", EToken.eIIF)
+        dic1.Add("Implements", EToken.eImplements)
+        dic1.Add("In", EToken.eIn)
+        dic1.Add("Inherits", EToken.eInherits)
+        dic1.Add("Interface", EToken.eInterface)
+        dic1.Add("Into", EToken.eInto)
+        dic1.Add("Is", EToken.eIs)
+        dic1.Add("IsNot", EToken.eIsNot)
+        dic1.Add("Iterator", EToken.eIterator)
+        dic1.Add("Loop", EToken.eLoop)
+        dic1.Add("Namespace", EToken.eNamespace)
+        dic1.Add("New", EToken.eNew)
+        dic1.Add("Next", EToken.eNext)
+        dic1.Add("Of", EToken.eOf)
+        dic1.Add("Operator", EToken.eOperator)
+        dic1.Add("Out", EToken.eOut)
+        dic1.Add("Overrides", EToken.eOverride)
+        dic1.Add("ParamArray", EToken.eParamArray)
+        dic1.Add("Partial", EToken.ePartial)
+        dic1.Add("Public", EToken.ePublic)
+        dic1.Add("Protected", EToken.eProtected)
+        dic1.Add("Friend", EToken.eFriend)
+        dic1.Add("Private", EToken.ePrivate)
+        dic1.Add("ByRef", EToken.eRef)
+        dic1.Add("ReDim", EToken.eReDim)
+        dic1.Add("Return", EToken.eReturn)
+        dic1.Add("Set", EToken.eSet)
+        dic1.Add("Select", EToken.eSelect)
+        dic1.Add("Shared", EToken.eShared)
+        dic1.Add("Step", EToken.eStep)
+        dic1.Add("Structure", EToken.eStruct)
+        dic1.Add("Sub", EToken.eSub)
+        dic1.Add("Take", EToken.eTake)
+        dic1.Add("Then", EToken.eThen)
+        dic1.Add("Throw", EToken.eThrow)
+        dic1.Add("To", EToken.eTo)
+        dic1.Add("Try", EToken.eTry)
+        dic1.Add("TypeOf", EToken.eTypeof)
+        dic1.Add("Var", EToken.eVar)
+        dic1.Add("Overridable", EToken.eVirtual)
+        dic1.Add("Where", EToken.eWhere)
+        dic1.Add("While", EToken.eWhile)
+        dic1.Add("With", EToken.eWith)
+        dic1.Add("Yield", EToken.eYield)
+        dic1.Add("@id", EToken.eId)
+        dic1.Add("@int", EToken.eInt)
+        dic1.Add("@hex", EToken.eHex)
+        dic1.Add("/*", EToken.eBlockComment)
+        dic1.Add("'", EToken.eLineComment)
+        dic1.Add("=", EToken.eEq)
+        dic1.Add("+=", EToken.eADDEQ)
+        dic1.Add("-=", EToken.eSUBEQ)
+        dic1.Add("*=", EToken.eMULEQ)
+        dic1.Add("/=", EToken.eDIVEQ)
+        dic1.Add("%=", EToken.eMODEQ)
+        dic1.Add("+", EToken.eADD)
+        dic1.Add("-", EToken.eMns)
+        dic1.Add("Mod", EToken.eMOD)
+        dic1.Add("And", EToken.eAnp)
+        dic1.Add("(", EToken.eLP)
+        dic1.Add(")", EToken.eRP)
+        dic1.Add("*", EToken.eMUL)
+        dic1.Add(",", EToken.eComma)
+        dic1.Add(".", EToken.eDot)
+        dic1.Add("/", EToken.eDIV)
+        dic1.Add(":", EToken.eMMB)
+        dic1.Add("", EToken.eSM)
+        dic1.Add("?", EToken.eQUE)
+        dic1.Add("[", EToken.eLB)
+        dic1.Add("]", EToken.eRB)
+        dic1.Add("^", EToken.eHAT)
+        dic1.Add("{", EToken.eLC)
+        dic1.Add("|", EToken.eVLine)
+        dic1.Add("}", EToken.eRC)
+        dic1.Add("~", EToken.eTilde)
+        dic1.Add("<", EToken.eLT)
+        dic1.Add(">", EToken.eGT)
+        dic1.Add("<=", EToken.eLE)
+        dic1.Add(">=", EToken.eGE)
 
         ' for Add
         For Each key1 In dic1.Keys
@@ -1582,20 +1582,20 @@ Public Class TParseBas
         Next
 
         If vTknName Is Nothing Then
-            vTknName = New Dictionary(Of ETkn, String)()
+            vTknName = New Dictionary(Of EToken, String)()
             ' for Add
             For Each key1 In dic1.Keys
                 vTknName.Add(dic1(key1), key1)
             Next
-            vTknName.Add(ETkn.eASN, "=")
-            vTknName.Add(ETkn.eExitFor, "Exit For")
-            vTknName.Add(ETkn.eExitDo, "Exit Do")
+            vTknName.Add(EToken.eASN, "=")
+            vTknName.Add(EToken.eExitFor, "Exit For")
+            vTknName.Add(EToken.eExitDo, "Exit Do")
         End If
         PrjParse.vTknNamePrj = vTknName
     End Sub
 
-    Function NewToken(type1 As ETkn, str1 As String, pos1 As Integer) As TTkn
-        Dim tkn1 As New TTkn
+    Function NewToken(type1 As EToken, str1 As String, pos1 As Integer) As TToken
+        Dim tkn1 As New TToken
 
         tkn1.TypeTkn = type1
         tkn1.StrTkn = str1
@@ -1604,25 +1604,25 @@ Public Class TParseBas
         Return tkn1
     End Function
 
-    Public Function Lex(src_text As String) As TList(Of TTkn)
-        Dim v1 As TList(Of TTkn)
+    Public Function Lex(src_text As String) As TList(Of TToken)
+        Dim v1 As TList(Of TToken)
         Dim cur1 As Integer, spc As Integer
         Dim src_len As Integer
         Dim k1 As Integer
         Dim ch1 As Char
         Dim ch2 As Char
         Dim str1 As String = Nothing
-        Dim type1 As ETkn
-        Dim prv_type As ETkn
-        Dim tkn1 As TTkn
+        Dim type1 As EToken
+        Dim prv_type As EToken
+        Dim tkn1 As TToken
         Dim sb1 As TStringWriter
         Dim ok As Boolean
 
         src_len = src_text.Length
-        v1 = New TList(Of TTkn)()
+        v1 = New TList(Of TToken)()
 
         cur1 = 0
-        prv_type = ETkn.eUnknown
+        prv_type = EToken.eUnknown
 
         Do While True
             tkn1 = Nothing
@@ -1669,12 +1669,12 @@ Public Class TParseBas
                                 If k1 + 1 < src_text.Length AndAlso src_text(k1 + 1) = "c"c Then
                                     '  文字の場合
 
-                                    tkn1 = New TTkn(ETkn.eChar, sb1.ToString(), cur1)
+                                    tkn1 = New TToken(EToken.eChar, sb1.ToString(), cur1)
                                     cur1 = k1 + 2
                                 Else
                                     '  文字列の場合
 
-                                    tkn1 = NewToken(ETkn.eString, sb1.ToString(), cur1)
+                                    tkn1 = NewToken(EToken.eString, sb1.ToString(), cur1)
                                     cur1 = k1 + 1
                                 End If
                                 Exit Do
@@ -1687,7 +1687,7 @@ Public Class TParseBas
 
                 Case "'"c
                     '  コメントの場合
-                    tkn1 = NewToken(ETkn.eLineComment, src_text.Substring(cur1 + 1), cur1)
+                    tkn1 = NewToken(EToken.eLineComment, src_text.Substring(cur1 + 1), cur1)
                     cur1 = src_text.Length
 
                 Case Else
@@ -1706,7 +1706,7 @@ Public Class TParseBas
                         End If
 
                         str1 = TSys.Substring(src_text, cur1, k1)
-                        tkn1 = NewToken(ETkn.eInt, str1, cur1)
+                        tkn1 = NewToken(EToken.eInt, str1, cur1)
 
                         cur1 = k1
                     ElseIf ch1 = "&"c AndAlso ch2 = "H"c Then
@@ -1721,7 +1721,7 @@ Public Class TParseBas
                         Next
 
                         str1 = TSys.Substring(src_text, cur1, k1)
-                        tkn1 = NewToken(ETkn.eHex, str1, cur1)
+                        tkn1 = NewToken(EToken.eHex, str1, cur1)
 
                         cur1 = k1
                     ElseIf 256 <= AscW(ch1) OrElse Char.IsLetter(ch1) OrElse ch1 = "_"c Then
@@ -1742,15 +1742,15 @@ Public Class TParseBas
                             '  予約語の場合
 
                             type1 = vTkn(str1.ToLower())
-                            If type1 = ETkn.eGetType AndAlso (prv_type = ETkn.eDot OrElse prv_type = ETkn.eFunction) Then
-                                type1 = ETkn.eId
-                            ElseIf type1 = ETkn.eSelect AndAlso prv_type = ETkn.eDot Then
-                                type1 = ETkn.eId
+                            If type1 = EToken.eGetType AndAlso (prv_type = EToken.eDot OrElse prv_type = EToken.eFunction) Then
+                                type1 = EToken.eId
+                            ElseIf type1 = EToken.eSelect AndAlso prv_type = EToken.eDot Then
+                                type1 = EToken.eId
                             End If
                         Else
                             '  識別子の場合
 
-                            type1 = ETkn.eId
+                            type1 = EToken.eId
                         End If
                         tkn1 = NewToken(type1, str1, cur1)
 
@@ -1759,7 +1759,7 @@ Public Class TParseBas
                         '  記号の場合
 
                         ok = False
-                        type1 = ETkn.eUnknown
+                        type1 = EToken.eUnknown
                         If cur1 + 1 < src_len Then
                             '  2文字の記号を調べる
 
@@ -1797,37 +1797,37 @@ Public Class TParseBas
         Return v1
     End Function
 
-    Function ArgumentExpressionList(app1 As TApp) As TApp
+    Function ArgumentExpressionList(app1 As TApply) As TApply
         Dim trm1 As TTerm
 
         ' 			bool	b_of;
         '             b_of = false;
-        GetTkn(ETkn.eLP)
-        If CurTkn.TypeTkn = ETkn.eOf Then
-            GetTkn(ETkn.eOf)
+        GetTkn(EToken.eLP)
+        If CurTkn.TypeTkn = EToken.eOf Then
+            GetTkn(EToken.eOf)
         End If
         '                 b_of = true;
-        If CurTkn.TypeTkn <> ETkn.eRP Then
+        If CurTkn.TypeTkn <> EToken.eRP Then
             Do While True
                 trm1 = TermExpression()
                 app1.AddInArg(trm1)
 
-                If CurTkn.TypeTkn <> ETkn.eComma Then
+                If CurTkn.TypeTkn <> EToken.eComma Then
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
         End If
-        GetTkn(ETkn.eRP)
+        GetTkn(EToken.eRP)
 
         Return app1
     End Function
 
     Function CallExpression(trm1 As TTerm) As TTerm
-        Dim app1 As TApp
+        Dim app1 As TApply
 
-        Do While CurTkn.TypeTkn = ETkn.eLP
-            app1 = TApp.MakeAppCall(trm1)
+        Do While CurTkn.TypeTkn = EToken.eLP
+            app1 = TApply.MakeAppCall(trm1)
             ArgumentExpressionList(app1)
             trm1 = app1
         Loop
@@ -1841,45 +1841,45 @@ Public Class TParseBas
         Dim trm1 As TTerm
 
         arr1 = New TArray()
-        GetTkn(ETkn.eLC)
-        If CurTkn.TypeTkn <> ETkn.eRC Then
+        GetTkn(EToken.eLC)
+        If CurTkn.TypeTkn <> EToken.eRC Then
             Do While True
                 trm1 = TermExpression()
                 arr1.TrmArr.Add(trm1)
-                If CurTkn.TypeTkn = ETkn.eRC Then
+                If CurTkn.TypeTkn = EToken.eRC Then
                     Exit Do
                 End If
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
             Loop
         End If
-        GetTkn(ETkn.eRC)
+        GetTkn(EToken.eRC)
 
         Return arr1
     End Function
 
 
-    Function NewExpression() As TApp
-        Dim tkn1 As TTkn
-        Dim type1 As TCls
-        Dim app1 As TApp
+    Function NewExpression() As TApply
+        Dim tkn1 As TToken
+        Dim type1 As TClass
+        Dim app1 As TApply
 
-        tkn1 = GetTkn(ETkn.eNew)
+        tkn1 = GetTkn(EToken.eNew)
         type1 = ReadType(True)
-        app1 = TApp.MakeAppNew(type1)
-        If CurTkn.TypeTkn = ETkn.eLP Then
+        app1 = TApply.MakeAppNew(type1)
+        If CurTkn.TypeTkn = EToken.eLP Then
             ArgumentExpressionList(app1)
         End If
-        If CurTkn.TypeTkn = ETkn.eLC Then
+        If CurTkn.TypeTkn = EToken.eLC Then
             ' 配列の場合
             app1.IniApp = ArrayExpression()
 
             ' 配列型に変える
             app1.NewApp = PrjParse.GetArrCla(app1.NewApp, 1)
         End If
-        If CurTkn.TypeTkn = ETkn.eFrom Then
-            GetTkn(ETkn.eFrom)
+        If CurTkn.TypeTkn = EToken.eFrom Then
+            GetTkn(EToken.eFrom)
 
-            Debug.Assert(CurTkn.TypeTkn = ETkn.eLC)
+            Debug.Assert(CurTkn.TypeTkn = EToken.eLC)
             app1.IniApp = ArrayExpression()
         End If
 
@@ -1889,33 +1889,33 @@ Public Class TParseBas
     ' From i In v1 Where i Mod 2 = 0 Select AA(i)
     Function FromExpression() As TFrom
         Dim stmt1 As New TFrom
-        Dim id1 As TTkn, seq1 As TTerm, cnd1 As TTerm = Nothing, sel1 As TTerm = Nothing, take1 As TTerm = Nothing
+        Dim id1 As TToken, seq1 As TTerm, cnd1 As TTerm = Nothing, sel1 As TTerm = Nothing, take1 As TTerm = Nothing
 
-        GetTkn(ETkn.eFrom)
-        id1 = GetTkn(ETkn.eId)
+        GetTkn(EToken.eFrom)
+        id1 = GetTkn(EToken.eId)
 
-        GetTkn(ETkn.eIn)
+        GetTkn(EToken.eIn)
         seq1 = TermExpression()
 
-        If CurTkn.TypeTkn = ETkn.eWhere Then
+        If CurTkn.TypeTkn = EToken.eWhere Then
 
-            GetTkn(ETkn.eWhere)
+            GetTkn(EToken.eWhere)
             cnd1 = TermExpression()
         End If
 
-        If CurTkn.TypeTkn = ETkn.eSelect Then
+        If CurTkn.TypeTkn = EToken.eSelect Then
 
-            GetTkn(ETkn.eSelect)
+            GetTkn(EToken.eSelect)
             sel1 = TermExpression()
         End If
 
-        If CurTkn.TypeTkn = ETkn.eTake Then
+        If CurTkn.TypeTkn = EToken.eTake Then
 
-            GetTkn(ETkn.eTake)
+            GetTkn(EToken.eTake)
             take1 = TermExpression()
         End If
 
-        stmt1.VarFrom = New TVar(id1, Nothing)
+        stmt1.VarFrom = New TVariable(id1, Nothing)
         stmt1.SeqFrom = seq1
         stmt1.CndFrom = cnd1
         stmt1.SelFrom = sel1
@@ -1926,18 +1926,18 @@ Public Class TParseBas
 
     ' Aggregate x In v Into Sum(x.Value)
     Function AggregateExpression() As TAggregate
-        Dim aggr1 As New TAggregate, id1 As TTkn, id2 As TTkn
+        Dim aggr1 As New TAggregate, id1 As TToken, id2 As TToken
 
-        GetTkn(ETkn.eAggregate)
-        id1 = GetTkn(ETkn.eId)
-        aggr1.VarAggr = New TVar(id1, Nothing)
+        GetTkn(EToken.eAggregate)
+        id1 = GetTkn(EToken.eId)
+        aggr1.VarAggr = New TVariable(id1, Nothing)
 
-        GetTkn(ETkn.eIn)
+        GetTkn(EToken.eIn)
         aggr1.SeqAggr = TermExpression()
 
-        GetTkn(ETkn.eInto)
+        GetTkn(EToken.eInto)
 
-        id2 = GetTkn(ETkn.eId)
+        id2 = GetTkn(EToken.eId)
         Select Case id2.StrTkn
             Case "Sum"
                 aggr1.FunctionAggr = EAggregateFunction.eSum
@@ -1950,110 +1950,110 @@ Public Class TParseBas
         End Select
 
 
-        GetTkn(ETkn.eLP)
+        GetTkn(EToken.eLP)
 
         aggr1.IntoAggr = TermExpression()
 
-        GetTkn(ETkn.eRP)
+        GetTkn(EToken.eRP)
 
         Return aggr1
     End Function
 
     Function PrimaryExpression() As TTerm
-        Dim ref1 As TRef
+        Dim ref1 As TReference
         Dim trm1 As TTerm, trm2 As TTerm
         Dim ret1 As TTerm
-        Dim id1 As TTkn, tkn1 As TTkn
-        Dim type1 As TCls
-        Dim app1 As TApp
+        Dim id1 As TToken, tkn1 As TToken
+        Dim type1 As TClass
+        Dim app1 As TApply
 
         Select Case CurTkn.TypeTkn
-            Case ETkn.eId
-                id1 = GetTkn(ETkn.eId)
-                If CurTkn.TypeTkn = ETkn.eLP AndAlso NxtTkn.TypeTkn = ETkn.eOf Then
+            Case EToken.eId
+                id1 = GetTkn(EToken.eId)
+                If CurTkn.TypeTkn = EToken.eLP AndAlso NxtTkn.TypeTkn = EToken.eOf Then
                     ' ジェネリック型の場合
 
                     ' ジェネリック型の構文解析
                     type1 = ReadGenType(id1)
-                    ref1 = New TRef(type1)
+                    ref1 = New TReference(type1)
                     Return ref1
                 End If
 
-                ref1 = New TRef(id1)
+                ref1 = New TReference(id1)
                 Return CallExpression(ref1)
 
-            Case ETkn.eDot
+            Case EToken.eDot
                 trm1 = Nothing
-                Do While CurTkn.TypeTkn = ETkn.eDot
-                    GetTkn(ETkn.eDot)
-                    id1 = GetTkn(ETkn.eId)
+                Do While CurTkn.TypeTkn = EToken.eDot
+                    GetTkn(EToken.eDot)
+                    id1 = GetTkn(EToken.eId)
                     trm2 = New TDot(trm1, id1.StrTkn)
                     trm1 = CallExpression(trm2)
                 Loop
 
                 Return trm1
 
-            Case ETkn.eBase
-                GetTkn(ETkn.eBase)
-                GetTkn(ETkn.eDot)
-                Debug.Assert(CurTkn.TypeTkn = ETkn.eNew OrElse CurTkn.TypeTkn = ETkn.eId)
-                tkn1 = GetTkn(ETkn.eUnknown)
-                app1 = TApp.MakeAppBase(tkn1)
+            Case EToken.eBase
+                GetTkn(EToken.eBase)
+                GetTkn(EToken.eDot)
+                Debug.Assert(CurTkn.TypeTkn = EToken.eNew OrElse CurTkn.TypeTkn = EToken.eId)
+                tkn1 = GetTkn(EToken.eUnknown)
+                app1 = TApply.MakeAppBase(tkn1)
                 ArgumentExpressionList(app1)
                 Return app1
 
-            Case ETkn.eLP
-                GetTkn(ETkn.eLP)
-                trm1 = New TPar(TermExpression())
-                GetTkn(ETkn.eRP)
+            Case EToken.eLP
+                GetTkn(EToken.eLP)
+                trm1 = New TParenthesis(TermExpression())
+                GetTkn(EToken.eRP)
                 ret1 = CallExpression(trm1)
 
-            Case ETkn.eLC
+            Case EToken.eLC
                 Return ArrayExpression()
 
-            Case ETkn.eString, ETkn.eChar, ETkn.eInt, ETkn.eHex
-                tkn1 = GetTkn(ETkn.eUnknown)
-                ret1 = New TCns(tkn1.TypeTkn, tkn1.StrTkn)
+            Case EToken.eString, EToken.eChar, EToken.eInt, EToken.eHex
+                tkn1 = GetTkn(EToken.eUnknown)
+                ret1 = New TConstant(tkn1.TypeTkn, tkn1.StrTkn)
 
-            Case ETkn.eNew
+            Case EToken.eNew
                 Return NewExpression()
 
-            Case ETkn.eTypeof
-                GetTkn(ETkn.eTypeof)
+            Case EToken.eTypeof
+                GetTkn(EToken.eTypeof)
                 trm1 = AdditiveExpression()
-                GetTkn(ETkn.eIs)
+                GetTkn(EToken.eIs)
                 type1 = ReadType(False)
-                Return TApp.NewTypeOf(trm1, type1)
+                Return TApply.NewTypeOf(trm1, type1)
 
-            Case ETkn.eGetType
-                GetTkn(ETkn.eGetType)
-                GetTkn(ETkn.eLP)
+            Case EToken.eGetType
+                GetTkn(EToken.eGetType)
+                GetTkn(EToken.eLP)
                 type1 = ReadType(False)
-                GetTkn(ETkn.eRP)
-                Return TApp.MakeAppGetType(type1)
+                GetTkn(EToken.eRP)
+                Return TApply.MakeAppGetType(type1)
 
-            Case ETkn.eCType
-                GetTkn(ETkn.eCType)
-                GetTkn(ETkn.eLP)
+            Case EToken.eCType
+                GetTkn(EToken.eCType)
+                GetTkn(EToken.eLP)
                 trm1 = AdditiveExpression()
-                GetTkn(ETkn.eComma)
+                GetTkn(EToken.eComma)
                 type1 = ReadType(False)
-                GetTkn(ETkn.eRP)
+                GetTkn(EToken.eRP)
 
-                app1 = TApp.MakeAppCastClass(type1)
+                app1 = TApply.MakeAppCastClass(type1)
                 app1.AddInArg(trm1)
                 Return app1
 
-            Case ETkn.eAddressOf
-                GetTkn(ETkn.eAddressOf)
+            Case EToken.eAddressOf
+                GetTkn(EToken.eAddressOf)
                 trm1 = TermExpression()
-                app1 = TApp.MakeAppAddressOf(trm1)
+                app1 = TApply.MakeAppAddressOf(trm1)
                 Return app1
 
-            Case ETkn.eFrom
+            Case EToken.eFrom
                 Return FromExpression()
 
-            Case ETkn.eAggregate
+            Case EToken.eAggregate
                 Return AggregateExpression()
 
             Case Else
@@ -2067,13 +2067,13 @@ Public Class TParseBas
     Function DotExpression() As TTerm
         Dim trm1 As TTerm
         Dim trm2 As TTerm
-        Dim id1 As TTkn
+        Dim id1 As TToken
 
         trm1 = PrimaryExpression()
 
-        Do While CurTkn.TypeTkn = ETkn.eDot
-            GetTkn(ETkn.eDot)
-            id1 = GetTkn(ETkn.eId)
+        Do While CurTkn.TypeTkn = EToken.eDot
+            GetTkn(EToken.eDot)
+            id1 = GetTkn(EToken.eId)
             trm2 = New TDot(trm1, id1.StrTkn)
             trm1 = CallExpression(trm2)
         Loop
@@ -2082,14 +2082,14 @@ Public Class TParseBas
     End Function
 
     Function UnaryExpression() As TTerm
-        Dim tkn1 As TTkn
+        Dim tkn1 As TToken
         Dim trm1 As TTerm
 
-        If CurTkn.TypeTkn = ETkn.eMns Then
-            tkn1 = GetTkn(ETkn.eMns)
+        If CurTkn.TypeTkn = EToken.eMns Then
+            tkn1 = GetTkn(EToken.eMns)
             trm1 = DotExpression()
 
-            Return TApp.MakeApp1Opr(tkn1, trm1)
+            Return TApply.MakeApp1Opr(tkn1, trm1)
         End If
 
         Return DotExpression()
@@ -2097,15 +2097,15 @@ Public Class TParseBas
 
     Function MultiplicativeExpression() As TTerm
         Dim trm1 As TTerm
-        Dim tkn1 As TTkn
+        Dim tkn1 As TToken
         Dim trm2 As TTerm
 
         trm1 = UnaryExpression()
-        If CurTkn.TypeTkn = ETkn.eMUL OrElse CurTkn.TypeTkn = ETkn.eDIV OrElse CurTkn.TypeTkn = ETkn.eMOD Then
-            tkn1 = GetTkn(ETkn.eUnknown)
+        If CurTkn.TypeTkn = EToken.eMUL OrElse CurTkn.TypeTkn = EToken.eDIV OrElse CurTkn.TypeTkn = EToken.eMOD Then
+            tkn1 = GetTkn(EToken.eUnknown)
             trm2 = MultiplicativeExpression()
 
-            Return TApp.MakeApp2Opr(tkn1, trm1, trm2)
+            Return TApply.MakeApp2Opr(tkn1, trm1, trm2)
         End If
 
         Return trm1
@@ -2113,15 +2113,15 @@ Public Class TParseBas
 
     Public Function AdditiveExpression() As TTerm
         Dim trm1 As TTerm
-        Dim tkn1 As TTkn
+        Dim tkn1 As TToken
         Dim trm2 As TTerm
 
         trm1 = MultiplicativeExpression()
-        If CurTkn.TypeTkn = ETkn.eADD OrElse CurTkn.TypeTkn = ETkn.eMns Then
-            tkn1 = GetTkn(ETkn.eUnknown)
+        If CurTkn.TypeTkn = EToken.eADD OrElse CurTkn.TypeTkn = EToken.eMns Then
+            tkn1 = GetTkn(EToken.eUnknown)
             trm2 = AdditiveExpression()
 
-            Return TApp.MakeApp2Opr(tkn1, trm1, trm2)
+            Return TApply.MakeApp2Opr(tkn1, trm1, trm2)
         End If
         Return trm1
     End Function
@@ -2129,17 +2129,17 @@ Public Class TParseBas
     Public Function RelationalExpression() As TTerm
         Dim trm1 As TTerm
         Dim trm2 As TTerm
-        Dim type1 As ETkn
-        '      Dim type2 As TCls
+        Dim type1 As EToken
+        '      Dim type2 As TClass
         'Dim par1 As Boolean
 
         trm1 = AdditiveExpression()
         Select Case CurTkn.TypeTkn
-            Case ETkn.eEq, ETkn.eADDEQ, ETkn.eSUBEQ, ETkn.eMULEQ, ETkn.eDIVEQ, ETkn.eMODEQ, ETkn.eNE, ETkn.eLT, ETkn.eGT, ETkn.eLE, ETkn.eGE, ETkn.eIs, ETkn.eIsNot
+            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot
                 type1 = CurTkn.TypeTkn
-                GetTkn(ETkn.eUnknown)
+                GetTkn(EToken.eUnknown)
                 trm2 = AdditiveExpression()
-                Return TApp.NewOpr2(type1, trm1, trm2)
+                Return TApply.NewOpr2(type1, trm1, trm2)
 
             Case Else
                 Return trm1
@@ -2148,18 +2148,18 @@ Public Class TParseBas
 
     Function NotExpression() As TTerm
         Dim trm1 As TTerm
-        Dim type1 As ETkn
-        Dim opr1 As TApp
-        Dim app1 As TApp
+        Dim type1 As EToken
+        Dim opr1 As TApply
+        Dim app1 As TApply
 
-        If CurTkn.TypeTkn = ETkn.eNot Then
+        If CurTkn.TypeTkn = EToken.eNot Then
             type1 = CurTkn.TypeTkn
             GetTkn(type1)
-            opr1 = TApp.NewOpr(type1)
+            opr1 = TApply.NewOpr(type1)
             trm1 = NotExpression()
-            Debug.Assert(TypeOf trm1 Is TApp OrElse TypeOf trm1 Is TRef OrElse TypeOf trm1 Is TPar)
-            If TypeOf trm1 Is TApp Then
-                app1 = CType(trm1, TApp)
+            Debug.Assert(TypeOf trm1 Is TApply OrElse TypeOf trm1 Is TReference OrElse TypeOf trm1 Is TParenthesis)
+            If TypeOf trm1 Is TApply Then
+                app1 = CType(trm1, TApply)
                 app1.Negation = Not app1.Negation
                 Return app1
             Else
@@ -2173,14 +2173,14 @@ Public Class TParseBas
 
     Function AndExpression() As TTerm
         Dim trm1 As TTerm
-        Dim opr1 As TApp
-        Dim type1 As ETkn
+        Dim opr1 As TApply
+        Dim type1 As EToken
 
         trm1 = NotExpression()
-        If CurTkn.TypeTkn = ETkn.eAnd OrElse CurTkn.TypeTkn = ETkn.eAnp Then
+        If CurTkn.TypeTkn = EToken.eAnd OrElse CurTkn.TypeTkn = EToken.eAnp Then
 
             type1 = CurTkn.TypeTkn
-            opr1 = TApp.NewOpr(type1)
+            opr1 = TApply.NewOpr(type1)
             opr1.AddInArg(trm1)
             Do While CurTkn.TypeTkn = type1
                 GetTkn(type1)
@@ -2196,14 +2196,14 @@ Public Class TParseBas
 
     Function OrExpression() As TTerm
         Dim trm1 As TTerm
-        Dim opr1 As TApp
-        Dim type1 As ETkn
+        Dim opr1 As TApply
+        Dim type1 As EToken
 
         trm1 = AndExpression()
-        If CurTkn.TypeTkn = ETkn.eOR Then
+        If CurTkn.TypeTkn = EToken.eOR Then
 
             type1 = CurTkn.TypeTkn
-            opr1 = TApp.NewOpr(type1)
+            opr1 = TApply.NewOpr(type1)
             opr1.AddInArg(trm1)
             Do While CurTkn.TypeTkn = type1
                 GetTkn(type1)
@@ -2221,99 +2221,99 @@ Public Class TParseBas
         Return OrExpression()
     End Function
 
-    Public Function AssignmentExpression() As TStmt
+    Public Function AssignmentExpression() As TStatement
         Dim trm1 As TTerm
         Dim trm2 As TTerm
-        Dim rel1 As TApp
-        Dim asn1 As TAsn
-        Dim eq1 As TTkn
+        Dim rel1 As TApply
+        Dim asn1 As TAssignment
+        Dim eq1 As TToken
 
         trm1 = CType(AdditiveExpression(), TTerm)
 
         Select Case CurTkn.TypeTkn
-            Case ETkn.eEq, ETkn.eADDEQ, ETkn.eSUBEQ, ETkn.eMULEQ, ETkn.eDIVEQ, ETkn.eMODEQ
-                eq1 = GetTkn(ETkn.eUnknown)
+            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ
+                eq1 = GetTkn(EToken.eUnknown)
                 trm2 = CType(TermExpression(), TTerm)
-                rel1 = TApp.NewOpr2(eq1.TypeTkn, trm1, trm2)
-                asn1 = New TAsn(rel1)
+                rel1 = TApply.NewOpr2(eq1.TypeTkn, trm1, trm2)
+                asn1 = New TAssignment(rel1)
                 Return asn1
         End Select
 
-        If TypeOf trm1 Is TRef Then
-            Return New TEnumEle(CType(trm1, TRef))
+        If TypeOf trm1 Is TReference Then
+            Return New TEnumElement(CType(trm1, TReference))
         End If
-        Return New TCall(CType(trm1, TApp))
+        Return New TCall(CType(trm1, TApply))
     End Function
 
 End Class
 
 Public Class TClassStatement
-    Inherits TStmt
+    Inherits TStatement
     Public KndClaStmt As EClass = EClass.eClassCla
-    Public ClaClaStmt As TCls
+    Public ClaClaStmt As TClass
 End Class
 
 Public Class TInheritsStatement
-    Inherits TStmt
+    Inherits TStatement
     Public ClassNameInheritsStmt As String
     Public ParamName As TList(Of String)
 End Class
 
 Public Class TImplementsStatement
-    Inherits TStmt
-    Public ClassImplementsStmt As New TList(Of TCls)
+    Inherits TStatement
+    Public ClassImplementsStmt As New TList(Of TClass)
 End Class
 
 Public Class TEnumStatement
-    Inherits TStmt
+    Inherits TStatement
     Public NameEnumStmt As String
 End Class
 
 Public Class TFunctionStatement
-    Inherits TStmt
+    Inherits TStatement
     Public ModifierFncStmt As TModifier
-    Public OpFncStmt As ETkn = ETkn.eUnknown
+    Public OpFncStmt As EToken = EToken.eUnknown
     Public NameFncStmt As String
-    Public ArgumentFncStmt As New TList(Of TVar)
-    Public RetType As TCls
-    Public InterfaceFncStmt As TCls
+    Public ArgumentFncStmt As New TList(Of TVariable)
+    Public RetType As TClass
+    Public InterfaceFncStmt As TClass
     Public InterfaceFncName As String
     Public IsDelegateFncStmt As Boolean
 End Class
 
 Public Class TIfStatement
-    Inherits TStmt
+    Inherits TStatement
     Public CndIfStmt As TTerm
 End Class
 
 Public Class TSelectStatement
-    Inherits TStmt
+    Inherits TStatement
     Public TermSelectStatement As TTerm
 End Class
 
 Public Class TCaseStatement
-    Inherits TStmt
+    Inherits TStatement
     Public IsCaseElse As Boolean
     Public TermCaseStmt As New TList(Of TTerm)
 End Class
 
 Public Class TCatchStatement
-    Inherits TStmt
-    Public VariableCatchStmt As TVar
+    Inherits TStatement
+    Public VariableCatchStmt As TVariable
 End Class
 
 Public Class TForStatement
-    Inherits TStmt
-    Public IdxForStmt As TRef
+    Inherits TStatement
+    Public IdxForStmt As TReference
     Public FromForStmt As TTerm
     Public ToForStmt As TTerm
     Public StepForStmt As TTerm
-    Public InVarForStmt As TVar
+    Public InVarForStmt As TVariable
     Public InTrmForStmt As TTerm
 End Class
 
 Public Class TExit
-    Inherits TStmt
+    Inherits TStatement
     Public LabelExit As Integer
 
     Public Sub New()
@@ -2321,66 +2321,66 @@ Public Class TExit
 End Class
 
 Public Class TThrow
-    Inherits TStmt
+    Inherits TStatement
     Public TrmThrow As TTerm
     Public Sub New(trm1 As TTerm)
-        TypeStmt = ETkn.eThrow
+        TypeStmt = EToken.eThrow
         TrmThrow = trm1
     End Sub
 
 End Class
 
 Public Class TReDim
-    Inherits TStmt
+    Inherits TStatement
     Public TrmReDim As TTerm
     Public DimReDim As TList(Of TTerm)
 
     Public Sub New(trm1 As TTerm, vtrm1 As TList(Of TTerm))
-        TypeStmt = ETkn.eReDim
+        TypeStmt = EToken.eReDim
         TrmReDim = trm1
         DimReDim = vtrm1
     End Sub
 End Class
 
 Public Class TImports
-    Inherits TStmt
+    Inherits TStatement
 End Class
 
 Public Class TModule
-    Inherits TStmt
+    Inherits TStatement
     Public NameMod As String
 End Class
 
 Public Class TElseIf
-    Inherits TStmt
+    Inherits TStatement
     Public CndElseIf As TTerm
 End Class
 
 Public Class TDoStmt
-    Inherits TStmt
+    Inherits TStatement
 
     Public CndDo As TTerm
 End Class
 
-Public Class TEnumEle
-    Inherits TStmt
+Public Class TEnumElement
+    Inherits TStatement
 
     Public NameEnumEle As String
 
-    Public Sub New(ref1 As TRef)
-        TypeStmt = ETkn.eId
+    Public Sub New(ref1 As TReference)
+        TypeStmt = EToken.eId
         NameEnumEle = ref1.NameRef
     End Sub
 
 End Class
 
 Public Class TComment
-    Inherits TStmt
+    Inherits TStatement
 
     Public LineCom As New TList(Of String)
 
-	Public Sub New()
-		TypeStmt = ETkn.eComment
+    Public Sub New()
+        TypeStmt = EToken.eComment
     End Sub
 
     Public Function GetFirstLine() As String
@@ -2394,7 +2394,7 @@ Public Class TComment
     End Function
 End Class
 
-Public Class TErr
+Public Class TError
     Inherits Exception
 
     Public MsgErr As String

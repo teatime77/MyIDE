@@ -2,7 +2,7 @@
 
 Public Class TTokenLine
     Public Tab As Integer
-    Public TokenList As New List(Of TTkn)
+    Public TokenList As New List(Of TToken)
 End Class
 
 Public Class TTokenWriter
@@ -15,11 +15,11 @@ Public Class TTokenWriter
     End Sub
 
     Sub AddToken(obj As Object)
-        TokenLine.TokenList.Add(New TTkn(obj))
+        TokenLine.TokenList.Add(New TToken(obj))
     End Sub
 
-    Public Sub AddToken(type1 As ETkn, obj As Object)
-        TokenLine.TokenList.Add(New TTkn(type1, obj))
+    Public Sub AddToken(type1 As EToken, obj As Object)
+        TokenLine.TokenList.Add(New TToken(type1, obj))
     End Sub
 
     Public Sub TAB(n As Integer)
@@ -36,32 +36,32 @@ Public Class TTokenWriter
         End If
 
         If TypeOf o1 Is String Then
-            TokenLine.TokenList.Add(New TTkn(CType(o1, String), o1))
+            TokenLine.TokenList.Add(New TToken(CType(o1, String), o1))
         ElseIf TypeOf o1 Is TDot Then
             AddToken(o1)
-        ElseIf TypeOf o1 Is TRef Then
+        ElseIf TypeOf o1 Is TReference Then
             AddToken(o1)
 
-        ElseIf TypeOf o1 Is TCls Then
+        ElseIf TypeOf o1 Is TClass Then
             AddToken(o1)
 
-        ElseIf TypeOf o1 Is TVar Then
+        ElseIf TypeOf o1 Is TVariable Then
             AddToken(o1)
 
-        ElseIf TypeOf o1 Is TTkn Then
-            TokenLine.TokenList.Add(CType(o1, TTkn))
+        ElseIf TypeOf o1 Is TToken Then
+            TokenLine.TokenList.Add(CType(o1, TToken))
 
-        ElseIf TypeOf o1 Is ETkn Then
-            Dim type1 As ETkn = CType(o1, ETkn)
+        ElseIf TypeOf o1 Is EToken Then
+            Dim type1 As EToken = CType(o1, EToken)
 
-            If type1 = ETkn.eNL Then
+            If type1 = EToken.eNL Then
                 TokenLineList.Add(TokenLine)
                 TokenLine = Nothing
             Else
                 AddToken(type1, ObjTlm)
             End If
-        ElseIf TypeOf o1 Is List(Of TTkn) Then
-            TokenLine.TokenList.AddRange(CType(o1, List(Of TTkn)))
+        ElseIf TypeOf o1 Is List(Of TToken) Then
+            TokenLine.TokenList.AddRange(CType(o1, List(Of TToken)))
         Else
             Debug.Assert(False)
         End If
@@ -102,13 +102,13 @@ Public Class TTokenWriter
         Fmt(o8)
     End Sub
 
-    Public Function GetTokenList() As List(Of TTkn)
+    Public Function GetTokenList() As List(Of TToken)
         Return TokenLine.TokenList
     End Function
 End Class
 
 Public Class TInvariant
-    Public PrjMK As TPrj
+    Public PrjMK As TProject
 
     '   エスケープ文字を作る
     Public Function Escape(str1 As String) As String
@@ -125,9 +125,9 @@ Public Class TInvariant
         Return sb.ToString()
     End Function
 
-    Public Function Laminate(vvtkn As IEnumerable(Of List(Of TTkn)), sep As TTkn) As List(Of TTkn)
+    Public Function Laminate(vvtkn As IEnumerable(Of List(Of TToken)), sep As TToken) As List(Of TToken)
         Dim i As Integer = 0
-        Dim vtkn As New List(Of TTkn)
+        Dim vtkn As New List(Of TToken)
 
         For Each tkns In vvtkn
             If i <> 0 Then
@@ -140,13 +140,13 @@ Public Class TInvariant
         Return vtkn
     End Function
 
-    Public Function AppArgTokenList(self As Object) As List(Of TTkn)
-        With CType(self, TApp)
-            Dim vtkn As New List(Of TTkn)
+    Public Function AppArgTokenList(self As Object) As List(Of TToken)
+        With CType(self, TApply)
+            Dim vtkn As New List(Of TToken)
 
-            vtkn.Add(New TTkn(ETkn.eLP, self))
-            vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TTkn(ETkn.eComma, self)))
-            vtkn.Add(New TTkn(ETkn.eRP, self))
+            vtkn.Add(New TToken(EToken.eLP, self))
+            vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
+            vtkn.Add(New TToken(EToken.eRP, self))
 
             Return vtkn
         End With
@@ -157,22 +157,22 @@ Public Class TInvariant
             With CType(self, TTerm)
                 Dim tw As New TTokenWriter(self)
 
-                If TypeOf self Is TCns Then
-                    With CType(self, TCns)
+                If TypeOf self Is TConstant Then
+                    With CType(self, TConstant)
                         Select Case .TypeAtm
-                            Case ETkn.eChar
+                            Case EToken.eChar
                                 tw.Fmt("""" + Escape(.NameRef) + """c")
 
-                            Case ETkn.eString
+                            Case EToken.eString
                                 tw.Fmt("""" + Escape(.NameRef) + """")
 
-                            Case ETkn.eRegEx
+                            Case EToken.eRegEx
                                 tw.Fmt(Escape(.NameRef))
 
-                            Case ETkn.eInt
+                            Case EToken.eInt
                                 tw.Fmt(.NameRef)
 
-                            Case ETkn.eHex
+                            Case EToken.eHex
                                 tw.Fmt(.NameRef)
                                 Debug.Assert(TSys.Substring(.NameRef, 0, 2) = "&H")
 
@@ -184,7 +184,7 @@ Public Class TInvariant
 
                 ElseIf TypeOf self Is TArray Then
                     With CType(self, TArray)
-                        tw.Fmt(ETkn.eLC, Laminate((From trm In .TrmArr Select trm.TokenList), New TTkn(ETkn.eComma, self)), ETkn.eRC)
+                        tw.Fmt(EToken.eLC, Laminate((From trm In .TrmArr Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eRC)
                     End With
 
                 ElseIf TypeOf self Is TDot Then
@@ -192,56 +192,56 @@ Public Class TInvariant
                         If .TrmDot IsNot Nothing Then
                             tw.Fmt(.TrmDot.TokenList)
                         End If
-                        tw.Fmt(ETkn.eDot, .NameRef)
+                        tw.Fmt(EToken.eDot, .NameRef)
                     End With
 
-                ElseIf TypeOf self Is TRef Then
-                    With CType(self, TRef)
+                ElseIf TypeOf self Is TReference Then
+                    With CType(self, TReference)
                         tw.Fmt(self)
                     End With
                 ElseIf .IsOpr() Then
-                    With CType(self, TApp)
+                    With CType(self, TApply)
                         If .Negation Then
                             ' ソース生成の前にNegationは除去すべき?
                             Debug.Assert(False)
                         End If
                         Select Case .TypeApp
-                            Case ETkn.eOR, ETkn.eAnd, ETkn.eAnp, ETkn.eVLine
-                                tw.Fmt(Laminate((From trm In .ArgApp Select trm.TokenList), New TTkn(.TypeApp, self)))
-                            Case ETkn.eNot
-                                tw.Fmt(ETkn.eNot, .ArgApp(0).TokenList)
+                            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eVLine
+                                tw.Fmt(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(.TypeApp, self)))
+                            Case EToken.eNot
+                                tw.Fmt(EToken.eNot, .ArgApp(0).TokenList)
                             Case Else
                                 Debug.Assert(False)
                         End Select
 
                     End With
                 ElseIf .IsApp() Then
-                    With CType(self, TApp)
+                    With CType(self, TApply)
                         Select Case .TypeApp
-                            Case ETkn.eADD, ETkn.eMns, ETkn.eMUL, ETkn.eDIV, ETkn.eMOD
-                                If .ArgApp.Count = 1 AndAlso (.TypeApp = ETkn.eADD OrElse .TypeApp = ETkn.eMns) Then
+                            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                                If .ArgApp.Count = 1 AndAlso (.TypeApp = EToken.eADD OrElse .TypeApp = EToken.eMns) Then
                                     tw.Fmt(.TypeApp, .ArgApp(0).TokenList)
                                 Else
 
                                     tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
                                 End If
 
-                            Case ETkn.eAppCall
+                            Case EToken.eAppCall
 
                                 tw.Fmt(.FncApp.TokenList, AppArgTokenList(self))
 
-                            Case ETkn.eBaseCall
+                            Case EToken.eBaseCall
 
-                                tw.Fmt(ETkn.eBase, ETkn.eDot, .FncApp.TokenList, AppArgTokenList(self))
+                                tw.Fmt(EToken.eBase, EToken.eDot, .FncApp.TokenList, AppArgTokenList(self))
 
-                            Case ETkn.eBaseNew
+                            Case EToken.eBaseNew
 
-                                tw.Fmt(ETkn.eBase, ETkn.eDot, ETkn.eNew, AppArgTokenList(self))
+                                tw.Fmt(EToken.eBase, EToken.eDot, EToken.eNew, AppArgTokenList(self))
 
-                            Case ETkn.eNew
+                            Case EToken.eNew
                                 Debug.Assert(.NewApp IsNot Nothing)
 
-                                tw.Fmt(ETkn.eNew)
+                                tw.Fmt(EToken.eNew)
 
                                 If .IniApp Is Nothing Then
                                     ' 初期値がない場合
@@ -257,27 +257,27 @@ Public Class TInvariant
                                     Else
                                         ' 配列でない場合
 
-                                        tw.Fmt(.NewApp.TokenListCls, AppArgTokenList(self), ETkn.eFrom)
+                                        tw.Fmt(.NewApp.TokenListCls, AppArgTokenList(self), EToken.eFrom)
                                     End If
 
                                     tw.Fmt(.IniApp.TokenList)
                                 End If
 
-                            Case ETkn.eAs, ETkn.eCast
+                            Case EToken.eAs, EToken.eCast
 
-                                tw.Fmt(ETkn.eCType, ETkn.eLP, .ArgApp(0).TokenList, ETkn.eComma, .ClassApp.TokenListCls, ETkn.eRP)
+                                tw.Fmt(EToken.eCType, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ClassApp.TokenListCls, EToken.eRP)
 
-                            Case ETkn.eGetType
-                                tw.Fmt(ETkn.eGetType, ETkn.eLP, .ClassApp.TokenListCls, ETkn.eRP)
+                            Case EToken.eGetType
+                                tw.Fmt(EToken.eGetType, EToken.eLP, .ClassApp.TokenListCls, EToken.eRP)
 
-                            Case ETkn.eQUE
-                                tw.Fmt(ETkn.eIIF, ETkn.eLP, .ArgApp(0).TokenList, ETkn.eComma, .ArgApp(1).TokenList, ETkn.eComma, .ArgApp(2).TokenList, ETkn.eRP)
+                            Case EToken.eQUE
+                                tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
-                            Case ETkn.eTypeof
-                                tw.Fmt(ETkn.eTypeof, ETkn.eLP, .ArgApp(0).TokenList, ETkn.eRP)
+                            Case EToken.eTypeof
+                                tw.Fmt(EToken.eTypeof, EToken.eLP, .ArgApp(0).TokenList, EToken.eRP)
 
-                            Case ETkn.eAddressOf
-                                tw.Fmt(ETkn.eAddressOf, .ArgApp(0).TokenList)
+                            Case EToken.eAddressOf
+                                tw.Fmt(EToken.eAddressOf, .ArgApp(0).TokenList)
 
                             Case Else
                                 Debug.WriteLine("Err Trm Src2:{0}", .TypeApp)
@@ -286,79 +286,79 @@ Public Class TInvariant
 
                     End With
                 ElseIf .IsRel() Then
-                    With CType(self, TApp)
-                        Dim tp1 As TCls, tp2 As TCls
+                    With CType(self, TApply)
+                        Dim tp1 As TClass, tp2 As TClass
 
                         Select Case .TypeApp
-                            Case ETkn.eEq, ETkn.eNE
+                            Case EToken.eEq, EToken.eNE
                                 tw.Fmt(.ArgApp(0).TokenList)
-                                tp1 = TPrj.Prj.GetTermType(.ArgApp(0))
-                                tp2 = TPrj.Prj.GetTermType(.ArgApp(1))
+                                tp1 = TProject.Prj.GetTermType(.ArgApp(0))
+                                tp2 = TProject.Prj.GetTermType(.ArgApp(1))
                                 If tp1 Is Nothing OrElse tp2 Is Nothing Then
                                     ' Debug.WriteLine("");
-                                    ' tp1 = TPrj.Prj.GetTermType(.ArgApp[0]);
-                                    ' tp2 = TPrj.Prj.GetTermType(.ArgApp[1]);
+                                    ' tp1 = TProject.Prj.GetTermType(.ArgApp[0]);
+                                    ' tp2 = TProject.Prj.GetTermType(.ArgApp[1]);
                                 End If
                                 If tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
                                     tw.Fmt(.TypeApp)
                                 Else
-                                    If .TypeApp = ETkn.eNE Then
-                                        tw.Fmt(ETkn.eIsNot)
+                                    If .TypeApp = EToken.eNE Then
+                                        tw.Fmt(EToken.eIsNot)
                                     Else
-                                        tw.Fmt(ETkn.eIs)
+                                        tw.Fmt(EToken.eIs)
                                     End If
                                 End If
                                 tw.Fmt(.ArgApp(1).TokenList)
-                            Case ETkn.eASN, ETkn.eLT, ETkn.eGT, ETkn.eADDEQ, ETkn.eSUBEQ, ETkn.eMULEQ, ETkn.eDIVEQ, ETkn.eMODEQ, ETkn.eLE, ETkn.eGE
+                            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
                                 tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
-                            Case ETkn.eIsNot
-                                tw.Fmt(.ArgApp(0).TokenList, ETkn.eIsNot, .ArgApp(1).TokenList)
+                            Case EToken.eIsNot
+                                tw.Fmt(.ArgApp(0).TokenList, EToken.eIsNot, .ArgApp(1).TokenList)
 
-                            Case ETkn.eTypeof
-                                tw.Fmt(ETkn.eTypeof, .ArgApp(0).TokenList, ETkn.eIs, .ArgApp(1).TokenList)
+                            Case EToken.eTypeof
+                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
 
-                            Case ETkn.eIs
-                                tw.Fmt(.ArgApp(0).TokenList, ETkn.eIs, .ArgApp(1).TokenList)
+                            Case EToken.eIs
+                                tw.Fmt(.ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
                             Case Else
                                 Debug.Assert(False)
                         End Select
 
                     End With
-                ElseIf TypeOf self Is TPar Then
-                    With CType(self, TPar)
-                        If .TrmPar.IsApp() AndAlso CType(.TrmPar, TApp).TypeApp = ETkn.eCast Then
+                ElseIf TypeOf self Is TParenthesis Then
+                    With CType(self, TParenthesis)
+                        If .TrmPar.IsApp() AndAlso CType(.TrmPar, TApply).TypeApp = EToken.eCast Then
 
                             tw.Fmt(.TrmPar.TokenList)
                         Else
 
-                            tw.Fmt(ETkn.eLP, .TrmPar.TokenList, ETkn.eRP)
+                            tw.Fmt(EToken.eLP, .TrmPar.TokenList, EToken.eRP)
                         End If
 
                     End With
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
-                        tw.Fmt(ETkn.eFrom, .VarFrom.TokenListVar, ETkn.eIn, .SeqFrom.TokenList)
+                        tw.Fmt(EToken.eFrom, .VarFrom.TokenListVar, EToken.eIn, .SeqFrom.TokenList)
 
                         If .CndFrom IsNot Nothing Then
 
-                            tw.Fmt(ETkn.eWhere, .CndFrom.TokenList)
+                            tw.Fmt(EToken.eWhere, .CndFrom.TokenList)
                         End If
 
                         If .SelFrom IsNot Nothing Then
 
-                            tw.Fmt(ETkn.eSelect, .SelFrom.TokenList)
+                            tw.Fmt(EToken.eSelect, .SelFrom.TokenList)
                         End If
 
                         If .TakeFrom IsNot Nothing Then
 
-                            tw.Fmt(ETkn.eTake, .TakeFrom.TokenList)
+                            tw.Fmt(EToken.eTake, .TakeFrom.TokenList)
                         End If
 
                     End With
 
                 ElseIf TypeOf self Is TAggregate Then
                     With CType(self, TAggregate)
-                        tw.Fmt(ETkn.eAggregate, .VarAggr.TokenListVar, ETkn.eIn, .SeqAggr.TokenList, ETkn.eInto)
+                        tw.Fmt(EToken.eAggregate, .VarAggr.TokenListVar, EToken.eIn, .SeqAggr.TokenList, EToken.eInto)
 
                         Select Case .FunctionAggr
                             Case EAggregateFunction.eSum
@@ -370,7 +370,7 @@ Public Class TInvariant
                             Case Else
                                 Debug.Assert(False)
                         End Select
-                        tw.Fmt(ETkn.eLP, .IntoAggr.TokenList, ETkn.eRP)
+                        tw.Fmt(EToken.eLP, .IntoAggr.TokenList, EToken.eRP)
 
                     End With
                 Else
@@ -388,22 +388,22 @@ Public Class TInvariant
 
         If mod1 IsNot Nothing Then
             If mod1.isPublic Then
-                tw.Fmt(ETkn.ePublic)
+                tw.Fmt(EToken.ePublic)
             End If
             If mod1.isShared Then
-                tw.Fmt(ETkn.eShared)
+                tw.Fmt(EToken.eShared)
             End If
             If mod1.isConst Then
-                tw.Fmt(ETkn.eConst)
+                tw.Fmt(EToken.eConst)
             End If
             If mod1.isVirtual Then
-                tw.Fmt(ETkn.eVirtual)
+                tw.Fmt(EToken.eVirtual)
             End If
             If mod1.isMustOverride Then
-                tw.Fmt(ETkn.eMustOverride)
+                tw.Fmt(EToken.eMustOverride)
             End If
             If mod1.isOverride Then
-                tw.Fmt(ETkn.eOverride)
+                tw.Fmt(EToken.eOverride)
             End If
 
             mod1.TokenListMod = tw.GetTokenList()
@@ -414,32 +414,32 @@ Public Class TInvariant
         Dim tw As New TTokenWriter(self)
 
         If self Is Nothing Then
-            tw.Fmt("null stmt", ETkn.eNL)
+            tw.Fmt("null stmt", EToken.eNL)
             Exit Sub
 
         End If
 
-        If TypeOf self Is TStmt Then
+        If TypeOf self Is TStatement Then
 
-            With CType(self, TStmt)
+            With CType(self, TStatement)
 
                 If .BeforeSrc IsNot Nothing Then
                     Dim v = .BeforeSrc.Replace(vbCr, "").Split(New Char() {vbLf(0)})
                     For Each s In v
-                        tw.Fmt(s, ETkn.eNL)
+                        tw.Fmt(s, EToken.eNL)
                     Next
                 End If
 
                 If .ComStmt IsNot Nothing Then
                     For Each tkn_f In .ComStmt
                         tw.TAB(.TabStmt)
-                        tw.Fmt(tkn_f, ETkn.eNL)
+                        tw.Fmt(tkn_f, EToken.eNL)
                     Next
                 End If
-                If TypeOf self Is TAsn OrElse TypeOf self Is TCall OrElse TypeOf self Is TVarDecl Then
+                If TypeOf self Is TAssignment OrElse TypeOf self Is TCall OrElse TypeOf self Is TVariableDeclaration Then
                     tw.TAB(.TabStmt)
-                    If TypeOf self Is TAsn Then
-                        With CType(self, TAsn)
+                    If TypeOf self Is TAssignment Then
+                        With CType(self, TAssignment)
                             tw.Fmt(.RelAsn.ArgApp(0).TokenList, .RelAsn.TypeApp, .RelAsn.ArgApp(1).TokenList)
                         End With
 
@@ -448,40 +448,40 @@ Public Class TInvariant
                             tw.Fmt(.AppCall.TokenList)
                         End With
 
-                    ElseIf TypeOf self Is TVarDecl Then
-                        With CType(self, TVarDecl)
+                    ElseIf TypeOf self Is TVariableDeclaration Then
+                        With CType(self, TVariableDeclaration)
 
                             tw.Fmt(.ModDecl.TokenListMod)
                             If .ModDecl Is Nothing OrElse Not .ModDecl.isPublic AndAlso Not .ModDecl.isShared Then
-                                tw.Fmt(ETkn.eDim)
+                                tw.Fmt(EToken.eDim)
                             End If
 
-                            tw.Fmt(Laminate((From var1 In .VarDecl Select var1.TokenListVar), New TTkn(ETkn.eComma, self)))
+                            tw.Fmt(Laminate((From var1 In .VarDecl Select var1.TokenListVar), New TToken(EToken.eComma, self)))
 
                         End With
                     End If
 
                     If .TailCom <> "" Then
 
-                        tw.Fmt(New TTkn(ETkn.eComment, .TailCom))
+                        tw.Fmt(New TToken(EToken.eComment, .TailCom))
                     End If
-                    tw.Fmt(ETkn.eNL)
+                    tw.Fmt(EToken.eNL)
 
-                ElseIf TypeOf self Is TIfBlc Then
-                    With CType(self, TIfBlc)
+                ElseIf TypeOf self Is TIfBlock Then
+                    With CType(self, TIfBlock)
                         Dim if1 As TIf, i1 As Integer
 
                         if1 = CType(.ParentStmt, TIf)
-                        i1 = if1.IfBlc.IndexOf(CType(self, TIfBlc))
+                        i1 = if1.IfBlc.IndexOf(CType(self, TIfBlock))
                         Debug.Assert(i1 <> -1)
 
                         If i1 = 0 Then
-                            tw.Fmt(ETkn.eIf, .CndIf.TokenList, ETkn.eThen, ETkn.eNL)
+                            tw.Fmt(EToken.eIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
                         Else
                             If .CndIf IsNot Nothing Then
-                                tw.Fmt(ETkn.eElseIf, .CndIf.TokenList, ETkn.eThen, ETkn.eNL)
+                                tw.Fmt(EToken.eElseIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
                             Else
-                                tw.Fmt(ETkn.eElse, ETkn.eNL)
+                                tw.Fmt(EToken.eElse, EToken.eNL)
                             End If
                         End If
 
@@ -495,68 +495,68 @@ Public Class TInvariant
                             tw.Fmt(if_blc.TokenList)
                         Next
 
-                        tw.Fmt(ETkn.eEndIf, ETkn.eNL)
+                        tw.Fmt(EToken.eEndIf, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TCase Then
                     With CType(self, TCase)
                         If Not .DefaultCase Then
-                            tw.Fmt(ETkn.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TTkn(ETkn.eComma, self)), ETkn.eNL)
+                            tw.Fmt(EToken.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eNL)
                         Else
-                            tw.Fmt(ETkn.eCase, ETkn.eElse, ETkn.eNL)
+                            tw.Fmt(EToken.eCase, EToken.eElse, EToken.eNL)
                         End If
                         tw.Fmt(.BlcCase.TokenList)
                     End With
 
                 ElseIf TypeOf self Is TSelect Then
                     With CType(self, TSelect)
-                        tw.Fmt(ETkn.eSelect, ETkn.eCase, .TrmSel.TokenList, ETkn.eNL)
+                        tw.Fmt(EToken.eSelect, EToken.eCase, .TrmSel.TokenList, EToken.eNL)
 
                         For Each cas1 In .CaseSel
                             tw.Fmt(cas1.TokenList)
                         Next
 
-                        tw.Fmt(ETkn.eEndSelect, ETkn.eNL)
+                        tw.Fmt(EToken.eEndSelect, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TTry Then
                     With CType(self, TTry)
-                        tw.Fmt(ETkn.eTry, ETkn.eNL)
+                        tw.Fmt(EToken.eTry, EToken.eNL)
                         tw.Fmt(.BlcTry.TokenList)
-                        tw.Fmt(ETkn.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TTkn(ETkn.eComma, self)))
+                        tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)))
                         tw.Fmt(.BlcCatch)
-                        tw.Fmt(ETkn.eEndTry, ETkn.eNL)
+                        tw.Fmt(EToken.eEndTry, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TWith Then
                     With CType(self, TWith)
-                        tw.Fmt(ETkn.eWith, .TermWith.TokenList, ETkn.eNL)
+                        tw.Fmt(EToken.eWith, .TermWith.TokenList, EToken.eNL)
                         tw.Fmt(.BlcWith.TokenList)
-                        tw.Fmt(ETkn.eEndWith, ETkn.eNL)
+                        tw.Fmt(EToken.eEndWith, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TFor Then
                     With CType(self, TFor)
                         If .IsDo Then
-                            tw.Fmt(ETkn.eDo, ETkn.eWhile, .CndFor.TokenList, ETkn.eNL)
+                            tw.Fmt(EToken.eDo, EToken.eWhile, .CndFor.TokenList, EToken.eNL)
                             tw.Fmt(.BlcFor.TokenList)
-                            tw.Fmt(ETkn.eLoop, ETkn.eNL)
+                            tw.Fmt(EToken.eLoop, EToken.eNL)
 
                         ElseIf .InVarFor IsNot Nothing Then
-                            tw.Fmt(ETkn.eFor, ETkn.eEach, .InVarFor.TokenListVar, ETkn.eIn, .InTrmFor.TokenList, ETkn.eNL)
+                            tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.TokenListVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
                             tw.Fmt(.BlcFor.TokenList)
-                            tw.Fmt(ETkn.eNext, ETkn.eNL)
+                            tw.Fmt(EToken.eNext, EToken.eNL)
 
                         ElseIf .FromFor IsNot Nothing Then
-                            tw.Fmt(ETkn.eFor, .IdxFor.TokenList, ETkn.eEq, .FromFor.TokenList, ETkn.eTo, .ToFor.TokenList)
+                            tw.Fmt(EToken.eFor, .IdxFor.TokenList, EToken.eEq, .FromFor.TokenList, EToken.eTo, .ToFor.TokenList)
 
                             If .StepFor IsNot Nothing Then
-                                tw.Fmt(ETkn.eStep, .StepFor.TokenList)
+                                tw.Fmt(EToken.eStep, .StepFor.TokenList)
                             End If
-                            tw.Fmt(ETkn.eNL)
+                            tw.Fmt(EToken.eNL)
 
                             tw.Fmt(.BlcFor.TokenList)
-                            tw.Fmt(ETkn.eNext, ETkn.eNL)
+                            tw.Fmt(EToken.eNext, EToken.eNL)
                         Else
                             Debug.Assert(False, "For Src Bas")
                         End If
@@ -564,48 +564,48 @@ Public Class TInvariant
 
                 ElseIf TypeOf self Is TReDim Then
                     With CType(self, TReDim)
-                        tw.Fmt(ETkn.eReDim, .TrmReDim.TokenList, ETkn.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TTkn(ETkn.eComma, self)), ETkn.eNL)
+                        tw.Fmt(EToken.eReDim, .TrmReDim.TokenList, EToken.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eNL)
                     End With
 
-                ElseIf TypeOf self Is TBlc Then
-                    With CType(self, TBlc)
+                ElseIf TypeOf self Is TBlock Then
+                    With CType(self, TBlock)
                         For Each stmt In .StmtBlc
                             tw.Fmt(stmt.TokenList)
                         Next
                     End With
 
-                ElseIf TypeOf self Is TRet Then
-                    With CType(self, TRet)
-                        tw.Fmt(ETkn.eReturn)
+                ElseIf TypeOf self Is TReturn Then
+                    With CType(self, TReturn)
+                        tw.Fmt(EToken.eReturn)
                         If .TrmRet IsNot Nothing Then
                             tw.Fmt(.TrmRet.TokenList)
                         End If
-                        tw.Fmt(ETkn.eNL)
+                        tw.Fmt(EToken.eNL)
 
                     End With
 
                 ElseIf TypeOf self Is TThrow Then
                     With CType(self, TThrow)
-                        tw.Fmt(ETkn.eThrow, .TrmThrow.TokenList, ETkn.eNL)
+                        tw.Fmt(EToken.eThrow, .TrmThrow.TokenList, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TComment Then
                     With CType(self, TComment)
                         For Each s In .LineCom
-                            tw.Fmt(New TTkn(ETkn.eComment, s), ETkn.eNL)
+                            tw.Fmt(New TToken(EToken.eComment, s), EToken.eNL)
                         Next
                     End With
 
                 Else
                     Select Case .TypeStmt
-                        Case ETkn.eExitDo, ETkn.eExitFor, ETkn.eExitSub
+                        Case EToken.eExitDo, EToken.eExitFor, EToken.eExitSub
                             Select Case .TypeStmt
-                                Case ETkn.eExitDo
-                                    tw.Fmt(ETkn.eExitDo, ETkn.eNL)
-                                Case ETkn.eExitFor
-                                    tw.Fmt(ETkn.eExitFor, ETkn.eNL)
-                                Case ETkn.eExitSub
-                                    tw.Fmt(ETkn.eExitSub, ETkn.eNL)
+                                Case EToken.eExitDo
+                                    tw.Fmt(EToken.eExitDo, EToken.eNL)
+                                Case EToken.eExitFor
+                                    tw.Fmt(EToken.eExitFor, EToken.eNL)
+                                Case EToken.eExitSub
+                                    tw.Fmt(EToken.eExitSub, EToken.eNL)
                                 Case Else
                                     Debug.Assert(False)
                             End Select
@@ -619,7 +619,7 @@ Public Class TInvariant
                 If .AfterSrc <> "" Then
                     Dim v = .AfterSrc.Trim().Replace(vbCr, "").Split(New Char() {vbLf(0)})
                     For Each s In v
-                        tw.Fmt(s, ETkn.eNL)
+                        tw.Fmt(s, EToken.eNL)
                     Next
                 End If
 
@@ -630,7 +630,7 @@ Public Class TInvariant
 
     '  関数のソースを作る
     Public Sub MakeBasicFncCode(self As Object)
-        With CType(self, TFnc)
+        With CType(self, TFunction)
             Dim tw As New TTokenWriter(self)
 
             tw.Fmt(.ComVar.TokenList)
@@ -638,107 +638,107 @@ Public Class TInvariant
             tw.Fmt(.ModVar.TokenListMod)
 
             Select Case .TypeFnc
-                Case ETkn.eFunction
-                    tw.Fmt(ETkn.eFunction, self)
-                Case ETkn.eSub
-                    tw.Fmt(ETkn.eSub, self)
-                Case ETkn.eNew
-                    tw.Fmt(ETkn.eSub, ETkn.eNew)
+                Case EToken.eFunction
+                    tw.Fmt(EToken.eFunction, self)
+                Case EToken.eSub
+                    tw.Fmt(EToken.eSub, self)
+                Case EToken.eNew
+                    tw.Fmt(EToken.eSub, EToken.eNew)
 
-                Case ETkn.eOperator
-                    tw.Fmt(ETkn.eOperator, self)
+                Case EToken.eOperator
+                    tw.Fmt(EToken.eOperator, self)
 
                 Case Else
                     Debug.WriteLine("")
             End Select
 
-            tw.Fmt(Laminate((From var1 In .ArgFnc Select var1.TokenListVar), New TTkn(ETkn.eComma, self)))
+            tw.Fmt(Laminate((From var1 In .ArgFnc Select var1.TokenListVar), New TToken(EToken.eComma, self)))
 
             If .RetType IsNot Nothing Then
-                tw.Fmt(ETkn.eAs, .RetType.TokenListCls)
+                tw.Fmt(EToken.eAs, .RetType.TokenListCls)
 
             End If
 
             If .InterfaceFnc IsNot Nothing Then
-                tw.Fmt(ETkn.eImplements, .InterfaceFnc.TokenListCls, ETkn.eDot, .ImplFnc)
+                tw.Fmt(EToken.eImplements, .InterfaceFnc.TokenListCls, EToken.eDot, .ImplFnc)
             End If
-            tw.Fmt(ETkn.eNL)
+            tw.Fmt(EToken.eNL)
 
 
             If .BlcFnc IsNot Nothing Then
                 tw.Fmt(.BlcFnc.TokenList)
-                tw.Fmt(ETkn.eEndFunction)
+                tw.Fmt(EToken.eEndFunction)
             End If
         End With
     End Sub
 
     Public Sub MakeBasicFldCode(self As Object)
-        With CType(self, TFld)
+        With CType(self, TField)
             Dim tw As New TTokenWriter(self)
 
 
             tw.Fmt(.ComVar.TokenList)
             tw.Fmt(.ModVar.TokenListMod)
             If .ModVar Is Nothing OrElse Not .ModVar.isPublic AndAlso Not .ModVar.isShared Then
-                tw.Fmt(ETkn.eDim)
+                tw.Fmt(EToken.eDim)
             End If
             tw.Fmt(self)
 
             If .TailCom <> "" Then
-                tw.Fmt(New TTkn(ETkn.eComment, .TailCom))
+                tw.Fmt(New TToken(EToken.eComment, .TailCom))
             End If
-            tw.Fmt(ETkn.eNL)
+            tw.Fmt(EToken.eNL)
         End With
     End Sub
 
     Public Sub GenericSrc(self As Object)
-        With CType(self, TCls)
+        With CType(self, TClass)
             Dim tw As New TTokenWriter(self)
 
             If .GenCla IsNot Nothing Then
                 ' ジェネリック型の場合
 
-                tw.Fmt(ETkn.eLP, ETkn.eOf, Laminate((From cls1 In .GenCla Select cls1.TokenListCls), New TTkn(ETkn.eComma, self)), ETkn.eRP)
+                tw.Fmt(EToken.eLP, EToken.eOf, Laminate((From cls1 In .GenCla Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eRP)
             End If
 
         End With
     End Sub
 
     Public Sub MakeBasicClassCode(self As Object)
-        With CType(self, TCls)
+        With CType(self, TClass)
             Dim tw As New TTokenWriter(self)
 
             If .ModCla().isPartial Then
-                tw.Fmt(ETkn.ePartial)
+                tw.Fmt(EToken.ePartial)
             End If
 
-            tw.Fmt(ETkn.ePublic)
+            tw.Fmt(EToken.ePublic)
 
             If .ModCla().isAbstract Then
-                tw.Fmt(ETkn.eAbstract)
+                tw.Fmt(EToken.eAbstract)
             End If
 
             Select Case .KndCla
                 Case EClass.eClassCla
-                    tw.Fmt(ETkn.eClass)
+                    tw.Fmt(EToken.eClass)
                 Case EClass.eStructCla
-                    tw.Fmt(ETkn.eStruct)
+                    tw.Fmt(EToken.eStruct)
                 Case EClass.eInterfaceCla
-                    tw.Fmt(ETkn.eInterface)
+                    tw.Fmt(EToken.eInterface)
             End Select
             tw.Fmt(self)
 
             GenericSrc(self)
 
-            tw.Fmt(ETkn.eNL)
+            tw.Fmt(EToken.eNL)
 
             If .SuperCla.Count <> 0 AndAlso .SuperCla(0) IsNot PrjMK.ObjectType Then
-                tw.Fmt(ETkn.eInherits, .SuperCla(0).TokenListCls, ETkn.eNL)
+                tw.Fmt(EToken.eInherits, .SuperCla(0).TokenListCls, EToken.eNL)
             End If
 
             If .InterfacesCls.Count <> 0 AndAlso .InterfacesCls(0) IsNot PrjMK.ObjectType Then
-                tw.Fmt(ETkn.eImplements)
-                tw.Fmt(Laminate((From cls1 In .InterfacesCls Select cls1.TokenListCls), New TTkn(ETkn.eComma, self)), ETkn.eNL)
+                tw.Fmt(EToken.eImplements)
+                tw.Fmt(Laminate((From cls1 In .InterfacesCls Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eNL)
             End If
 
             '  すべてのフィールドに対し
@@ -759,11 +759,11 @@ Public Class TInvariant
 
             Select Case .KndCla
                 Case EClass.eClassCla
-                    tw.Fmt(ETkn.eEndClass, ETkn.eNL)
+                    tw.Fmt(EToken.eEndClass, EToken.eNL)
                 Case EClass.eStructCla
-                    tw.Fmt(ETkn.eEndStruct, ETkn.eNL)
+                    tw.Fmt(EToken.eEndStruct, EToken.eNL)
                 Case EClass.eInterfaceCla
-                    tw.Fmt(ETkn.eEndInterface, ETkn.eNL)
+                    tw.Fmt(EToken.eEndInterface, EToken.eNL)
             End Select
 
         End With

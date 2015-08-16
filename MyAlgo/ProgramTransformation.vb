@@ -11,7 +11,7 @@ Public Class TProgramTransformation
     '    Dim v As New TList(Of TNameTable), name_table As TNameTable
 
     '    name_table = New TNameTable()
-    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TCls"))
+    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TClass"))
     '    name_table.LocalNameList.Add(New TLocalName("jp", "クラス"))
     '    name_table.LocalNameList.Add(New TLocalName("en", "TClass"))
     '    name_table.LocalNameList.Add(New TLocalName("ch", "類型"))
@@ -19,7 +19,7 @@ Public Class TProgramTransformation
     '    v.Add(name_table)
 
     '    name_table = New TNameTable()
-    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TFnc"))
+    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TFunction"))
     '    name_table.LocalNameList.Add(New TLocalName("jp", "関数"))
     '    name_table.LocalNameList.Add(New TLocalName("en", "TFunction"))
     '    name_table.LocalNameList.Add(New TLocalName("ch", "函数"))
@@ -27,7 +27,7 @@ Public Class TProgramTransformation
     '    v.Add(name_table)
 
     '    name_table = New TNameTable()
-    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TFld"))
+    '    name_table.LocalNameList.Add(New TLocalName("abbr", "TField"))
     '    name_table.LocalNameList.Add(New TLocalName("jp", "フィールド"))
     '    name_table.LocalNameList.Add(New TLocalName("en", "TField"))
     '    name_table.LocalNameList.Add(New TLocalName("ch", "場"))
@@ -63,7 +63,7 @@ Public Class TProgramTransformation
         Dim v As New TList(Of TList(Of TLocalName)), name_table As TList(Of TLocalName)
 
         name_table = New TList(Of TLocalName)()
-        name_table.Add(New TLocalName("abbr", "TCls"))
+        name_table.Add(New TLocalName("abbr", "TClass"))
         name_table.Add(New TLocalName("jp", "クラス"))
         name_table.Add(New TLocalName("en", "TClass"))
         name_table.Add(New TLocalName("ch", "類型"))
@@ -71,7 +71,7 @@ Public Class TProgramTransformation
         v.Add(name_table)
 
         name_table = New TList(Of TLocalName)()
-        name_table.Add(New TLocalName("abbr", "TFnc"))
+        name_table.Add(New TLocalName("abbr", "TFunction"))
         name_table.Add(New TLocalName("jp", "関数"))
         name_table.Add(New TLocalName("en", "TFunction"))
         name_table.Add(New TLocalName("ch", "函数"))
@@ -79,7 +79,7 @@ Public Class TProgramTransformation
         v.Add(name_table)
 
         name_table = New TList(Of TLocalName)()
-        name_table.Add(New TLocalName("abbr", "TFld"))
+        name_table.Add(New TLocalName("abbr", "TField"))
         name_table.Add(New TLocalName("jp", "フィールド"))
         name_table.Add(New TLocalName("en", "TField"))
         name_table.Add(New TLocalName("ch", "場"))
@@ -190,7 +190,7 @@ End Class
 
 Public Class TTestDataflow
     Dim gApp As TApplication
-    Dim gPrj As TPrj
+    Dim gPrj As TProject
     Dim gDataflow As TDataflow
     Dim PrjIdx As Integer
     Dim PrjFiles As New TList(Of String())
@@ -221,9 +221,9 @@ Public Class TTestDataflow
 
 
     Sub LoadPrj()
-        Dim prj1 As TPrj, nav2 As TNavCSE, data_flow As TDataflow
+        Dim prj1 As TProject, nav2 As TNavCSE, data_flow As TDataflow
 
-        prj1 = New TPrj()
+        prj1 = New TProject()
         prj1.SrcFileNames = PrjFiles(PrjIdx)
 
         ' オリジナルのソースを読む
@@ -234,17 +234,17 @@ Public Class TTestDataflow
         prj1.MainFunctionName = "GlobalRule"
 
         For Each fname In prj1.SrcFileNames
-            Dim src1 As TSrc, s As String, vtext As String()
+            Dim src1 As TSourceFile, s As String, vtext As String()
 
             s = File.ReadAllText(prj1.SrcDir + "\" + fname)
             vtext = s.Replace(vbCr, "").Split(New Char() {vbLf(0)})
-            src1 = New TSrc(fname, vtext)
+            src1 = New TSourceFile(fname, vtext)
             prj1.SrcPrj.Add(src1)
         Next
 
         prj1.Compile()
 
-        Dim src2 As TSrc
+        Dim src2 As TSourceFile
 
         src2 = prj1.SrcPrj(2)
         Debug.Print("---------------------------------------------------- 不変条件 {0}", prj1.SrcFileNames(2))
