@@ -252,11 +252,10 @@ Public Class TFile
         End If
     End Sub
 
-    Public Shared Function ReadAllLines(dir_path As String, file_name As String) As String()
-        Dim v As List(Of String), va As String(), i As Integer, path As String
+    Public Shared Function ReadAllLines(file_path As String) As String()
+        Dim v As List(Of String), va As String(), i As Integer
 
-        path = dir_path + "\" + file_name
-        v = File.ReadLines(path, Encoding.UTF8).ToList()
+        v = File.ReadLines(file_path, Encoding.UTF8).ToList()
 
         ReDim va(v.Count - 1)
         For i = 0 To v.Count - 1

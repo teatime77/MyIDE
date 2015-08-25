@@ -430,6 +430,7 @@ Public Class TNavSetRef
         End If
 
         If dot1.TypeDot Is Nothing Then
+            NavDotLeft(dot1, vvvar)
             Throw New TError(String.Format("ドットの左の項の型が不明 {0}", dot1.NameRef))
         End If
         If TypeOf dot1.TypeDot Is TDelegate Then

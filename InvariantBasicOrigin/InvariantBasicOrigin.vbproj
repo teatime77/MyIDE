@@ -68,6 +68,45 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\MyAlgo\BasicCodeGenerator.vb">
+      <Link>BasicCodeGenerator.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\BasicParser.vb">
+      <Link>BasicParser.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Builder.vb">
+      <Link>Builder.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\CodeGenerator.vb">
+      <Link>CodeGenerator.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Graph.vb">
+      <Link>Graph.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Invariant.vb">
+      <Link>Invariant.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\JavaCodeGenerator.vb">
+      <Link>JavaCodeGenerator.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Logic.vb">
+      <Link>Logic.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Navigation.vb">
+      <Link>Navigation.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\ProgramTransformation.vb">
+      <Link>ProgramTransformation.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Project.vb">
+      <Link>Project.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\Proof.vb">
+      <Link>Proof.vb</Link>
+    </Compile>
+    <Compile Include="..\MyAlgo\System.vb">
+      <Link>System.vb</Link>
+    </Compile>
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

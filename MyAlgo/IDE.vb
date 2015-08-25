@@ -256,156 +256,27 @@ Public Class TIDE
         ProofView.RemakeDrawFig()
     End Sub
 
+    Public Sub TestView()
+        Dim builder As New TBuilder
 
-    ' 変数参照のグラフを作る
-    Public Sub MakeRefSugiyamaGraph(prj1 As TProject)
-        Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode)
-        Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, L As TList(Of TList(Of TNode))
+        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyView.xml")
 
-        ' すべてのクラスに対し
-        For Each cla1 In prj1.vCla
-
-            If prj1.vCla.IndexOf(cla1) Mod 25 = 0 Then
-                Debug.WriteLine("Make Ref Graph {0}", prj1.vCla.IndexOf(cla1))
-            End If
-
-            ' すべてのフィールドに対し
-            For Each fld1 In cla1.FldCla
-
-                If cla1.NameCla() = "TApply" AndAlso fld1.NameVar = "TypeApp" Then
-
-
-                    ' ノードの辞書を初期化する
-                    TFlowNode.CntNd = 0
-                    dic1 = New Dictionary(Of Object, TFlowNode)()
-
-                    ' すべてのフィールド参照に対し
-                    For Each ref1 In fld1.RefVar
-
-                        If ref1.FncRef.Reachable Then
-                            ' 到達可能の関数内で参照されている場合
-
-                            ' 変数参照のノードをグラフに追加する
-                            prj1.AddRefGraph(dic1, ref1)
-                        End If
-                    Next
-
-                    ' ノードの集合からグラフを作る
-                    vnd = TGraph.Node2Graph(New TList(Of TFlowNode)(dic1.Values))
-
-                    dgr = New TDrawGraph(vnd)
-                    TDrawGraph.CheckGraph(dgr.AllNode)
-
-                    dot_dir = prj1.OutDir + "\html\_dot"
-                    TDirectory.CreateDirectory(dot_dir)
-
-                    dot_path = dot_dir + "\" + cla1.NameCla() + "_" + fld1.NameVar
-
-                    ' dotファイルに書く
-                    TGraph.WriteDotFile("オリジナル", dgr.AllNode, Nothing, dot_path + "-1.dot")
-
-                    L = dgr.SugiyamaGraph(dot_path)
-
-                    MakeGridGraph(L)
-                End If
-            Next
+        For Each L In builder.RefSugiyamaGraph.Values
+            MakeGridGraph(L)
         Next
     End Sub
 
-    Public Sub TestView()
-        Dim prj1 As TProject, nav2 As TNavCSE
-
-        ' オリジナルのソースを読む
-        prj1 = New TProject()
-        prj1.SrcFileNames = New String() {"@lib.vb", "System.vb", "View.vb", "ViewTest.vb"}
-        If TSys.IsWeb Then
-            prj1.SrcDir = "http://localhost:8801/MyView"
-        Else
-            prj1.SrcDir = "C:\usr\prj\MyIDE\MyView"
-        End If
-        prj1.OutDir = prj1.SrcDir + "\out\MyView"
-        prj1.MainClassName = "TViewTest"
-        prj1.MainFunctionName = "Main"
-        prj1.MakeSrcPrj()
-        prj1.Compile()
-
-        ' 名前と予約語を変えて出力する
-
-        ' 名前と予約語を変えたソースを読む
-
-        ' オリジナルのソースを出力する
-
-        prj1.MakeSrc()
-
-        ' コード解析
-        prj1.CodeAnalysis()
-
-        Debug.WriteLine("共通部分式")
-        nav2 = New TNavCSE()
-        nav2.NavPrj(prj1, Nothing)
-
-        ' 変数参照のグラフを作る
-        MakeRefSugiyamaGraph(prj1)
-    End Sub
-
     Public Sub Test()
-        Dim prj1 As TProject, nav2 As TNavCSE
+        Dim builder As New TBuilder
 
+        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyAlgo.xml")
 
-        ' オリジナルのソースを読む
-        prj1 = New TProject()
-        prj1.SrcFileNames = New String() {"@lib.vb", "Invariant.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
-        If TSys.IsWeb Then
-            prj1.SrcDir = "http://localhost:8801/MyAlgo"
-        Else
-            prj1.SrcDir = "C:\usr\prj\MyIDE\MyAlgo"
-        End If
-        prj1.OutDir = prj1.SrcDir + "\out\MyIDETest\MyAlgo"
-        prj1.MainClassName = "TIDE"
-        prj1.MainFunctionName = "Main"
-        prj1.MakeSrcPrj()
-        prj1.Compile()
-        prj1.MakeSrc()
-
-        ' 名前と予約語を変えて出力する
-
-        ' 名前と予約語を変えたソースを読む
-
-        ' オリジナルのソースを出力する
-
-        ' コード解析
-        prj1.CodeAnalysis()
-
-        Debug.WriteLine("共通部分式")
-        nav2 = New TNavCSE()
-        nav2.NavPrj(prj1, Nothing)
-
-        ' 変数参照のグラフを作る
-        MakeRefSugiyamaGraph(prj1)
+        For Each L In builder.RefSugiyamaGraph.Values
+            MakeGridGraph(L)
+        Next
     End Sub
 
     Public Sub TestMiyu()
-        Dim prj1 As TProject
-
-        prj1 = New TProject()
-        prj1.ClassNameTable = TProgramTransformation.ReadClassNameTable("C:\usr\prj\MyIDE\etc\Translation", "NameTable.txt", 2)
-        prj1.SrcFileNames = New String() {"@lib.vb", "Invariant.vb", "BasicCodeGenerator.vb", "BasicParser.vb", "CodeGenerator.vb", "Graph.vb", "IDE.vb", "JavaCodeGenerator.vb", "LALR.vb", "Logic.vb", "Navigation.vb", "ProgramTransformation.vb", "Project.vb", "Proof.vb", "System.vb", "TWnd.vb", "WindowsForms.vb"}
-        If TSys.IsWeb Then
-            prj1.SrcDir = "http://localhost:8801/MyAlgo"
-        Else
-            prj1.SrcDir = "C:\usr\prj\MyIDE\MyAlgo"
-        End If
-        prj1.OutDir = prj1.SrcDir + "\out\Miyu"
-        prj1.MainClassName = "TIDE"
-        prj1.MainFunctionName = "TestMiyu"
-        prj1.OutputNotUsed = False
-        prj1.MakeSrcPrj()
-        prj1.Compile()
-        prj1.MakeSrc()
-
-        ' コード解析
-        prj1.CodeAnalysis()
-        prj1.MakeRefGraph()
     End Sub
 
     Public Overrides Sub InitApp()
@@ -460,8 +331,8 @@ Public Class TIDE
         '    Debug.WriteLine("")
         'End Try
 
-        Dim test_dataflow As New TTestDataflow()
         Test()
+        Dim test_dataflow As New TTestDataflow()
         TestView()
         TestMiyu()
 

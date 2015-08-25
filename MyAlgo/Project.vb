@@ -1484,7 +1484,7 @@ Public Class TProject
     End Function
 
     ' 変数参照のグラフを作る
-    Public Sub MakeRefGraph()
+    Public Sub MakeReferenceGraph()
         Dim dic1 As New Dictionary(Of Object, TFlowNode), vnd As TList(Of TNode), vfnc As List(Of TFunction)
         Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, idx As Integer, def_ref As Boolean
         Dim sw As New TStringWriter, file_name As String

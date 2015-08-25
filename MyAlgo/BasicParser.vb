@@ -1373,7 +1373,7 @@ Public Class TBasicParser
 
     Public Sub ParseAllLines(src1 As TSourceFile)
         If src1.vTextSrc Is Nothing Then
-            src1.vTextSrc = TFile.ReadAllLines(PrjParse.SrcDir, src1.FileSrc)
+            src1.vTextSrc = TFile.ReadAllLines(PrjParse.SrcDir + "\" + src1.FileSrc)
         End If
 
         src1.LineTkn = New TList(Of TList(Of TToken))()

@@ -112,11 +112,11 @@ Public Class TProgramTransformation
         Return v
     End Function
 
-    Public Shared Function ReadClassNameTable(dir_path As String, file_name As String, idx As Integer) As Dictionary(Of String, String)
+    Public Shared Function ReadClassNameTable(file_path As String, idx As Integer) As Dictionary(Of String, String)
         Dim dic As New Dictionary(Of String, String)
         Dim vline As String(), line2 As String, line3 As String, vname As String()
 
-        vline = TFile.ReadAllLines(dir_path, file_name)
+        vline = TFile.ReadAllLines(file_path)
         For Each line1 In vline
 
             ' 連続するタブを１つにする
@@ -189,7 +189,6 @@ Public Class TNameTable
 End Class
 
 Public Class TTestDataflow
-    Dim gApp As TApplication
     Dim gPrj As TProject
     Dim gDataflow As TDataflow
     Dim PrjIdx As Integer
@@ -197,14 +196,6 @@ Public Class TTestDataflow
     Dim vSrc As New TList(Of String)
 
     Public Sub New()
-
-        gApp = New TApplication()
-
-        gApp.MainForm = New TForm()
-        gApp.MainForm.Interval = 10
-
-
-
         Dim v = New String() {"StackPanel", "Circle", "View"}
         'Dim v = New String() {"StackPanel"}
         For Each x In v
