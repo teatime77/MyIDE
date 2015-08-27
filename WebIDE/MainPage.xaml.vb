@@ -66,19 +66,19 @@ Partial Public Class MainPage
         Dim prj1 As TProject, nav2 As TNavCSE, data_flow As TDataflow
 
         prj1 = New TProject()
-        prj1.SrcFileNames = PrjFiles(PrjIdx)
+        prj1.SourceFileNameList = PrjFiles(PrjIdx)
 
         ' オリジナルのソースを読む
         gPrj = prj1
-        prj1.SrcDir = HomeUri + "/ViewSrc" ' "http://localhost:49618/ViewSrc"
-        prj1.OutDir = prj1.SrcDir + "\out\MyView"
+        prj1.SourceDirectory = HomeUri + "/ViewSrc" ' "http://localhost:49618/ViewSrc"
+        prj1.OutputDirectory = prj1.SourceDirectory + "\out\MyView"
         prj1.MainClassName = "TNaviView"
         prj1.MainFunctionName = "GlobalRule"
 
-        For Each fname In prj1.SrcFileNames
+        For Each fname In prj1.SourceFileNameList
             Dim src1 As TSourceFile, s As String, vtext As String()
 
-            s = Await gClient.GetStringAsync(New Uri(prj1.SrcDir + "/" + fname))
+            s = Await gClient.GetStringAsync(New Uri(prj1.SourceDirectory + "/" + fname))
             vtext = s.Replace(vbCr, "").Split(New Char() {vbLf(0)})
             If fname = "lib.txt" Then
                 src1 = New TSourceFile("@lib.txt", vtext)

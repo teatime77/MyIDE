@@ -1,48 +1,53 @@
 ﻿Imports System.IO
+Imports System.Xml.Serialization
 Imports System.Text
 Imports System.Diagnostics
 'Imports System.Web
 
 ' -------------------------------------------------------------------------------- TProject
 Public Class TProject
-    Public Shared Prj As TProject
-    Public SrcDir As String
-    Public OutDir As String
-    Public SrcFileNames As String()
-    Public vCla As New TList(Of TClass)
-    Public vGenCla As New TList(Of TClass)
-    Public vGenTmpCla As New TList(Of TClass)
-    Public vArrCla As New TList(Of TClass)
-    Public vAllClass As New TList(Of TClass)
-    Public vAllFnc As New TList(Of TFunction)
-    Public vAllFld As New TList(Of TField)    ' すべてのフィールド
-    Public CurSrc As TSourceFile ' 現在のソース
-    Public TypeType As TClass
-    Public SystemType As TClass
-    Public BoolType As TClass
-    Public ObjectType As TClass
-    Public DoubleType As TClass
-    Public CharType As TClass
-    Public IntType As TClass
-    Public StringType As TClass
-    Public ArrayType As TClass
-    Public WaitHandleType As TClass
-    Public dicCla As New Dictionary(Of String, TClass) ' クラス辞書
-    Public dicGenCla As New Dictionary(Of String, TClass)
-    Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
-    Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
-    Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
-    Public dicClassMemName As Dictionary(Of String, String)
-    Public ClassNameTable As Dictionary(Of String, String)
-    Public SrcPrj As New TList(Of TSourceFile)
-    Public vTknNamePrj As Dictionary(Of EToken, String)
-    Public ParsePrj As TBasicParser
+    <XmlIgnoreAttribute()> Public Shared Prj As TProject
+
+    Public SourceDirectory As String
+    Public OutputDirectory As String
+    Public SourceFileNameList As String()
     Public MainClassName As String
     Public MainFunctionName As String
-    Public theMain As TFunction
-    Public ArrayMaker As TFunction
     Public OutputNotUsed As Boolean = True
+    Public UseReferenceGraph As Boolean = False
+    Public ClassNameTablePath As String = ""
     Public Dataflow As Boolean = False
+
+    <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
+    <XmlIgnoreAttribute()> Public vCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public vGenCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public vGenTmpCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public vArrCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public vAllClass As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
+    <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
+    <XmlIgnoreAttribute()> Public CurSrc As TSourceFile ' 現在のソース
+    <XmlIgnoreAttribute()> Public TypeType As TClass
+    <XmlIgnoreAttribute()> Public SystemType As TClass
+    <XmlIgnoreAttribute()> Public BoolType As TClass
+    <XmlIgnoreAttribute()> Public ObjectType As TClass
+    <XmlIgnoreAttribute()> Public DoubleType As TClass
+    <XmlIgnoreAttribute()> Public CharType As TClass
+    <XmlIgnoreAttribute()> Public IntType As TClass
+    <XmlIgnoreAttribute()> Public StringType As TClass
+    <XmlIgnoreAttribute()> Public ArrayType As TClass
+    <XmlIgnoreAttribute()> Public WaitHandleType As TClass
+    <XmlIgnoreAttribute()> Public dicCla As New Dictionary(Of String, TClass) ' クラス辞書
+    <XmlIgnoreAttribute()> Public dicGenCla As New Dictionary(Of String, TClass)
+    <XmlIgnoreAttribute()> Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
+    <XmlIgnoreAttribute()> Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
+    <XmlIgnoreAttribute()> Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
+    <XmlIgnoreAttribute()> Public dicClassMemName As Dictionary(Of String, String)
+    <XmlIgnoreAttribute()> Public SrcPrj As New TList(Of TSourceFile)
+    <XmlIgnoreAttribute()> Public vTknNamePrj As Dictionary(Of EToken, String)
+    <XmlIgnoreAttribute()> Public ParsePrj As TBasicParser
+    <XmlIgnoreAttribute()> Public theMain As TFunction
+    <XmlIgnoreAttribute()> Public ArrayMaker As TFunction
 
     Public Sub New()
         Prj = CType(Me, TProject)
@@ -741,7 +746,7 @@ Public Class TProject
     End Sub
 
     Public Sub MakeSrcPrj()
-        SrcPrj = New TList(Of TSourceFile)(From fname In SrcFileNames Select New TSourceFile(fname))
+        SrcPrj = New TList(Of TSourceFile)(From fname In SourceFileNameList Select New TSourceFile(fname))
     End Sub
 
     Public Sub Compile()
@@ -872,10 +877,10 @@ Public Class TProject
     End Sub
 
     Public Sub MakeSrc()
-        MakeAllBasicCode(OutDir + "\")
+        MakeAllBasicCode(OutputDirectory + "\")
         Debug.WriteLine("Basic ソース 生成")
 
-        MakeAllHtml(OutDir + "\")
+        MakeAllHtml(OutputDirectory + "\")
         Debug.WriteLine("HTML 生成")
     End Sub
 
@@ -1396,7 +1401,7 @@ Public Class TProject
         Loop
 
         sw.WriteLine("</body></html>")
-        TFile.WriteAllText(OutDir + "\html\CallToAll.html", sw.ToString())
+        TFile.WriteAllText(OutputDirectory + "\html\CallToAll.html", sw.ToString())
     End Sub
 
     ' 関数のノードをグラフに追加する
@@ -1490,7 +1495,7 @@ Public Class TProject
         Dim dgr As TDrawGraph, dot_dir As String, dot_path As String, idx As Integer, def_ref As Boolean
         Dim sw As New TStringWriter, file_name As String
 
-        dot_dir = OutDir + "\html\_dot"
+        dot_dir = OutputDirectory + "\html\_dot"
 
         ' すべてのクラスに対し
         For Each cla1 In vCla
@@ -1865,7 +1870,7 @@ Public Class TProject
         Dim dic1 As Dictionary(Of String, EToken), vtkn_name As Dictionary(Of EToken, String)
         Dim fname As String
 
-        out_dir = OutDir + "\"
+        out_dir = OutputDirectory + "\"
 
         '-------------------------------------------------- Javaのソースを作る
         dic1 = TJavaCodeGenerator.TknAddJava()

@@ -228,6 +228,8 @@ Public Class TModifier
     Public isVirtual As Boolean
     Public isIterator As Boolean
 
+    Public isXmlIgnore As Boolean
+
     Public TokenListMod As List(Of TToken)
 End Class
 

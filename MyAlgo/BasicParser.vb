@@ -1190,6 +1190,16 @@ Public Class TBasicParser
                 Case EToken.eIterator
                     mod1.isIterator = True
                 Case EToken.eProtected, EToken.eFriend, EToken.ePrivate
+
+                Case EToken.eLT
+                    GetTkn(EToken.eLT)
+                    Debug.Assert(CurTkn.TypeTkn = EToken.eId AndAlso CurTkn.StrTkn = "XmlIgnoreAttribute")
+                    GetTkn(EToken.eId)
+                    GetTkn(EToken.eLP)
+                    GetTkn(EToken.eRP)
+                    Debug.Assert(CurTkn.TypeTkn = EToken.eGT)
+
+                    mod1.isXmlIgnore = True
                 Case Else
                     Exit Do
             End Select
@@ -1373,7 +1383,7 @@ Public Class TBasicParser
 
     Public Sub ParseAllLines(src1 As TSourceFile)
         If src1.vTextSrc Is Nothing Then
-            src1.vTextSrc = TFile.ReadAllLines(PrjParse.SrcDir + "\" + src1.FileSrc)
+            src1.vTextSrc = TFile.ReadAllLines(PrjParse.SourceDirectory + "\" + src1.FileSrc)
         End If
 
         src1.LineTkn = New TList(Of TList(Of TToken))()
