@@ -42,6 +42,7 @@ Public Class TProject
     Public theMain As TFunction
     Public ArrayMaker As TFunction
     Public OutputNotUsed As Boolean = True
+    Public Dataflow As Boolean = False
 
     Public Sub New()
         Prj = CType(Me, TProject)

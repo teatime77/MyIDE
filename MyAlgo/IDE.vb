@@ -332,7 +332,6 @@ Public Class TIDE
         'End Try
 
         Test()
-        Dim test_dataflow As New TTestDataflow()
         TestView()
         TestMiyu()
 

@@ -38,23 +38,75 @@ Public Class TBuilder
         prj1.MainClassName = project_settings.MainClassName
         prj1.MainFunctionName = project_settings.MainFunctionName
         prj1.OutputNotUsed = project_settings.OutputNotUsed
+        prj1.Dataflow = project_settings.Dataflow
 
         prj1.MakeSrcPrj()
         prj1.Compile()
-        prj1.MakeSrc()
 
-        ' コード解析
-        prj1.CodeAnalysis()
+        If prj1.Dataflow Then
+            Dim src2 As TSourceFile, data_flow As TDataflow
 
-        Debug.WriteLine("共通部分式")
-        nav2 = New TNavCSE()
-        nav2.NavPrj(prj1, Nothing)
+            src2 = prj1.SrcPrj(2)
+            Debug.Print("---------------------------------------------------- 不変条件 {0}", prj1.SrcFileNames(2))
 
-        ' 変数参照のグラフを作る
-        MakeRefSugiyamaGraph(prj1)
 
-        If project_settings.MakeReferenceGraph Then
-            prj1.MakeReferenceGraph()
+            ' 名前と予約語を変えて出力する
+
+            ' 名前と予約語を変えたソースを読む
+
+            ' オリジナルのソースを出力する
+
+            data_flow = New TDataflow()
+            data_flow.SetChangeableFldList(prj1)
+
+            For Each changeable_fld In data_flow.ChangeableFldList
+                data_flow.ChangeableFld = changeable_fld
+                Debug.WriteLine("Analyze Dataflow {0}", changeable_fld.ToString())
+
+                ' 値が変化し得るフィールドを解析する
+                data_flow.AnalyzeChangeableFld()
+            Next
+
+            Dim sw As New StringWriter
+
+            'sw.WriteLine("Imports System.Threading")
+            sw.WriteLine(data_flow.SyncClassSrc)
+            sw.WriteLine("Partial Public Class {0}", data_flow.GlobalRule.ClaFnc.NameVar)
+            sw.WriteLine("Inherits TNaviRule")
+            sw.WriteLine(data_flow.RuleSW.ToString())
+            sw.WriteLine("End Class")
+            '            vSrc(PrjIdx) = sw.ToString()
+
+
+            ' コード解析
+            prj1.CodeAnalysis()
+
+            Debug.WriteLine("共通部分式")
+            nav2 = New TNavCSE()
+            nav2.NavPrj(prj1, Nothing)
+
+            '-------------------------------------------------- データフロー解析のタイマー表示
+            data_flow = New TDataflow()
+            data_flow.SetChangeableFldList(prj1)
+            data_flow.ChangeableFld = data_flow.ChangeableFldList(0)
+            data_flow.AnalyzeChangeableFld()
+        Else
+
+            prj1.MakeSrc()
+
+            ' コード解析
+            prj1.CodeAnalysis()
+
+            Debug.WriteLine("共通部分式")
+            nav2 = New TNavCSE()
+            nav2.NavPrj(prj1, Nothing)
+
+            ' 変数参照のグラフを作る
+            MakeRefSugiyamaGraph(prj1)
+
+            If project_settings.MakeReferenceGraph Then
+                prj1.MakeReferenceGraph()
+            End If
         End If
 
     End Sub
@@ -147,4 +199,5 @@ Public Class TProjectSettings
     Public OutputNotUsed As Boolean = True
     Public MakeReferenceGraph As Boolean = False
     Public ClassNameTable As String = ""
+    Public Dataflow As Boolean = False
 End Class
