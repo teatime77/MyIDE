@@ -1,12 +1,12 @@
 ﻿Imports System.IO
 Imports System.Diagnostics
 
-' -------------------------------------------------------------------------------- TNavCSE
-Public Class TNavCSE
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviCSE
+Public Class TNaviCSE
+    Inherits TNaviPrj
 
     Public Overrides Sub NavTrm(trm1 As TTerm, arg1 As Object)
-        Dim dat1 As TNavCSEDat, s1 As String, s2 As String
+        Dim dat1 As TNaviCSEDat, s1 As String, s2 As String
 
         If trm1 Is Nothing OrElse arg1 Is Nothing Then
             Exit Sub
@@ -16,7 +16,7 @@ Public Class TNavCSE
             Else
                 MyBase.NavTrm(CType(trm1, TDot).TrmDot, arg1)
 
-                dat1 = CType(arg1, TNavCSEDat)
+                dat1 = CType(arg1, TNaviCSEDat)
 
                 For Each trm2 In dat1.vTrm
                     If Sys.IsEqTrm(trm1, trm2) Then
@@ -34,7 +34,7 @@ Public Class TNavCSE
     End Sub
 
     Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
-        Dim dat1 As New TNavCSEDat
+        Dim dat1 As New TNaviCSEDat
 
         If fnc1.BlcFnc IsNot Nothing Then
             dat1.FncCSE = fnc1
@@ -43,8 +43,8 @@ Public Class TNavCSE
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNavCSEDat
-Public Class TNavCSEDat
+' -------------------------------------------------------------------------------- TNaviCSEDat
+Public Class TNaviCSEDat
     Public FncCSE As TFunction
     Public vTrm As New TList(Of TTerm)
     Public BFM As TBasicCodeGenerator
@@ -622,7 +622,7 @@ Public Class TDataflow
         SyncFldList = find_sync_field.SyncFldList
 
         ' 並列処理の文を探す
-        Dim nav_parallel_for_each As New TNavParallelForEach
+        Dim nav_parallel_for_each As New TNaviParallelForEach
         nav_parallel_for_each.NavFnc(RuleCp, Nothing)
 
         For Each call_f In nav_parallel_for_each.ParallelForEachList
@@ -633,7 +633,7 @@ Public Class TDataflow
         Next
 
         ' 規則内のすべての文を得る
-        Dim nav_all_stmt As New TNavAllStmt
+        Dim nav_all_stmt As New TNaviAllStmt
         nav_all_stmt.NavFnc(RuleCp, Nothing)
 
         ' _Set_* の呼び出しのソースを作る。
@@ -672,7 +672,7 @@ Public Class TDataflow
         Next
 
         ' 親の文が無効な文は無効とする。
-        Dim nav_set_valid_stmt As New TNavSetValidStmt
+        Dim nav_set_valid_stmt As New TNaviSetValidStmt
         nav_set_valid_stmt.NavFnc(RuleCp, Nothing)
 
         ' 同期用のクラスのソースを作る
@@ -809,12 +809,12 @@ Public Class TDataflow
 
     ' 値が変化し得るフィールドのリストを得る
     Public Sub SetChangeableFldList(prj1 As TProject)
-        Dim nav_changeable_field As TNavChangeableField
+        Dim nav_changeable_field As TNaviChangeableField
 
         PrjDF = prj1
         GlobalRule = prj1.FindFunctionByName("TNaviView", "GlobalRule")
 
-        nav_changeable_field = New TNavChangeableField()
+        nav_changeable_field = New TNaviChangeableField()
         nav_changeable_field.NavFnc(GlobalRule, Nothing)
 
         ChangeableFldList = New TList(Of TField)(nav_changeable_field.dicChangeableFld.Values)
@@ -1472,7 +1472,7 @@ End Class
 
 ' 局所変数の参照を列挙する
 Public Class TEnumInnerLocalRef
-    Inherits TNavPrj
+    Inherits TNaviPrj
 
     Public vVar As New TList(Of TVariable)
     Public vNewVar As New TList(Of TVariable)
@@ -1495,7 +1495,7 @@ End Class
 
 ' 内部の文を列挙する
 Public Class TEnumInnerStmt
-    Inherits TNavPrj
+    Inherits TNaviPrj
     Public vStmt As New TList(Of TStatement)
 
     Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
@@ -1506,8 +1506,8 @@ Public Class TEnumInnerStmt
     End Function
 End Class
 
-Public Class TNavChangeableField
-    Inherits TNavPrj
+Public Class TNaviChangeableField
+    Inherits TNaviPrj
 
     Public dicFld As New Dictionary(Of String, TField)
     Public dicChangeableFld As New Dictionary(Of String, TField)
@@ -1541,7 +1541,7 @@ End Class
 ' 同期が必要なフィールドを探す
 ' 自身のフィールドに代入し、親・子・直前のフィールドで参照されるフィールドを探す。
 Public Class TFindSyncField
-    Inherits TNavPrj
+    Inherits TNaviPrj
 
     Public ValidStmt As Dictionary(Of TStatement, TStatement)
     Public GetFld As New TList(Of TField)
@@ -1592,8 +1592,8 @@ Public Class TFindSyncField
 End Class
 
 ' 並列処理の文を探す
-Public Class TNavParallelForEach
-    Inherits TNavPrj
+Public Class TNaviParallelForEach
+    Inherits TNaviPrj
 
     Public ParallelForEachList As New TList(Of TCall)
 
@@ -2016,7 +2016,7 @@ Public Class Sys
 
     Public Shared Function CopyFnc(fnc1 As TFunction) As TFunction
         Dim fnc2 As TFunction, cpy As TCopy
-        Dim set_parent_stmt As TNavSetParentStmt
+        Dim set_parent_stmt As TNaviSetParentStmt
 
         If fnc1 Is Nothing Then
             Return Nothing
@@ -2041,7 +2041,7 @@ Public Class Sys
         fnc2.BlcFnc = CopyBlc(fnc1.BlcFnc, cpy)
         fnc2.OrgFnc = fnc1.OrgFnc
 
-        set_parent_stmt = New TNavSetParentStmt()
+        set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NavFnc(fnc2, Nothing)
 
         Return fnc2

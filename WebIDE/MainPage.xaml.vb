@@ -63,7 +63,7 @@ Partial Public Class MainPage
     End Sub
 
     Async Sub LoadPrj()
-        Dim prj1 As TProject, nav2 As TNavCSE, data_flow As TDataflow
+        Dim prj1 As TProject, nav2 As TNaviCSE, data_flow As TDataflow
 
         prj1 = New TProject()
         prj1.SourceFileNameList = PrjFiles(PrjIdx)
@@ -140,7 +140,7 @@ Partial Public Class MainPage
         prj1.CodeAnalysis()
 
         Debug.WriteLine("共通部分式")
-        nav2 = New TNavCSE()
+        nav2 = New TNaviCSE()
         nav2.NavPrj(prj1, Nothing)
 
         '-------------------------------------------------- データフロー解析のタイマー表示

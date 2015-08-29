@@ -640,13 +640,13 @@ End Class
 '-------------------------------------------------------------------------------- TNaviView
 Public Class TNaviView
     Inherits TNaviRule
-	Public Application As TWindowApplication
+    Public Application As TWindowApplication
 
-	Public StopNavi As Boolean = False
-	Public Result As TControl
+    Public StopNavi As Boolean = False
+    Public Result As TControl
 
-	Public Margin As Integer
-	Public BoundaryPosition As EBoundaryPosition
+    Public Margin As Integer
+    Public BoundaryPosition As EBoundaryPosition
 
     Public Sub GetBorderByPos(view As TView, ParamArray args As Object())
         With view
@@ -712,59 +712,59 @@ Public Class TNaviView
         End With
     End Sub
 
-	' 描画を定義する
-	Public Sub SetBitmap(view As TView, ParamArray args As Object())
-		If TypeOf view Is TControl Then
-			With CType(view, TControl)
-				Dim dst As TBitmap, dst1 As TBitmap, clip As TRegion, background_color As TColor, border_color As TColor
+    ' 描画を定義する
+    Public Sub SetBitmap(view As TView, ParamArray args As Object())
+        If TypeOf view Is TControl Then
+            With CType(view, TControl)
+                Dim dst As TBitmap, dst1 As TBitmap, clip As TRegion, background_color As TColor, border_color As TColor
 
-				dst = CType(args(0), TBitmap)
-				clip = CType(args(1), TRegion)
+                dst = CType(args(0), TBitmap)
+                clip = CType(args(1), TRegion)
 
-				' 背景描画の定義
-				If Application.ControlUnderMouse Is view Then
-					If Application.MouseDown Then
+                ' 背景描画の定義
+                If Application.ControlUnderMouse Is view Then
+                    If Application.MouseDown Then
 
-						background_color = .MousePressBackgroundColor
-						border_color = .MousePressBorderColor
-					Else
+                        background_color = .MousePressBackgroundColor
+                        border_color = .MousePressBorderColor
+                    Else
 
-						background_color = .MouseOverBackgroundColor
-						border_color = .MouseOverBorderColor
-					End If
-				Else
-					background_color = .BackgroundColor
-					border_color = .BorderColor
-				End If
+                        background_color = .MouseOverBackgroundColor
+                        border_color = .MouseOverBorderColor
+                    End If
+                Else
+                    background_color = .BackgroundColor
+                    border_color = .BorderColor
+                End If
 
-				dst1 = MakeBitmap(.ActualWidth, .ActualHeight, background_color)
-				.BackgroundBitmap = DrawRectangle(dst1, 0, 0, .ActualWidth, .ActualHeight, .BorderWidth, border_color)
+                dst1 = MakeBitmap(.ActualWidth, .ActualHeight, background_color)
+                .BackgroundBitmap = DrawRectangle(dst1, 0, 0, .ActualWidth, .ActualHeight, .BorderWidth, border_color)
 
-				If TypeOf view Is TPanel Then
-					With CType(view, TPanel)
-						Dim bmp_sum As New TBitmap
+                If TypeOf view Is TPanel Then
+                    With CType(view, TPanel)
+                        Dim bmp_sum As New TBitmap
 
-						For Each ctrl In .Children
-							If IsFirst Then
-								' 最初の場合
+                        For Each ctrl In .Children
+                            If IsFirst Then
+                                ' 最初の場合
 
-								bmp_sum = DrawBitmap(.BackgroundImage, ctrl.Left, ctrl.Top, ctrl.Bitmap)
-							Else
-								' 最初でない場合
+                                bmp_sum = DrawBitmap(.BackgroundImage, ctrl.Left, ctrl.Top, ctrl.Bitmap)
+                            Else
+                                ' 最初でない場合
 
-								bmp_sum = DrawBitmap(CType(PrevValue(bmp_sum), TBitmap), ctrl.Left, ctrl.Top, ctrl.Bitmap)
-							End If
-						Next
-						.Bitmap = bmp_sum
-					End With
-				End If
-			End With
-		End If
-	End Sub
+                                bmp_sum = DrawBitmap(CType(PrevValue(bmp_sum), TBitmap), ctrl.Left, ctrl.Top, ctrl.Bitmap)
+                            End If
+                        Next
+                        .Bitmap = bmp_sum
+                    End With
+                End If
+            End With
+        End If
+    End Sub
 
-	Public Function TextSize(font As TFont, text As String) As Size
-		Return font.MeasureText(text)
-	End Function
+    Public Function TextSize(font As TFont, text As String) As Size
+        Return font.MeasureText(text)
+    End Function
 
     Public Sub GlobalRule(_current As TView)
         If TypeOf _current Is TControl Then
@@ -1822,47 +1822,47 @@ End Class
 
 '-------------------------------------------------------------------------------- TEvent
 Public Class TEvent
-	Public TypeEv As EEvent
-	Public Source As Object
+    Public TypeEv As EEvent
+    Public Source As Object
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 
-	Public Sub New(tp As EEvent)
-		TypeEv = tp
-	End Sub
+    Public Sub New(tp As EEvent)
+        TypeEv = tp
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TMouseEvent
 Public Class TMouseEvent
-	Inherits TEvent
-	Public X As Integer
-	Public Y As Integer
-	Public MouseDownTime As DateTime
+    Inherits TEvent
+    Public X As Integer
+    Public Y As Integer
+    Public MouseDownTime As DateTime
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TKeyEvent
 Public Class TKeyEvent
-	Inherits TEvent
-	Public Shift As Boolean
-	Public Alt As Boolean
-	Public Control As Boolean
-	Public CharEv As Char
-	Public KeyCode As Integer
-	Public Repeat As Boolean
+    Inherits TEvent
+    Public Shift As Boolean
+    Public Alt As Boolean
+    Public Control As Boolean
+    Public CharEv As Char
+    Public KeyCode As Integer
+    Public Repeat As Boolean
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 
-	Public Sub New(key_code As Integer, shift1 As Boolean, alt1 As Boolean, ctr1 As Boolean)
-		KeyCode = key_code
-		Shift = shift1
-		Alt = alt1
-		Control = ctr1
-	End Sub
+    Public Sub New(key_code As Integer, shift1 As Boolean, alt1 As Boolean, ctr1 As Boolean)
+        KeyCode = key_code
+        Shift = shift1
+        Alt = alt1
+        Control = ctr1
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TApplication
@@ -1871,38 +1871,38 @@ End Class
 
 '-------------------------------------------------------------------------------- TApplication
 Public Class TWindowApplication
-	Inherits TApplication
+    Inherits TApplication
 
-	Public EventList As New List(Of TEvent)
+    Public EventList As New List(Of TEvent)
 
-	Public MouseDown As Boolean
-	Public ControlUnderMouse As TControl
-	Public ControlOnMouseDown As TControl
-	Public UserEvent As TEvent
+    Public MouseDown As Boolean
+    Public ControlUnderMouse As TControl
+    Public ControlOnMouseDown As TControl
+    Public UserEvent As TEvent
 
-	Public Overridable Sub InitializeApplication()
-	End Sub
+    Public Overridable Sub InitializeApplication()
+    End Sub
 
-	Public Overridable Sub Main()
-		InitializeApplication()
+    Public Overridable Sub Main()
+        InitializeApplication()
 
-		For Each ev In EventList
-			HandleEvent(ev)
-		Next
-	End Sub
+        For Each ev In EventList
+            HandleEvent(ev)
+        Next
+    End Sub
 
-	Public Overridable Sub HandleEvent(ev As TEvent)
-		Dim kev As TKeyEvent, mev As TMouseEvent
-		Dim get_control_by_position As TNaviView, ctrl As TControl
+    Public Overridable Sub HandleEvent(ev As TEvent)
+        Dim kev As TKeyEvent, mev As TMouseEvent
+        Dim get_control_by_position As TNaviView, ctrl As TControl
 
-		Select Case ev.TypeEv
-			Case EEvent.eMouseDown, EEvent.eMouseMove, EEvent.eMouseUp
-				mev = CType(ev, TMouseEvent)
+        Select Case ev.TypeEv
+            Case EEvent.eMouseDown, EEvent.eMouseMove, EEvent.eMouseUp
+                mev = CType(ev, TMouseEvent)
 
-				get_control_by_position = New TNaviView()
+                get_control_by_position = New TNaviView()
                 '' '' '' '' ''get_control_by_position.NaviForm(Nothing, mev.X, mev.Y)
 
-				ControlUnderMouse = get_control_by_position.Result
+                ControlUnderMouse = get_control_by_position.Result
 
 				Select Case ev.TypeEv
 					Case EEvent.eMouseDown

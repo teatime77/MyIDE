@@ -372,132 +372,132 @@ End Enum
 
 '-------------------------------------------------------------------------------- TNaviView
 Public Class TNaviView
-	Inherits TSystem
-	Public Application As TWindowApplication
+    Inherits TSystem
+    Public Application As TWindowApplication
 
-	Public StopNavi As Boolean = False
-	Public Result As TControl
+    Public StopNavi As Boolean = False
+    Public Result As TControl
 
-	Public Margin As Integer
-	Public BoundaryPosition As EBoundaryPosition
+    Public Margin As Integer
+    Public BoundaryPosition As EBoundaryPosition
 
-	Public Sub GetBorderByPos(view As TView, ParamArray args As Object())
-		With view
-			Dim x As Integer, y As Integer
-			x = CType(args(0), Integer)
-			y = CType(args(1), Integer)
+    Public Sub GetBorderByPos(view As TView, ParamArray args As Object())
+        With view
+            Dim x As Integer, y As Integer
+            x = CType(args(0), Integer)
+            y = CType(args(1), Integer)
 
-			If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin AndAlso .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
+            If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin AndAlso .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
 
-				If .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + Margin Then
-					' 上辺にある場合
+                If .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + Margin Then
+                    ' 上辺にある場合
 
-					If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-						' 左辺にある場合
+                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                        ' 左辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eTopLeft
-					ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-						' 右辺にある場合
+                        BoundaryPosition = EBoundaryPosition.eTopLeft
+                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                        ' 右辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eTopMiddle
-					Else
-						' 左辺や右辺にない場合
+                        BoundaryPosition = EBoundaryPosition.eTopMiddle
+                    Else
+                        ' 左辺や右辺にない場合
 
-						BoundaryPosition = EBoundaryPosition.eTopRight
-					End If
-				ElseIf .AbsoluteY + .ActualHeight - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
-					' 下辺にある場合
+                        BoundaryPosition = EBoundaryPosition.eTopRight
+                    End If
+                ElseIf .AbsoluteY + .ActualHeight - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
+                    ' 下辺にある場合
 
-					If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-						' 左辺にある場合
+                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                        ' 左辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eBottomLeft
-					ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-						' 右辺にある場合
+                        BoundaryPosition = EBoundaryPosition.eBottomLeft
+                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                        ' 右辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eBottomRight
-					Else
-						' 左辺や右辺にない場合
+                        BoundaryPosition = EBoundaryPosition.eBottomRight
+                    Else
+                        ' 左辺や右辺にない場合
 
-						BoundaryPosition = EBoundaryPosition.eBottomMiddle
-					End If
-				Else
-					' 上辺や下辺にない場合
+                        BoundaryPosition = EBoundaryPosition.eBottomMiddle
+                    End If
+                Else
+                    ' 上辺や下辺にない場合
 
-					If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-						' 左辺にある場合
+                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                        ' 左辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eMiddleLeft
-					ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-						' 右辺にある場合
+                        BoundaryPosition = EBoundaryPosition.eMiddleLeft
+                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                        ' 右辺にある場合
 
-						BoundaryPosition = EBoundaryPosition.eMiddleRight
-					Else
-						' 左辺や右辺にない場合
+                        BoundaryPosition = EBoundaryPosition.eMiddleRight
+                    Else
+                        ' 左辺や右辺にない場合
 
-						BoundaryPosition = EBoundaryPosition.eMiddleMiddle
-					End If
-				End If
+                        BoundaryPosition = EBoundaryPosition.eMiddleMiddle
+                    End If
+                End If
 
-				Result = view
-				StopNavi = True
-			End If
-		End With
-	End Sub
+                Result = view
+                StopNavi = True
+            End If
+        End With
+    End Sub
 
-	' 描画を定義する
-	Public Sub SetBitmap(view As TView, ParamArray args As Object())
-		If TypeOf view Is TControl Then
-			With CType(view, TControl)
-				Dim dst As TBitmap, dst1 As TBitmap, clip As TRegion, background_color As TColor, border_color As TColor
+    ' 描画を定義する
+    Public Sub SetBitmap(view As TView, ParamArray args As Object())
+        If TypeOf view Is TControl Then
+            With CType(view, TControl)
+                Dim dst As TBitmap, dst1 As TBitmap, clip As TRegion, background_color As TColor, border_color As TColor
 
-				dst = CType(args(0), TBitmap)
-				clip = CType(args(1), TRegion)
+                dst = CType(args(0), TBitmap)
+                clip = CType(args(1), TRegion)
 
-				' 背景描画の定義
-				If Application.ControlUnderMouse Is view Then
-					If Application.MouseDown Then
+                ' 背景描画の定義
+                If Application.ControlUnderMouse Is view Then
+                    If Application.MouseDown Then
 
-						background_color = .MousePressBackgroundColor
-						border_color = .MousePressBorderColor
-					Else
+                        background_color = .MousePressBackgroundColor
+                        border_color = .MousePressBorderColor
+                    Else
 
-						background_color = .MouseOverBackgroundColor
-						border_color = .MouseOverBorderColor
-					End If
-				Else
-					background_color = .BackgroundColor
-					border_color = .BorderColor
-				End If
+                        background_color = .MouseOverBackgroundColor
+                        border_color = .MouseOverBorderColor
+                    End If
+                Else
+                    background_color = .BackgroundColor
+                    border_color = .BorderColor
+                End If
 
-				dst1 = MakeBitmap(.ActualWidth, .ActualHeight, background_color)
-				.BackgroundBitmap = DrawRectangle(dst1, 0, 0, .ActualWidth, .ActualHeight, .BorderWidth, border_color)
+                dst1 = MakeBitmap(.ActualWidth, .ActualHeight, background_color)
+                .BackgroundBitmap = DrawRectangle(dst1, 0, 0, .ActualWidth, .ActualHeight, .BorderWidth, border_color)
 
-				If TypeOf view Is TPanel Then
-					With CType(view, TPanel)
-						Dim bmp_sum As New TBitmap
+                If TypeOf view Is TPanel Then
+                    With CType(view, TPanel)
+                        Dim bmp_sum As New TBitmap
 
-						For Each ctrl In .Children
-							If IsFirst Then
-								' 最初の場合
+                        For Each ctrl In .Children
+                            If IsFirst() Then
+                                ' 最初の場合
 
-								bmp_sum = DrawBitmap(.BackgroundImage, ctrl.Left, ctrl.Top, ctrl.Bitmap)
-							Else
-								' 最初でない場合
+                                bmp_sum = DrawBitmap(.BackgroundImage, ctrl.Left, ctrl.Top, ctrl.Bitmap)
+                            Else
+                                ' 最初でない場合
 
-								bmp_sum = DrawBitmap(CType(PrevValue(bmp_sum), TBitmap), ctrl.Left, ctrl.Top, ctrl.Bitmap)
-							End If
-						Next
-						.Bitmap = bmp_sum
-					End With
-				End If
-			End With
-		End If
-	End Sub
+                                bmp_sum = DrawBitmap(CType(PrevValue(bmp_sum), TBitmap), ctrl.Left, ctrl.Top, ctrl.Bitmap)
+                            End If
+                        Next
+                        .Bitmap = bmp_sum
+                    End With
+                End If
+            End With
+        End If
+    End Sub
 
-	Public Function TextSize(font As TFont, text As String) As Size
-		Return font.MeasureText(text)
-	End Function
+    Public Function TextSize(font As TFont, text As String) As Size
+        Return font.MeasureText(text)
+    End Function
 
     Public Sub ParallelForEach(children_fld As Object)
     End Sub
@@ -603,7 +603,7 @@ Public Class TNaviView
 
                                                 For Each ctrl In .Children
                                                     With ctrl
-                                                        If IsFirst Then
+                                                        If IsFirst() Then
                                                             ' 最初の場合
 
                                                             .Left = ._ParentControl.ClientLeft
@@ -649,7 +649,7 @@ Public Class TNaviView
 
                                                 For Each ctrl In .Children
                                                     With ctrl
-                                                        If IsFirst Then
+                                                        If IsFirst() Then
                                                             ' 最初の場合
 
                                                             .Top = ._ParentControl.ClientTop
@@ -756,7 +756,7 @@ Public Class TNaviView
 
                                 .Left = ._ParentTVI.Indent
 
-                                If IsFirst Then
+                                If IsFirst() Then
                                     ' 最初の場合
 
                                     .Top = ._ParentTVI.ClientTop + ._ParentTVI.MarginTop + .TextHeight
@@ -863,9 +863,9 @@ Public Class TNaviView
     End Sub
 
 
-	Public Sub IndependentRule(view As TView, ParamArray args As Object())
-		If TypeOf view Is TControl Then
-			With CType(view, TControl)
+    Public Sub IndependentRule(view As TView, ParamArray args As Object())
+        If TypeOf view Is TControl Then
+            With CType(view, TControl)
 
 
 
@@ -933,7 +933,7 @@ Public Class TNaviView
 
                             .ActualWidth = stack_panel.ChildrenScale * .DesiredWidth
 
-                            If IsFirst Then
+                            If IsFirst() Then
                                 ' 最初の場合
 
                                 .Left = stack_panel.ClientLeft
@@ -947,7 +947,7 @@ Public Class TNaviView
 
                             .ActualHeight = stack_panel.ChildrenScale * .DesiredHeight
 
-                            If IsFirst Then
+                            If IsFirst() Then
                                 ' 最初の場合
 
                                 .Top = .ClientTop
@@ -959,271 +959,271 @@ Public Class TNaviView
                     End Select
                 End If
 
-				If TypeOf view Is TScrollView Then
+                If TypeOf view Is TScrollView Then
 
-					With CType(view, TScrollView)
-						Dim box_size As Double = 10
+                    With CType(view, TScrollView)
+                        Dim box_size As Double = 10
 
-						.HorizontalScrollBar.Left = 0
-						.HorizontalScrollBar.Top = .Height - box_size
+                        .HorizontalScrollBar.Left = 0
+                        .HorizontalScrollBar.Top = .Height - box_size
 
-						.HorizontalScrollBar.Width = .Width
-						.HorizontalScrollBar.Height = box_size
+                        .HorizontalScrollBar.Width = .Width
+                        .HorizontalScrollBar.Height = box_size
 
-						.HorizontalScrollBar.Minimum = 0
-						.HorizontalScrollBar.Maximum = .ContentWidth
+                        .HorizontalScrollBar.Minimum = 0
+                        .HorizontalScrollBar.Maximum = .ContentWidth
 
-						.VerticalScrollBar.Left = .Width - box_size
-						.VerticalScrollBar.Top = 0
+                        .VerticalScrollBar.Left = .Width - box_size
+                        .VerticalScrollBar.Top = 0
 
-						.VerticalScrollBar.Width = box_size
-						.VerticalScrollBar.Height = .Height
+                        .VerticalScrollBar.Width = box_size
+                        .VerticalScrollBar.Height = .Height
 
-						.VerticalScrollBar.Minimum = 0
-						.VerticalScrollBar.Maximum = .ContentHeight
+                        .VerticalScrollBar.Minimum = 0
+                        .VerticalScrollBar.Maximum = .ContentHeight
 
-						.ViewOffsetX = .HorizontalScrollBar.LowValue
-						.ViewOffsetY = .VerticalScrollBar.LowValue
+                        .ViewOffsetX = .HorizontalScrollBar.LowValue
+                        .ViewOffsetY = .VerticalScrollBar.LowValue
 
-						If TypeOf view Is TTreeView Then
+                        If TypeOf view Is TTreeView Then
 
-							With CType(view, TTreeView)
+                            With CType(view, TTreeView)
 
-							End With
-						End If
-					End With
+                            End With
+                        End If
+                    End With
 
-				ElseIf TypeOf view Is TStackPanel Then
-					With CType(view, TStackPanel)
-						Dim children_width_sum As Double, children_height_sum As Double
+                ElseIf TypeOf view Is TStackPanel Then
+                    With CType(view, TStackPanel)
+                        Dim children_width_sum As Double, children_height_sum As Double
 
-						Select Case .Orientation
-							Case EOrientation.eHorizontal
-								' 水平方向に並べる場合
+                        Select Case .Orientation
+                            Case EOrientation.eHorizontal
+                                ' 水平方向に並べる場合
 
-								children_width_sum = Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
+                                children_width_sum = Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
 
-								If children_width_sum <= .ClientWidth Then
+                                If children_width_sum <= .ClientWidth Then
 
-									.HorizontalPadding = (.ClientWidth - children_width_sum) / (.Children.Count - 1)
+                                    .HorizontalPadding = (.ClientWidth - children_width_sum) / (.Children.Count - 1)
 
-									.ChildrenScale = 1
-								Else
+                                    .ChildrenScale = 1
+                                Else
 
-									.HorizontalPadding = 0
+                                    .HorizontalPadding = 0
 
-									.ChildrenScale = .ClientWidth / children_width_sum
-								End If
-							Case EOrientation.eVertical
-								' 垂直方向に並べる場合
+                                    .ChildrenScale = .ClientWidth / children_width_sum
+                                End If
+                            Case EOrientation.eVertical
+                                ' 垂直方向に並べる場合
 
-								children_height_sum = Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
+                                children_height_sum = Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
 
-								If children_height_sum <= .ClientHight Then
+                                If children_height_sum <= .ClientHight Then
 
-									.VerticalPadding = (.ClientHight - children_height_sum) / (.Children.Count - 1)
+                                    .VerticalPadding = (.ClientHight - children_height_sum) / (.Children.Count - 1)
 
-									.ChildrenScale = 1
-								Else
+                                    .ChildrenScale = 1
+                                Else
 
-									.VerticalPadding = 0
+                                    .VerticalPadding = 0
 
-									.ChildrenScale = .ClientHight / children_height_sum
-								End If
-						End Select
+                                    .ChildrenScale = .ClientHight / children_height_sum
+                                End If
+                        End Select
 
-					End With
-				ElseIf TypeOf view Is TTextBlock Then
-					With CType(view, TTextBlock)
-						Dim sz As Size
+                    End With
+                ElseIf TypeOf view Is TTextBlock Then
+                    With CType(view, TTextBlock)
+                        Dim sz As Size
 
-						sz = TextSize(.Font, .Text)
-						.TextWidth = sz.Width
-						.TextHeight = sz.Height
+                        sz = TextSize(.Font, .Text)
+                        .TextWidth = sz.Width
+                        .TextHeight = sz.Height
 
-						If TypeOf view Is TLabel Then
-							With CType(view, TLabel)
-								If .AutoSize Then
+                        If TypeOf view Is TLabel Then
+                            With CType(view, TLabel)
+                                If .AutoSize Then
 
-									.DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
-								Else
+                                    .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
+                                Else
 
-									.DesiredWidth = .Width
-								End If
-							End With
+                                    .DesiredWidth = .Width
+                                End If
+                            End With
 
-						ElseIf TypeOf view Is TButton Then
-							With CType(view, TButton)
+                        ElseIf TypeOf view Is TButton Then
+                            With CType(view, TButton)
 
 
-							End With
+                            End With
 
-						ElseIf TypeOf view Is TTreeViewItem Then
-							With CType(view, TTreeViewItem)
-								Dim children_height_sum As Double, children_width_max As Double
+                        ElseIf TypeOf view Is TTreeViewItem Then
+                            With CType(view, TTreeViewItem)
+                                Dim children_height_sum As Double, children_width_max As Double
 
-								If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
-									' 子があり、展開している場合
+                                If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
+                                    ' 子があり、展開している場合
 
-									children_height_sum = Aggregate a_ctrl In .ChildrenTVI Into Sum(a_ctrl.DesiredHeight)
-									.ActualHeight = .MarginTop + .TextHeight + .MarginMiddleVertical * .ChildrenTVI.Count + children_height_sum + .MarginBottom
+                                    children_height_sum = Aggregate a_ctrl In .ChildrenTVI Into Sum(a_ctrl.DesiredHeight)
+                                    .ActualHeight = .MarginTop + .TextHeight + .MarginMiddleVertical * .ChildrenTVI.Count + children_height_sum + .MarginBottom
 
-									children_width_max = Aggregate a_ctrl In .ChildrenTVI Into Max(a_ctrl.ActualWidth)
-									.ActualWidth = Math.Max(.TextWidth, children_width_max)
+                                    children_width_max = Aggregate a_ctrl In .ChildrenTVI Into Max(a_ctrl.ActualWidth)
+                                    .ActualWidth = Math.Max(.TextWidth, children_width_max)
 
-									.Left = .Indent
+                                    .Left = .Indent
 
-									If IsFirst Then
-										' 最初の場合
+                                    If IsFirst() Then
+                                        ' 最初の場合
 
                                         .Top = ._ParentControl.ClientTop + .TextHeight
-									Else
-										' 最初でない場合
+                                    Else
+                                        ' 最初でない場合
 
                                         .Top = ._Prev.Top + ._Prev.ActualHeight + .MarginMiddleVertical
-									End If
-								Else
-									' 子がないか、折りたたまれている場合
+                                    End If
+                                Else
+                                    ' 子がないか、折りたたまれている場合
 
-									.ActualHeight = .MarginTop + .TextHeight + .MarginBottom
+                                    .ActualHeight = .MarginTop + .TextHeight + .MarginBottom
 
-									.ActualWidth = .TextWidth
-								End If
+                                    .ActualWidth = .TextWidth
+                                End If
 
-							End With
-						End If
-					End With
+                            End With
+                        End If
+                    End With
 
-				ElseIf TypeOf view Is TTreeView Then
-					With CType(view, TTreeView)
-						.ContentWidth = .Root.ActualWidth
-						.ContentHeight = .Root.ActualHeight
-					End With
+                ElseIf TypeOf view Is TTreeView Then
+                    With CType(view, TTreeView)
+                        .ContentWidth = .Root.ActualWidth
+                        .ContentHeight = .Root.ActualHeight
+                    End With
 
-				ElseIf TypeOf view Is TScrollBar Then
+                ElseIf TypeOf view Is TScrollBar Then
 
-					With CType(view, TScrollBar)
-						Dim button_size As Double, movable_size As Double, thumb_pos As Double, thumb_size As Double
+                    With CType(view, TScrollBar)
+                        Dim button_size As Double, movable_size As Double, thumb_pos As Double, thumb_size As Double
 
-						Select Case .Orientation
-							Case EOrientation.eHorizontal
-								button_size = .Height
-								movable_size = .ActualWidth - 2 * button_size
+                        Select Case .Orientation
+                            Case EOrientation.eHorizontal
+                                button_size = .Height
+                                movable_size = .ActualWidth - 2 * button_size
 
-								.NextButton.Left = .Width - button_size
-								.NextButton.Top = 0
+                                .NextButton.Left = .Width - button_size
+                                .NextButton.Top = 0
 
-								.Thumb.Top = 0
-								.Thumb.Height = button_size
-							Case EOrientation.eVertical
-								button_size = .Width
-								movable_size = .ActualHeight - 2 * button_size
+                                .Thumb.Top = 0
+                                .Thumb.Height = button_size
+                            Case EOrientation.eVertical
+                                button_size = .Width
+                                movable_size = .ActualHeight - 2 * button_size
 
-								.NextButton.Left = 0
-								.NextButton.Top = .Height - button_size
+                                .NextButton.Left = 0
+                                .NextButton.Top = .Height - button_size
 
-								.Thumb.Left = 0
-								.Thumb.Width = button_size
-						End Select
+                                .Thumb.Left = 0
+                                .Thumb.Width = button_size
+                        End Select
 
-						.PrevButton.Width = button_size
-						.PrevButton.Height = button_size
+                        .PrevButton.Width = button_size
+                        .PrevButton.Height = button_size
 
-						.NextButton.Width = button_size
-						.NextButton.Height = button_size
+                        .NextButton.Width = button_size
+                        .NextButton.Height = button_size
 
-						.PrevButton.Left = 0
-						.PrevButton.Top = 0
+                        .PrevButton.Left = 0
+                        .PrevButton.Top = 0
 
-						If True Then
-							' Thumbの位置・サイズからLowValue・HighValueを求める場合
+                        If True Then
+                            ' Thumbの位置・サイズからLowValue・HighValueを求める場合
 
-							Select Case .Orientation
-								Case EOrientation.eHorizontal
-									thumb_pos = .Thumb.Left - button_size
-									thumb_size = .Thumb.Width
+                            Select Case .Orientation
+                                Case EOrientation.eHorizontal
+                                    thumb_pos = .Thumb.Left - button_size
+                                    thumb_size = .Thumb.Width
 
-								Case EOrientation.eVertical
-									thumb_pos = .Thumb.Top - button_size
-									thumb_size = .Thumb.Height
-							End Select
+                                Case EOrientation.eVertical
+                                    thumb_pos = .Thumb.Top - button_size
+                                    thumb_size = .Thumb.Height
+                            End Select
 
-							.LowValue = .Minimum + (.Maximum - .Minimum) * thumb_pos / movable_size
-							.HighValue = .LowValue + (.Maximum - .Minimum) * thumb_size / movable_size
-						Else
-							' LowValue・HighValueからThumbの位置・サイズを求める場合
+                            .LowValue = .Minimum + (.Maximum - .Minimum) * thumb_pos / movable_size
+                            .HighValue = .LowValue + (.Maximum - .Minimum) * thumb_size / movable_size
+                        Else
+                            ' LowValue・HighValueからThumbの位置・サイズを求める場合
 
-							thumb_pos = movable_size * (.LowValue - .Minimum) * (.Maximum - .Minimum)
-							thumb_size = movable_size * (.HighValue - .LowValue) / (.Maximum - .Minimum)
+                            thumb_pos = movable_size * (.LowValue - .Minimum) * (.Maximum - .Minimum)
+                            thumb_size = movable_size * (.HighValue - .LowValue) / (.Maximum - .Minimum)
 
-							Select Case .Orientation
-								Case EOrientation.eHorizontal
+                            Select Case .Orientation
+                                Case EOrientation.eHorizontal
 
-									.Thumb.Left = button_size + thumb_pos
-									.Thumb.Width = thumb_size
+                                    .Thumb.Left = button_size + thumb_pos
+                                    .Thumb.Width = thumb_size
 
-								Case EOrientation.eVertical
+                                Case EOrientation.eVertical
 
-									.Thumb.Top = button_size + thumb_pos
-									.Thumb.Height = thumb_size
-							End Select
-						End If
-					End With
+                                    .Thumb.Top = button_size + thumb_pos
+                                    .Thumb.Height = thumb_size
+                            End Select
+                        End If
+                    End With
 
-				ElseIf TypeOf view Is TForm Then
+                ElseIf TypeOf view Is TForm Then
 
-					With CType(view, TForm)
+                    With CType(view, TForm)
 
-					End With
-				End If
-			End With
-		End If
-	End Sub
+                    End With
+                End If
+            End With
+        End If
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TEvent
 Public Class TEvent
-	Public TypeEv As EEvent
-	Public Source As Object
+    Public TypeEv As EEvent
+    Public Source As Object
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 
-	Public Sub New(tp As EEvent)
-		TypeEv = tp
-	End Sub
+    Public Sub New(tp As EEvent)
+        TypeEv = tp
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TMouseEvent
 Public Class TMouseEvent
-	Inherits TEvent
-	Public X As Integer
-	Public Y As Integer
-	Public MouseDownTime As DateTime
+    Inherits TEvent
+    Public X As Integer
+    Public Y As Integer
+    Public MouseDownTime As DateTime
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TKeyEvent
 Public Class TKeyEvent
-	Inherits TEvent
-	Public Shift As Boolean
-	Public Alt As Boolean
-	Public Control As Boolean
-	Public CharEv As Char
-	Public KeyCode As Integer
-	Public Repeat As Boolean
+    Inherits TEvent
+    Public Shift As Boolean
+    Public Alt As Boolean
+    Public Control As Boolean
+    Public CharEv As Char
+    Public KeyCode As Integer
+    Public Repeat As Boolean
 
-	Public Sub New()
-	End Sub
+    Public Sub New()
+    End Sub
 
-	Public Sub New(key_code As Integer, shift1 As Boolean, alt1 As Boolean, ctr1 As Boolean)
-		KeyCode = key_code
-		Shift = shift1
-		Alt = alt1
-		Control = ctr1
-	End Sub
+    Public Sub New(key_code As Integer, shift1 As Boolean, alt1 As Boolean, ctr1 As Boolean)
+        KeyCode = key_code
+        Shift = shift1
+        Alt = alt1
+        Control = ctr1
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TApplication
@@ -1232,38 +1232,38 @@ End Class
 
 '-------------------------------------------------------------------------------- TApplication
 Public Class TWindowApplication
-	Inherits TApplication
+    Inherits TApplication
 
-	Public EventList As New List(Of TEvent)
+    Public EventList As New List(Of TEvent)
 
-	Public MouseDown As Boolean
-	Public ControlUnderMouse As TControl
-	Public ControlOnMouseDown As TControl
-	Public UserEvent As TEvent
+    Public MouseDown As Boolean
+    Public ControlUnderMouse As TControl
+    Public ControlOnMouseDown As TControl
+    Public UserEvent As TEvent
 
-	Public Overridable Sub InitializeApplication()
-	End Sub
+    Public Overridable Sub InitializeApplication()
+    End Sub
 
-	Public Overridable Sub Main()
-		InitializeApplication()
+    Public Overridable Sub Main()
+        InitializeApplication()
 
-		For Each ev In EventList
-			HandleEvent(ev)
-		Next
-	End Sub
+        For Each ev In EventList
+            HandleEvent(ev)
+        Next
+    End Sub
 
-	Public Overridable Sub HandleEvent(ev As TEvent)
-		Dim kev As TKeyEvent, mev As TMouseEvent
-		Dim get_control_by_position As TNaviView, ctrl As TControl
+    Public Overridable Sub HandleEvent(ev As TEvent)
+        Dim kev As TKeyEvent, mev As TMouseEvent
+        Dim get_control_by_position As TNaviView, ctrl As TControl
 
-		Select Case ev.TypeEv
-			Case EEvent.eMouseDown, EEvent.eMouseMove, EEvent.eMouseUp
-				mev = CType(ev, TMouseEvent)
+        Select Case ev.TypeEv
+            Case EEvent.eMouseDown, EEvent.eMouseMove, EEvent.eMouseUp
+                mev = CType(ev, TMouseEvent)
 
-				get_control_by_position = New TNaviView()
+                get_control_by_position = New TNaviView()
                 '' '' '' '' ''get_control_by_position.NaviForm(Nothing, mev.X, mev.Y)
 
-				ControlUnderMouse = get_control_by_position.Result
+                ControlUnderMouse = get_control_by_position.Result
 
 				Select Case ev.TypeEv
 					Case EEvent.eMouseDown

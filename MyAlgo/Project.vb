@@ -750,9 +750,9 @@ Public Class TProject
     End Sub
 
     Public Sub Compile()
-        Dim set_ref As TNavSetRef, set_ref_fnc As TNavSetRefFnc, set_var_ref As TNavSetVarRef
+        Dim set_ref As TNaviSetRef, set_ref_fnc As TNaviSetRefFnc, set_var_ref As TNaviSetVarRef
         Dim i1 As Integer, cla2 As TClass
-        Dim set_call As TNavSetCall, nav_test As TNavTest, set_parent_stmt As TNavSetParentStmt, set_up_trm As TNavSetUpTrm
+        Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
         ParsePrj = New TBasicParser(Me)
         ' for ???
@@ -766,7 +766,6 @@ Public Class TProject
             CurSrc = src_f
             ParsePrj.ClearParse()
 
-            '            ParsePrj.ParseAllLines(src_f)
             ParsePrj.ReadAllStatement()
             CurSrc = Nothing
         Next
@@ -822,26 +821,26 @@ Public Class TProject
         MakeInstanceClassInitializer()
 
         ' 変数参照を解決する
-        set_ref = New TNavSetRef()
+        set_ref = New TNaviSetRef()
         set_ref.PrjSetRef = Me
         set_ref.NavPrj(Me, Nothing)
         Debug.Assert(Not set_ref.ErrNav)
 
-        set_var_ref = New TNavSetVarRef()
+        set_var_ref = New TNaviSetVarRef()
         set_var_ref.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)
 
-        set_call = New TNavSetCall()
+        set_call = New TNaviSetCall()
         set_call.NavPrj(Me, Nothing)
 
         Debug.Assert(set_ref.RefCnt = set_call.RefCnt)
 
         ' 関数内の参照をセットする
-        set_ref_fnc = New TNavSetRefFnc()
+        set_ref_fnc = New TNaviSetRefFnc()
         set_ref_fnc.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_ref_fnc.RefCnt)
 
-        nav_test = New TNavTest()
+        nav_test = New TNaviTest()
         nav_test.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = nav_test.RefCnt)
 
@@ -862,10 +861,10 @@ Public Class TProject
             Next
         Next
 
-        set_parent_stmt = New TNavSetParentStmt()
+        set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NavPrj(Me, Nothing)
 
-        set_up_trm = New TNavSetUpTrm()
+        set_up_trm = New TNaviSetUpTrm()
         set_up_trm.NavPrj(Me, Nothing)
 
 

@@ -1,7 +1,7 @@
 ﻿Imports System.Diagnostics
 
-' -------------------------------------------------------------------------------- TNavPrj
-Public Class TNavPrj
+' -------------------------------------------------------------------------------- TNaviPrj
+Public Class TNaviPrj
     Public RefCnt As Integer
     Public ErrNav As Boolean = False
     Public CurrentWith As TWith
@@ -382,9 +382,9 @@ Public Class TNavPrj
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNavTest
-Public Class TNavTest
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviTest
+Public Class TNaviTest
+    Inherits TNaviPrj
 
     Public Overrides Sub NavDot(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
@@ -406,9 +406,9 @@ End Class
 
 
 
-' -------------------------------------------------------------------------------- TNavSetRef
-Public Class TNavSetRef
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetRef
+Public Class TNaviSetRef
+    Inherits TNaviPrj
     Public PrjSetRef As TProject
     Public CurFncPrj As TFunction
     Public CurLoop As TFor
@@ -977,9 +977,9 @@ Public Class TNavSetRef
 End Class
 
 
-' -------------------------------------------------------------------------------- TNavSetVarRef
-Public Class TNavSetVarRef
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetVarRef
+Public Class TNaviSetVarRef
+    Inherits TNaviPrj
 
     Public Overrides Sub NavDot(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
@@ -1002,9 +1002,9 @@ Public Class TNavSetVarRef
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNavSetRefFnc
-Public Class TNavSetRefFnc
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetRefFnc
+Public Class TNaviSetRefFnc
+    Inherits TNaviPrj
 
     Public Overrides Sub NavDot(dot1 As TDot, arg1 As Object)
         Dim cur_fnc As TFunction
@@ -1043,9 +1043,9 @@ Public Class TNavSetRefFnc
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNavSetCall
-Public Class TNavSetCall
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetCall
+Public Class TNaviSetCall
+    Inherits TNaviPrj
 
     Public Sub SetCall(fnc1 As TFunction, ref1 As TReference)
         Dim fnc2 As TFunction
@@ -1097,9 +1097,9 @@ Public Class TNavSetCall
 
 End Class
 
-' -------------------------------------------------------------------------------- TNavSetParentStmt
-Public Class TNavSetParentStmt
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetParentStmt
+Public Class TNaviSetParentStmt
+    Inherits TNaviPrj
 
     Public Overrides Function StartLocalVar(var1 As TVariable, arg1 As Object) As Object
         If var1 IsNot Nothing Then
@@ -1179,10 +1179,10 @@ Public Class TNavSetParentStmt
 End Class
 
 
-' -------------------------------------------------------------------------------- TNavSetUpTrm
-Public Class TNavSetUpTrm
-    Inherits TNavPrj
-    Public NavUp As New TNavUp
+' -------------------------------------------------------------------------------- TNaviSetUpTrm
+Public Class TNaviSetUpTrm
+    Inherits TNaviPrj
+    Public NavUp As New TNaviUp
 
     Public Sub Test(ref1 As TReference)
         Dim stmt1 As TStatement
@@ -1205,8 +1205,8 @@ Public Class TNavSetUpTrm
 End Class
 
 
-' -------------------------------------------------------------------------------- TNavUp
-Public Class TNavUp
+' -------------------------------------------------------------------------------- TNaviUp
+Public Class TNaviUp
     Public Function UpObj(obj As Object) As Object
         If TypeOf obj Is TVariable Then
             Return CType(obj, TVariable).UpVar
@@ -1257,9 +1257,9 @@ Public Class TNavUp
     End Function
 End Class
 
-' -------------------------------------------------------------------------------- TNavClearUsedStmt
-Public Class TNavClearUsedStmt
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviClearUsedStmt
+Public Class TNaviClearUsedStmt
+    Inherits TNaviPrj
 
     Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
         stmt1.UsedStmt = False
@@ -1268,9 +1268,9 @@ Public Class TNavClearUsedStmt
 
 End Class
 
-' -------------------------------------------------------------------------------- TNavAllStmt
-Public Class TNavAllStmt
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviAllStmt
+Public Class TNaviAllStmt
+    Inherits TNaviPrj
     Public AllStmts As New TList(Of TStatement)
 
     Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
@@ -1282,9 +1282,9 @@ Public Class TNavAllStmt
     End Function
 End Class
 
-' -------------------------------------------------------------------------------- TNavSetValidStmt
-Public Class TNavSetValidStmt
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetValidStmt
+Public Class TNaviSetValidStmt
+    Inherits TNaviPrj
 
     Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
@@ -1303,9 +1303,9 @@ Public Class TNavSetValidStmt
     End Function
 End Class
 
-' -------------------------------------------------------------------------------- TNavSetValidStmt
-Public Class TNavMakeVirtualMethod
-    Inherits TNavPrj
+' -------------------------------------------------------------------------------- TNaviSetValidStmt
+Public Class TNaviMakeVirtualMethod
+    Inherits TNaviPrj
     Public InnermostClass As TClass
     Public VirtualSeparable As Boolean
     Public CurrentVar As TVariable

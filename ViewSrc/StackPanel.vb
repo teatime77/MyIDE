@@ -163,9 +163,9 @@ End Class
 Public Class TNaviRule
     Inherits TSystem
 
-	Public Function IsFirst(x As TView) As Boolean
-		Return True
-	End Function
+    Public Function IsFirst(x As TView) As Boolean
+        Return True
+    End Function
 
     Public Sub ParallelForEach(children_fld As Object)
     End Sub
@@ -179,10 +179,10 @@ Public Class TNaviView
         If TypeOf _current Is TStackPanel Then
             With CType(_current, TStackPanel)
 
-		ParallelForEach(.Children)
+                ParallelForEach(.Children)
 
                 .Width = Aggregate _child In .Children Into Sum(_child.Width)
-				.Left = .Width
+                .Left = .Width
 
                 For Each ctrl In .Children
                     With ctrl

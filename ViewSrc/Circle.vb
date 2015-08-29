@@ -168,8 +168,8 @@ Public Class TNaviView
                 .Width = .Radius * 2
                 .Height = .Radius * 2
 
-				.Left	= .CenterX - .Width  / 2
-				.Top	= .CenterY - .Height / 2
+                .Left = .CenterX - .Width / 2
+                .Top = .CenterY - .Height / 2
             End With
         End If
     End Sub

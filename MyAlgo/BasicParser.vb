@@ -1382,15 +1382,11 @@ Public Class TBasicParser
     End Function
 
     Public Sub ParseAllLines(src1 As TSourceFile)
-        If src1.vTextSrc Is Nothing Then
-            src1.vTextSrc = TFile.ReadAllLines(PrjParse.SourceDirectory + "\" + src1.FileSrc)
-        End If
+        Debug.Assert(src1.vTextSrc Is Nothing)
+        src1.vTextSrc = TFile.ReadAllLines(PrjParse.SourceDirectory + "\" + src1.FileSrc)
 
-        src1.LineTkn = New TList(Of TList(Of TToken))()
-        ' for Add
-        For Each line1 In src1.vTextSrc
-            src1.LineTkn.Add(Lex(line1))
-        Next
+
+        src1.LineTkn = New TList(Of TList(Of TToken))(From line1 In src1.vTextSrc Select Lex(line1))
     End Sub
 
     Public Sub RegAllClass(src1 As TSourceFile)

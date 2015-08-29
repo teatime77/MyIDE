@@ -18,7 +18,7 @@ Public Class TBuilder
         'ファイルを閉じる
         sr.Close()
 
-        Dim nav2 As TNavCSE
+        Dim nav2 As TNaviCSE
 
         For Each s In prj1.SourceFileNameList
             Debug.Print(s)
@@ -72,7 +72,7 @@ Public Class TBuilder
             prj1.CodeAnalysis()
 
             Debug.WriteLine("共通部分式")
-            nav2 = New TNavCSE()
+            nav2 = New TNaviCSE()
             nav2.NavPrj(prj1, Nothing)
 
             '-------------------------------------------------- データフロー解析のタイマー表示
@@ -88,7 +88,7 @@ Public Class TBuilder
             prj1.CodeAnalysis()
 
             Debug.WriteLine("共通部分式")
-            nav2 = New TNavCSE()
+            nav2 = New TNaviCSE()
             nav2.NavPrj(prj1, Nothing)
 
             ' 変数参照のグラフを作る
