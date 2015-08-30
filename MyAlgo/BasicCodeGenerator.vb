@@ -1000,8 +1000,8 @@ Public Class TBasicCodeGenerator
     End Sub
 
     Public Overrides Function MakeSrcText() As String
-        Dim sw As TStringWriter
-        sw = New TStringWriter()
+        Dim sw As New TStringWriter
+
         For Each line1 In vLineFig
             For Each txt1 In line1.TextLine
                 If txt1.TabTxt <> 0 Then

@@ -1094,22 +1094,22 @@ Public Class TBasicParser
         Return fnc2
     End Function
 
-    Public Sub ReadAllStatement()
+    Public Sub ReadAllStatement(src1 As TSourceFile)
         Dim i1 As Integer, is_err As Boolean = False
         Dim com1 As TComment, stmt1 As TStatement, cla1 As TClass
 
         ' 文の配列を初期化する
-        PrjParse.CurSrc.StmtSrc = New TList(Of TStatement)()
+        src1.StmtSrc = New TList(Of TStatement)()
         ' for Add
-        For i1 = 0 To PrjParse.CurSrc.vTextSrc.Length - 1
-            PrjParse.CurSrc.StmtSrc.Add(Nothing)
+        For i1 = 0 To src1.vTextSrc.Length - 1
+            src1.StmtSrc.Add(Nothing)
         Next
 
         com1 = New TComment()
         ' for ???
-        For i1 = 0 To PrjParse.CurSrc.vTextSrc.Length - 1
-            CurLineStr = PrjParse.CurSrc.vTextSrc(i1)
-            CurVTkn = PrjParse.CurSrc.LineTkn(i1)
+        For i1 = 0 To src1.vTextSrc.Length - 1
+            CurLineStr = src1.vTextSrc(i1)
+            CurVTkn = src1.LineTkn(i1)
 
             If CurVTkn.Count = 0 Then
                 '  空行の場合
@@ -1126,7 +1126,7 @@ Public Class TBasicParser
                     ' コメント・空行がある場合
 
                     ' 前の行にコメント文を入れる
-                    PrjParse.CurSrc.StmtSrc(i1 - 1) = com1
+                    src1.StmtSrc(i1 - 1) = com1
 
                     com1 = New TComment()
                 End If
@@ -1134,7 +1134,7 @@ Public Class TBasicParser
                 Try
                     stmt1 = ReadStatement()
 
-                    PrjParse.CurSrc.StmtSrc(i1) = stmt1
+                    src1.StmtSrc(i1) = stmt1
 
                     If TypeOf stmt1 Is TClassStatement Then
                         ' クラス定義の始まりの場合
@@ -1380,76 +1380,6 @@ Public Class TBasicParser
             Return Nothing
         End If
     End Function
-
-    Public Sub ParseAllLines(src1 As TSourceFile)
-        Debug.Assert(src1.vTextSrc Is Nothing)
-        src1.vTextSrc = TFile.ReadAllLines(PrjParse.SourceDirectory + "\" + src1.FileSrc)
-
-
-        src1.LineTkn = New TList(Of TList(Of TToken))(From line1 In src1.vTextSrc Select Lex(line1))
-    End Sub
-
-    Public Sub RegAllClass(src1 As TSourceFile)
-        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken
-
-        For Each v In src1.LineTkn
-
-            If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
-
-                If v(1).TypeTkn = EToken.eDelegate Then
-                    Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
-                    id1 = v(3)
-                    cla1 = PrjParse.RegDelegate(id1.StrTkn)
-                Else
-                    Select Case v(1).TypeTkn
-                        Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
-                            k1 = 2
-                        Case EToken.eAbstract
-                            Select Case v(2).TypeTkn
-                                Case EToken.eClass, EToken.eStruct, EToken.eInterface
-                                    k1 = 3
-                                Case Else
-                                    Debug.Assert(False)
-                            End Select
-                        Case Else
-                            k1 = -1
-                    End Select
-
-                    If k1 <> -1 Then
-                        id1 = v(k1)
-                        cla1 = PrjParse.RegCla(id1.StrTkn)
-
-                        If k1 + 1 < v.Count Then
-                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eLP)
-                            Debug.Assert(v(k1 + 2).TypeTkn = EToken.eOf)
-
-                            cla1.GenCla = New TList(Of TClass)()
-
-                            k1 += 3
-                            Do While k1 < v.Count
-                                id2 = v(k1)
-
-                                cla2 = New TClass(id2.StrTkn)
-                                cla2.IsParamCla = True
-                                cla1.GenCla.Add(cla2)
-
-                                If v(k1 + 1).TypeTkn = EToken.eRP Then
-                                    Debug.Assert(k1 + 2 = v.Count)
-                                    Exit Do
-                                End If
-
-                                Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
-                                k1 += 2
-                            Loop
-
-                            PrjParse.RegGenCla(cla1.NameCla(), cla1.GenCla)
-                        End If
-
-                    End If
-                End If
-            End If
-        Next
-    End Sub
 
     Public Sub Parse(src1 As TSourceFile)
         MakeModule(src1)

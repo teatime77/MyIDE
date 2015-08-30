@@ -173,7 +173,9 @@ Public Class TProject
             'Debug.WriteLine("    {0}", tp.NameVar)
         Next
 
-        If Not cla3.GenCla(0).IsParamCla Then
+        If cla3.GenCla(0).IsParamCla Then
+            '            Debug.Print("")
+        Else
 
             If cla3.GenCla(0).NameCla() = "T" Then
                 Debug.WriteLine("@@@@@@@@@@@@@@")
@@ -745,8 +747,70 @@ Public Class TProject
         Next
     End Sub
 
-    Public Sub MakeSrcPrj()
-        SrcPrj = New TList(Of TSourceFile)(From fname In SourceFileNameList Select New TSourceFile(fname))
+
+    Public Sub RegAllClass(src1 As TSourceFile)
+        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken
+
+        For Each v In src1.LineTkn
+
+            If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
+
+                If v(1).TypeTkn = EToken.eDelegate Then
+                    Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
+                    id1 = v(3)
+                    cla1 = RegDelegate(id1.StrTkn)
+                Else
+                    Select Case v(1).TypeTkn
+                        Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
+                            k1 = 2
+                        Case EToken.eAbstract
+                            Select Case v(2).TypeTkn
+                                Case EToken.eClass, EToken.eStruct, EToken.eInterface
+                                    k1 = 3
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+                        Case Else
+                            k1 = -1
+                    End Select
+
+                    If k1 <> -1 Then
+                        id1 = v(k1)
+                        cla1 = RegCla(id1.StrTkn)
+
+                        If k1 + 1 < v.Count Then
+                            cla1.IsParameterizedClass = True
+
+                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eLP)
+                            Debug.Assert(v(k1 + 2).TypeTkn = EToken.eOf)
+
+                            cla1.GenCla = New TList(Of TClass)()
+
+                            k1 += 3
+                            Do While k1 < v.Count
+                                id2 = v(k1)
+
+                                cla2 = New TClass(id2.StrTkn)
+                                cla2.IsParamCla = True
+                                cla2.IsArgumentClass = True
+                                cla1.GenCla.Add(cla2)
+
+                                If v(k1 + 1).TypeTkn = EToken.eRP Then
+                                    Debug.Assert(k1 + 2 = v.Count)
+                                    Exit Do
+                                End If
+
+                                Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
+                                k1 += 2
+                            Loop
+
+                            RegGenCla(cla1.NameCla(), cla1.GenCla)
+                        End If
+
+                    End If
+                End If
+            End If
+        Next
     End Sub
 
     Public Sub Compile()
@@ -754,11 +818,16 @@ Public Class TProject
         Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
+        SrcPrj = New TList(Of TSourceFile)(From fname In SourceFileNameList Select New TSourceFile(fname))
+
         ParsePrj = New TBasicParser(Me)
         ' for ???
         For Each src_f In SrcPrj
-            ParsePrj.ParseAllLines(src_f)
-            ParsePrj.RegAllClass(src_f)
+            Debug.Assert(src_f.vTextSrc Is Nothing)
+            src_f.vTextSrc = TFile.ReadAllLines(SourceDirectory + "\" + src_f.FileSrc)
+            src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
+
+            RegAllClass(src_f)
         Next
 
         For Each src_f In SrcPrj
@@ -766,7 +835,7 @@ Public Class TProject
             CurSrc = src_f
             ParsePrj.ClearParse()
 
-            ParsePrj.ReadAllStatement()
+            ParsePrj.ReadAllStatement(src_f)
             CurSrc = Nothing
         Next
 
@@ -781,6 +850,8 @@ Public Class TProject
             cla2 = vArrCla(i1)
             If cla2.InterfacesCls.Count = 0 Then
                 cla2.InterfacesCls.Add(GetIEnumerableCla(cla2.GenCla(0)))
+            Else
+                Debug.Print("")
             End If
         Next
 
@@ -873,14 +944,6 @@ Public Class TProject
 
         ' 間接呼び出しをセットする
         SetCallAll()
-    End Sub
-
-    Public Sub MakeSrc()
-        MakeAllBasicCode(OutputDirectory + "\")
-        Debug.WriteLine("Basic ソース 生成")
-
-        MakeAllHtml(OutputDirectory + "\")
-        Debug.WriteLine("HTML 生成")
     End Sub
 
     Public Sub CodeAnalysis()
@@ -1630,13 +1693,13 @@ Public Class TProject
     End Sub
 
     ' Basicのソースを作る
-    Public Sub MakeAllBasicCode(out_dir As String)
+    Public Sub MakeAllBasicCode()
         '  すべてのソースに対し
         For Each src_f In SrcPrj
             src_f.FigSrc = New TBasicCodeGenerator(Me)
             CurSrc = src_f
             src_f.FigSrc.MakeBasicSrc(src_f)
-            src_f.FigSrc.OutputBasicSrc(src_f, out_dir)
+            src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
             CurSrc = Nothing
         Next
     End Sub
@@ -1655,12 +1718,12 @@ Public Class TProject
         Return indent + 1
     End Function
 
-    Public Sub MakeAllHtml(out_dir As String)
+    Public Sub MakeAllHtml()
         Dim all_class_dir As String, class_dir As String, paht1 As String, sw As TStringWriter, index_sw As New StringWriter, class_sw As StringWriter
         Dim indent As Integer, com_str As String, fname As String, html_file_name As String, html_class_file_name As String, svg_file_name As String
         Dim vfnc As List(Of TFunction), idx As Integer, def_ref As Boolean, vref As List(Of TReference), vfld As TList(Of TField), fld2 As TField
 
-        all_class_dir = out_dir + "html"
+        all_class_dir = OutputDirectory + "\html"
         index_sw.WriteLine(TCodeGenerator.HTMLHead)
         index_sw.WriteLine("<ul>")
 

@@ -370,6 +370,8 @@ Public Class TClass
     Public DimCla As Integer = 0
     Public SrcCla As TSourceFile
     Public IsParamCla As Boolean = False
+    Public IsParameterizedClass As Boolean = False
+    Public IsArgumentClass As Boolean = False
 
     Public TokenListCls As List(Of TToken)
 

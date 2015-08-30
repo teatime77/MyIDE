@@ -30,7 +30,6 @@ Public Class TBuilder
 
         WriteObject(project_path, prj1)
 
-        prj1.MakeSrcPrj()
         prj1.Compile()
 
         If prj1.Dataflow Then
@@ -38,13 +37,6 @@ Public Class TBuilder
 
             src2 = prj1.SrcPrj(2)
             Debug.Print("---------------------------------------------------- 不変条件 {0}", prj1.SourceFileNameList(2))
-
-
-            ' 名前と予約語を変えて出力する
-
-            ' 名前と予約語を変えたソースを読む
-
-            ' オリジナルのソースを出力する
 
             data_flow = New TDataflow()
             data_flow.SetChangeableFldList(prj1)
@@ -66,30 +58,24 @@ Public Class TBuilder
             sw.WriteLine(data_flow.RuleSW.ToString())
             sw.WriteLine("End Class")
             '            vSrc(PrjIdx) = sw.ToString()
-
-
-            ' コード解析
-            prj1.CodeAnalysis()
-
-            Debug.WriteLine("共通部分式")
-            nav2 = New TNaviCSE()
-            nav2.NavPrj(prj1, Nothing)
-
-            '-------------------------------------------------- データフロー解析のタイマー表示
-            data_flow = New TDataflow()
-            data_flow.SetChangeableFldList(prj1)
-            data_flow.ChangeableFld = data_flow.ChangeableFldList(0)
-            data_flow.AnalyzeChangeableFld()
         Else
 
-            prj1.MakeSrc()
+            prj1.MakeAllBasicCode()
+            Debug.WriteLine("Basic ソース 生成")
 
-            ' コード解析
-            prj1.CodeAnalysis()
+            prj1.MakeAllHtml()
+            Debug.WriteLine("HTML 生成")
+        End If
 
-            Debug.WriteLine("共通部分式")
-            nav2 = New TNaviCSE()
-            nav2.NavPrj(prj1, Nothing)
+        ' コード解析
+        prj1.CodeAnalysis()
+
+        Debug.WriteLine("共通部分式")
+        nav2 = New TNaviCSE()
+        nav2.NavPrj(prj1, Nothing)
+
+        If Not prj1.Dataflow Then
+
 
             ' 変数参照のグラフを作る
             MakeRefSugiyamaGraph(prj1)
