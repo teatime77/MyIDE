@@ -111,34 +111,6 @@ Public Class TBasicParser
         Return stmt1
     End Function
 
-    ' クラスやデリケートの宣言でジェネリックのパラメータを読む
-    Sub ReadGenCla(cla1 As TClass, is_delegate As Boolean)
-        Dim cla2 As TClass, id2 As TToken
-
-        Debug.Assert(cla1.GenCla Is Nothing)
-        cla1.GenCla = New TList(Of TClass)()
-
-        GetTkn(EToken.eLP)
-        GetTkn(EToken.eOf)
-        Do While True
-            id2 = GetTkn(EToken.eId)
-
-            cla2 = New TClass(id2.StrTkn)
-            cla1.GenCla.Add(cla2)
-
-            If Not is_delegate Then
-                cla2.IsParamCla = True
-                PrjParse.dicGenCla.Add(cla2.NameCla(), cla2)
-            End If
-
-            If CurTkn.TypeTkn = EToken.eRP Then
-                Exit Do
-            End If
-            GetTkn(EToken.eComma)
-        Loop
-        GetTkn(EToken.eRP)
-    End Sub
-
     Function ReadClass(mod1 As TModifier) As TStatement
         Dim stmt1 As New TClassStatement, cla1 As TClass
         Dim id1 As TToken
@@ -164,7 +136,6 @@ Public Class TBasicParser
         If CurTkn.TypeTkn = EToken.eLP Then
             ' ジェネリック クラスの場合
 
-            '            ReadGenCla(cla1, False)
             For Each cla2 In cla1.GenCla
                 cla2.IsParamCla = True
                 PrjParse.dicGenCla.Add(cla2.NameCla(), cla2)
@@ -264,12 +235,20 @@ Public Class TBasicParser
                 cla1 = PrjParse.GetDelegate(stmt1.NameFncStmt)
                 If CurTkn.TypeTkn = EToken.eLP AndAlso NxtTkn.TypeTkn = EToken.eOf Then
 
-                    ReadGenCla(cla1, True)
-
                     For Each cla_f In cla1.GenCla
-                        cla_f.IsParamCla = True
                         PrjParse.dicGenCla.Add(cla_f.NameCla(), cla_f)
                     Next
+
+                    GetTkn(EToken.eLP)
+                    GetTkn(EToken.eOf)
+                    Do While True
+                        GetTkn(EToken.eId)
+                        If CurTkn.TypeTkn = EToken.eRP Then
+                            Exit Do
+                        End If
+                        GetTkn(EToken.eComma)
+                    Loop
+                    GetTkn(EToken.eRP)
                 End If
             End If
         End If

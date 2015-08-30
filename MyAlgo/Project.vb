@@ -87,18 +87,6 @@ Public Class TProject
         Return cla1
     End Function
 
-    Public Function RegDelegate(name1 As String) As TDelegate
-        Dim cla1 As TDelegate
-
-        Debug.Assert(GetCla(name1) Is Nothing)
-
-        cla1 = New TDelegate(name1)
-        vCla.Add(cla1)
-        dicCla.Add(cla1.NameCla(), cla1)
-
-        Return cla1
-    End Function
-
     Public Function GetDelegate(name1 As String) As TDelegate
         Dim cla1 As TDelegate
 
@@ -749,64 +737,69 @@ Public Class TProject
 
 
     Public Sub RegAllClass(src1 As TSourceFile)
-        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken
+        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken, is_delegate As Boolean
 
         For Each v In src1.LineTkn
 
             If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
 
-                If v(1).TypeTkn = EToken.eDelegate Then
-                    Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
-                    id1 = v(3)
-                    cla1 = RegDelegate(id1.StrTkn)
-                Else
-                    Select Case v(1).TypeTkn
-                        Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
-                            k1 = 2
-                        Case EToken.eAbstract
-                            Select Case v(2).TypeTkn
-                                Case EToken.eClass, EToken.eStruct, EToken.eInterface
-                                    k1 = 3
-                                Case Else
-                                    Debug.Assert(False)
-                            End Select
-                        Case Else
-                            k1 = -1
-                    End Select
+                is_delegate = False
+                Select Case v(1).TypeTkn
+                    Case EToken.eDelegate
+                        Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
+                        is_delegate = True
+                        k1 = 3
 
-                    If k1 <> -1 Then
-                        id1 = v(k1)
+                    Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
+                        k1 = 2
+                    Case EToken.eAbstract
+                        Select Case v(2).TypeTkn
+                            Case EToken.eClass, EToken.eStruct, EToken.eInterface
+                                k1 = 3
+                            Case Else
+                                Debug.Assert(False)
+                        End Select
+                    Case Else
+                        k1 = -1
+                End Select
+
+                If k1 <> -1 Then
+                    id1 = v(k1)
+
+                    If is_delegate Then
+                        Debug.Assert(GetCla(id1.StrTkn) Is Nothing)
+
+                        cla1 = New TDelegate(id1.StrTkn)
+                        vCla.Add(cla1)
+                        dicCla.Add(cla1.NameCla(), cla1)
+                    Else
                         cla1 = RegCla(id1.StrTkn)
+                    End If
 
-                        If k1 + 1 < v.Count Then
-                            cla1.IsParameterizedClass = True
+                    If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.eLP AndAlso v(k1 + 2).TypeTkn = EToken.eOf Then
+                        cla1.IsParameterizedClass = True
 
-                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eLP)
-                            Debug.Assert(v(k1 + 2).TypeTkn = EToken.eOf)
+                        cla1.GenCla = New TList(Of TClass)()
 
-                            cla1.GenCla = New TList(Of TClass)()
+                        k1 += 3
+                        Do While k1 < v.Count
+                            id2 = v(k1)
 
-                            k1 += 3
-                            Do While k1 < v.Count
-                                id2 = v(k1)
+                            cla2 = New TClass(id2.StrTkn)
+                            cla2.IsParamCla = True
+                            cla2.IsArgumentClass = True
+                            cla1.GenCla.Add(cla2)
 
-                                cla2 = New TClass(id2.StrTkn)
-                                cla2.IsParamCla = True
-                                cla2.IsArgumentClass = True
-                                cla1.GenCla.Add(cla2)
+                            If v(k1 + 1).TypeTkn = EToken.eRP Then
+                                Debug.Assert(is_delegate OrElse k1 + 2 = v.Count)
+                                Exit Do
+                            End If
 
-                                If v(k1 + 1).TypeTkn = EToken.eRP Then
-                                    Debug.Assert(k1 + 2 = v.Count)
-                                    Exit Do
-                                End If
+                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
+                            k1 += 2
+                        Loop
 
-                                Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
-                                k1 += 2
-                            Loop
-
-                            RegGenCla(cla1.NameCla(), cla1.GenCla)
-                        End If
-
+                        dicCmpCla.Add(cla1, New TList(Of TClass)())
                     End If
                 End If
             End If
