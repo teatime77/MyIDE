@@ -8,6 +8,14 @@ Public Enum EClass
     eDelegateCla
 End Enum
 
+Public Enum EGeneric
+    UnknownClass
+    SimpleClass
+    ParameterizedClass
+    ArgumentClass
+    SpecializedClass
+End Enum
+
 Public Enum EApply
     eUnknownApp
     eArrayApp
@@ -370,8 +378,7 @@ Public Class TClass
     Public DimCla As Integer = 0
     Public SrcCla As TSourceFile
     Public IsParamCla As Boolean = False
-    Public IsParameterizedClass As Boolean = False
-    Public IsArgumentClass As Boolean = False
+    Public GenericType As EGeneric
 
     Public TokenListCls As List(Of TToken)
 
@@ -416,6 +423,7 @@ Public Class TClass
         cla2.GenCla = New TList(Of TClass)()
         cla2.GenCla.Add(cla1)
         cla2.DimCla = dim1
+        cla2.GenericType = EGeneric.SpecializedClass
 
         Return cla2
     End Function

@@ -20,7 +20,7 @@ Public Class TProject
 
     <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public vCla As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public vGenCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vGenTmpCla As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vArrCla As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllClass As New TList(Of TClass)
@@ -96,16 +96,17 @@ Public Class TProject
         Return cla1
     End Function
 
-    Public Function GetGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+    Public Function GetSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
         Dim i1 As Integer, cla1 As TClass, v As TList(Of TClass) = Nothing, ok As Boolean
 
         cla1 = GetCla(name1)
-        Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count)
+        Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count AndAlso cla1.GenericType = EGeneric.ParameterizedClass)
 
         If dicCmpCla.ContainsKey(cla1) Then
             v = dicCmpCla(cla1)
             ' for Find
             For Each cla2 In v
+                Debug.Assert(cla2.GenericType = EGeneric.SpecializedClass)
                 ok = True
                 ' for Find
                 For i1 = 0 To cla2.GenCla.Count - 1
@@ -123,24 +124,22 @@ Public Class TProject
                     Return cla2
                 End If
             Next
+        Else
+            Debug.Print("")
         End If
 
         Return Nothing
     End Function
 
     ' ジェネリック型のクラスを作る
-    Public Function RegGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+    Public Function AddSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
         Dim cla1 As TClass, cla3 As TClass, v As TList(Of TClass) = Nothing
 
         cla1 = GetCla(name1)
         Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count)
 
-        If dicCmpCla.ContainsKey(cla1) Then
-            v = dicCmpCla(cla1)
-        Else
-            v = New TList(Of TClass)()
-            dicCmpCla.Add(cla1, v)
-        End If
+        Debug.Assert(dicCmpCla.ContainsKey(cla1))
+        v = dicCmpCla(cla1)
 
         ' 新しくジェネリック型のクラスを作る
         If TypeOf cla1 Is TDelegate Then
@@ -148,6 +147,7 @@ Public Class TProject
         Else
             cla3 = New TClass(cla1.NameCla())
         End If
+        cla3.GenericType = EGeneric.SpecializedClass
         cla3.OrgCla = cla1
 
         cla3.GenCla = New TList(Of TClass)(From tp In vtp)
@@ -155,11 +155,6 @@ Public Class TProject
             Debug.Assert(tp IsNot Nothing)
         Next
 
-        'Debug.WriteLine("ジェネリック {0}", cla3.NameVar)
-        ' for Add
-        For Each tp In cla3.GenCla
-            'Debug.WriteLine("    {0}", tp.NameVar)
-        Next
 
         If cla3.GenCla(0).IsParamCla Then
             '            Debug.Print("")
@@ -168,12 +163,10 @@ Public Class TProject
             If cla3.GenCla(0).NameCla() = "T" Then
                 Debug.WriteLine("@@@@@@@@@@@@@@")
             End If
-            For Each cla4 In vGenCla
-                If cla4.LongName() = cla3.LongName() Then
-                    Debug.WriteLine("DUP {0} {1} {2}", cla3.NameVar, cla3.GenCla(0).ToString(), cla4.GenCla(0).ToString())
-                End If
+            For Each cla4 In SpecializedClassList
+                Debug.Assert(cla4.LongName() <> cla3.LongName())
             Next
-            vGenCla.Add(cla3)
+            SpecializedClassList.Add(cla3)
             vGenTmpCla.Add(cla3)
         End If
 
@@ -182,15 +175,15 @@ Public Class TProject
         Return cla3
     End Function
 
-    Public Function GetRegGenCla(name1 As String, vtp As TList(Of TClass)) As TClass
+    Public Function GetAddSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
         Dim cla1 As TClass
 
-        cla1 = GetGenCla(name1, vtp)
+        cla1 = GetSpecializedClass(name1, vtp)
         If cla1 IsNot Nothing Then
             Return cla1
         End If
 
-        cla1 = RegGenCla(name1, vtp)
+        cla1 = AddSpecializedClass(name1, vtp)
         Return cla1
     End Function
 
@@ -217,7 +210,7 @@ Public Class TProject
         '  新たに型を作る
         cla3 = TClass.MakeArr(cla1, dim_cnt)
         v.Add(cla3)
-        vCla.Add(cla3)
+        '''''''''''''''''''''''''''''''''''''''''''''''''''''''!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        vCla.Add(cla3)
         vArrCla.Add(cla3)
 
         Return cla3
@@ -227,7 +220,7 @@ Public Class TProject
         Dim vtp As New TList(Of TClass), cla2 As TClass
 
         vtp.Add(cla1)
-        cla2 = GetRegGenCla("IEnumerable", vtp)
+        cla2 = GetAddSpecializedClass("IEnumerable", vtp)
         CopyGenClaAll()
 
         Return cla2
@@ -237,7 +230,7 @@ Public Class TProject
         Dim vtp As New TList(Of TClass), cla2 As TClass
 
         vtp.Add(cla1)
-        cla2 = GetRegGenCla("TList", vtp)
+        cla2 = GetAddSpecializedClass("TList", vtp)
         CopyGenClaAll()
 
         Return cla2
@@ -296,11 +289,11 @@ Public Class TProject
                 ' 変換した場合
 
                 ' ジェネリック型のクラスを得る
-                cla1 = GetGenCla(name1, vtp)
+                cla1 = GetSpecializedClass(name1, vtp)
                 If cla1 Is Nothing Then
                     ' ない場合
 
-                    cla1 = RegGenCla(name1, vtp)
+                    cla1 = AddSpecializedClass(name1, vtp)
                     CopyGenCla(cla1)
                 End If
 
@@ -777,7 +770,7 @@ Public Class TProject
                     End If
 
                     If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.eLP AndAlso v(k1 + 2).TypeTkn = EToken.eOf Then
-                        cla1.IsParameterizedClass = True
+                        cla1.GenericType = EGeneric.ParameterizedClass
 
                         cla1.GenCla = New TList(Of TClass)()
 
@@ -787,7 +780,7 @@ Public Class TProject
 
                             cla2 = New TClass(id2.StrTkn)
                             cla2.IsParamCla = True
-                            cla2.IsArgumentClass = True
+                            cla2.GenericType = EGeneric.ArgumentClass
                             cla1.GenCla.Add(cla2)
 
                             If v(k1 + 1).TypeTkn = EToken.eRP Then
@@ -800,6 +793,8 @@ Public Class TProject
                         Loop
 
                         dicCmpCla.Add(cla1, New TList(Of TClass)())
+                    Else
+                        cla1.GenericType = EGeneric.SimpleClass
                     End If
                 End If
             End If
@@ -860,7 +855,22 @@ Public Class TProject
         Next
         Debug.Assert(theMain IsNot Nothing)
 
+        Debug.Print("------------------------------------------------------- クラスリスト")
         For Each cla1 In vCla
+            'Select Case cla1.GenericType
+            '    Case EGeneric.SimpleClass
+            '        Debug.Print("")
+            '    Case EGeneric.ParameterizedClass
+            '        Debug.Print("")
+            '    Case EGeneric.ArgumentClass
+            '        Debug.Print("")
+            '    Case EGeneric.SpecializedClass
+            '        Debug.Print("特定化 {0}", cla1.LongName())
+            '    Case Else
+            '        Debug.Print("")
+            'End Select
+            Debug.Print("{0} {1}", cla1.GenericType, cla1.LongName())
+
             If cla1.GenCla IsNot Nothing Then
                 ' 総称型の場合
 
@@ -875,8 +885,13 @@ Public Class TProject
             DumpClass(cla1, sw)
             cla1.SetAllSuperCla()
         Next
+        For Each cla1 In vArrCla
+            cla1.SetAllSuperCla()
+        Next
+
+
         sw.WriteLine("--------------------------------------------------------------------------------------------")
-        For Each cla1 In vGenCla
+        For Each cla1 In SpecializedClassList
             DumpClass(cla1, sw)
             cla1.SetAllSuperCla()
         Next
@@ -910,13 +925,13 @@ Public Class TProject
 
 
         For Each cla1 In vCla
-            Debug.Assert(Not vGenCla.Contains(cla1))
+            Debug.Assert(Not SpecializedClassList.Contains(cla1))
         Next
-        For Each cla1 In vGenCla
-            Debug.Assert(Not vCla.Contains(cla1))
+        For Each cla1 In SpecializedClassList
+            Debug.Assert(Not vCla.Contains(cla1) AndAlso cla1.GenericType = EGeneric.SpecializedClass)
         Next
         vAllClass = New TList(Of TClass)(vCla)
-        vAllClass.AddRange(vGenCla)
+        vAllClass.AddRange(SpecializedClassList)
 
         ' サブクラスをセットする
         For Each cls1 In vAllClass
@@ -1239,7 +1254,7 @@ Public Class TProject
                 End If
             Next
         Next
-        For Each cla1 In vGenCla
+        For Each cla1 In SpecializedClassList
             For Each fld1 In cla1.FldCla
                 If vAllFld.Contains(fld1) Then
                     Debug.Assert(False)

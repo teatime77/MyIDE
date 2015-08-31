@@ -323,7 +323,7 @@ Public Class TBasicParser
         GetTkn(EToken.eRP)
 
         ' ジェネリック型のクラスを得る。
-        tp1 = PrjParse.GetRegGenCla(id1.StrTkn, vtp)
+        tp1 = PrjParse.GetAddSpecializedClass(id1.StrTkn, vtp)
 
         Return tp1
     End Function
@@ -812,7 +812,7 @@ Public Class TBasicParser
                 For Each s In instmt.ParamName
                     vtp.Add(PrjParse.GetCla(s))
                 Next
-                spr_cla = PrjParse.GetRegGenCla(instmt.ClassNameInheritsStmt, vtp)
+                spr_cla = PrjParse.GetAddSpecializedClass(instmt.ClassNameInheritsStmt, vtp)
             End If
             cla1.SuperCla.Add(spr_cla)
 

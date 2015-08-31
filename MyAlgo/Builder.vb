@@ -60,14 +60,15 @@ Public Class TBuilder
             '            vSrc(PrjIdx) = sw.ToString()
         Else
 
-            prj1.MakeAllBasicCode()
             Debug.WriteLine("Basic ソース 生成")
+            prj1.MakeAllBasicCode()
 
+            Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
             prj1.MakeAllHtml()
-            Debug.WriteLine("HTML 生成")
         End If
 
         ' コード解析
+        Debug.WriteLine("コード解析 ---------------------------------------------- 時間がかかるのでコメントアウト")
         prj1.CodeAnalysis()
 
         Debug.WriteLine("共通部分式")
