@@ -21,7 +21,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public vGenTmpCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public ArrayClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllClass As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
@@ -131,6 +131,30 @@ Public Class TProject
         Return Nothing
     End Function
 
+    ' 仮引数クラスを含む場合はtrue
+    Public Function ContainsArgumentClass(cla1 As TClass) As Boolean
+        Select Case cla1.GenericType
+            Case EGeneric.SimpleClass
+                Return False
+            Case EGeneric.ParameterizedClass
+                Return True
+            Case EGeneric.ArgumentClass
+                Return True
+            Case EGeneric.SpecializedClass
+                For Each cla2 In cla1.GenCla
+                    If ContainsArgumentClass(cla2) Then
+                        Return True
+                    End If
+                Next
+                Return False
+            Case Else
+                Debug.Assert(False)
+                Return False
+        End Select
+    End Function
+
+
+
     ' ジェネリック型のクラスを作る
     Public Function AddSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
         Dim cla1 As TClass, cla3 As TClass, v As TList(Of TClass) = Nothing
@@ -155,9 +179,10 @@ Public Class TProject
             Debug.Assert(tp IsNot Nothing)
         Next
 
+        v.Add(cla3)
 
         If cla3.GenCla(0).IsParamCla Then
-            '            Debug.Print("")
+            'Debug.Print("")
         Else
 
             If cla3.GenCla(0).NameCla() = "T" Then
@@ -167,10 +192,12 @@ Public Class TProject
                 Debug.Assert(cla4.LongName() <> cla3.LongName())
             Next
             SpecializedClassList.Add(cla3)
-            vGenTmpCla.Add(cla3)
+            If cla1.Parsed AndAlso Not ContainsArgumentClass(cla3) Then
+                SetMemberOfSpecializedClass(cla3)
+            Else
+                PendingSpecializedClassList.Add(cla3)
+            End If
         End If
-
-        v.Add(cla3)
 
         Return cla3
     End Function
@@ -220,7 +247,6 @@ Public Class TProject
 
         vtp.Add(cla1)
         cla2 = GetAddSpecializedClass("IEnumerable", vtp)
-        CopyGenClaAll()
 
         Return cla2
     End Function
@@ -370,19 +396,6 @@ Public Class TProject
             dlg1.ArgDlg = New TList(Of TVariable)(From var_f In dlg_org.ArgDlg Select CopyVariable(var_f, dic))
             dlg1.RetDlg = TProject.Prj.SubstituteArgumentClass(dlg_org.RetDlg, dic)
         End If
-    End Sub
-
-    Public Sub CopyGenClaAll()
-        Dim gen_cla As TClass
-
-        Do While vGenTmpCla.Count <> 0
-            gen_cla = vGenTmpCla(0)
-            vGenTmpCla.RemoveAt(0)
-
-            ' SetMemberOfSpecializedClassの中でvGenTmpClaが変化する
-            SetMemberOfSpecializedClass(gen_cla)
-        Loop
-
     End Sub
 
     Public Function FindVariable(name1 As String, vvvar As TList(Of TList(Of TVariable))) As TVariable
@@ -801,7 +814,11 @@ Public Class TProject
             CurSrc = Nothing
         Next
 
-        CopyGenClaAll()
+        ' SetMemberOfSpecializedClassの中でPendingSpecializedClassListは変化せず、以降PendingSpecializedClassListを参照しない。
+        For Each gen_cla In PendingSpecializedClassList
+            SetMemberOfSpecializedClass(gen_cla)
+        Next
+        PendingSpecializedClassList = Nothing
 
         For i1 = 0 To ArrayClassList.Count - 1
             cla2 = ArrayClassList(i1)
@@ -824,8 +841,6 @@ Public Class TProject
         For Each cla1 In SimpleParameterizedClassList
             Debug.Assert(cla1.GenericType = EGeneric.SimpleClass OrElse cla1.GenericType = EGeneric.ParameterizedClass)
         Next
-
-        CopyGenClaAll()
 
         Dim sw As New TStringWriter
         For Each cla1 In SimpleParameterizedClassList

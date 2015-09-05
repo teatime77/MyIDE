@@ -773,6 +773,7 @@ Public Class TBasicParser
             cla1.AddFld(fld1)
         Loop
         GetStatement(EToken.eEndEnum)
+        cla1.Parsed = True
 
         Return cla1
     End Function
@@ -878,6 +879,7 @@ Public Class TBasicParser
         GetStatement(EToken.eUnknown)
 
         PrjParse.dicGenCla.Clear()
+        cla1.Parsed = True
 
         Return cla1
     End Function
@@ -1021,6 +1023,7 @@ Public Class TBasicParser
 
         stmt1 = CType(GetStatement(EToken.eUnknown), TFunctionStatement)
         dlg1 = PrjParse.GetDelegate(stmt1.NameFncStmt)
+        dlg1.Parsed = True
 
         dlg1.KndCla = EClass.eDelegateCla
         dlg1.RetDlg = stmt1.RetType
