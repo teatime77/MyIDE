@@ -19,10 +19,10 @@ Public Class TProject
     Public Dataflow As Boolean = False
 
     <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
-    <XmlIgnoreAttribute()> Public vCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vGenTmpCla As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public vArrCla As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public ArrayClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllClass As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
     <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
@@ -37,7 +37,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public StringType As TClass
     <XmlIgnoreAttribute()> Public ArrayType As TClass
     <XmlIgnoreAttribute()> Public WaitHandleType As TClass
-    <XmlIgnoreAttribute()> Public dicCla As New Dictionary(Of String, TClass) ' クラス辞書
+    <XmlIgnoreAttribute()> Public SimpleParameterizedClassTable As New Dictionary(Of String, TClass) ' クラス辞書
     <XmlIgnoreAttribute()> Public dicGenCla As New Dictionary(Of String, TClass)
     <XmlIgnoreAttribute()> Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
     <XmlIgnoreAttribute()> Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
@@ -67,8 +67,8 @@ Public Class TProject
             Return cla1
         End If
 
-        If dicCla.ContainsKey(name1) Then
-            cla1 = dicCla(name1)
+        If SimpleParameterizedClassTable.ContainsKey(name1) Then
+            cla1 = SimpleParameterizedClassTable(name1)
             Return cla1
         Else
             Return Nothing
@@ -81,8 +81,8 @@ Public Class TProject
         Debug.Assert(GetCla(name1) Is Nothing)
 
         cla1 = New TClass(Nothing, name1)
-        vCla.Add(cla1)
-        dicCla.Add(cla1.NameCla(), cla1)
+        SimpleParameterizedClassList.Add(cla1)
+        SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
 
         Return cla1
     End Function
@@ -210,13 +210,12 @@ Public Class TProject
         '  新たに型を作る
         cla3 = TClass.MakeArr(cla1, dim_cnt)
         v.Add(cla3)
-        '''''''''''''''''''''''''''''''''''''''''''''''''''''''!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        vCla.Add(cla3)
-        vArrCla.Add(cla3)
+        ArrayClassList.Add(cla3)
 
         Return cla3
     End Function
 
-    Public Function GetIEnumerableCla(cla1 As TClass) As TClass
+    Public Function GetIEnumerableClass(cla1 As TClass) As TClass
         Dim vtp As New TList(Of TClass), cla2 As TClass
 
         vtp.Add(cla1)
@@ -226,19 +225,13 @@ Public Class TProject
         Return cla2
     End Function
 
-    Public Function GetTListCla(cla1 As TClass) As TClass
-        Dim vtp As New TList(Of TClass), cla2 As TClass
-
-        vtp.Add(cla1)
-        cla2 = GetAddSpecializedClass("TList", vtp)
-        CopyGenClaAll()
-
-        Return cla2
-    End Function
-
     ' ジェネリック型を変換する
-    Public Function RepGenType(tp As TClass, dic As Dictionary(Of String, TClass)) As TClass
+    Public Function SubstituteArgumentClass(tp As TClass, dic As Dictionary(Of String, TClass)) As TClass
         Dim name1 As String, vtp As TList(Of TClass), tp1 As TClass = Nothing, tp2 As TClass, changed As Boolean = False, cla1 As TClass
+
+        If tp.GenericType = EGeneric.ArgumentClass AndAlso Not dic.ContainsKey(tp.NameCla()) Then
+            Debug.Print("")
+        End If
 
         If tp.DimCla <> 0 Then
             ' 配列型の場合
@@ -247,7 +240,7 @@ Public Class TProject
             Debug.Assert(tp.NameCla() = "Array" AndAlso tp.GenCla IsNot Nothing AndAlso tp.GenCla.Count = 1)
 
             tp1 = tp.GenCla(0)
-            tp2 = RepGenType(tp1, dic)
+            tp2 = SubstituteArgumentClass(tp1, dic)
             If tp2 Is tp1 Then
                 Return tp
             Else
@@ -256,6 +249,10 @@ Public Class TProject
         End If
 
         If dic.ContainsKey(tp.NameCla()) Then
+            If tp.GenericType <> EGeneric.ArgumentClass Then
+                Debug.Print("")
+            End If
+
             tp1 = dic(tp.NameCla())
             changed = True
             name1 = tp1.NameType()
@@ -278,7 +275,7 @@ Public Class TProject
             vtp = New TList(Of TClass)()
             ' for Add Find
             For Each tp_f In tp.GenCla
-                tp2 = RepGenType(tp_f, dic)
+                tp2 = SubstituteArgumentClass(tp_f, dic)
                 If tp2 IsNot tp_f Then
                     changed = True
                 End If
@@ -294,7 +291,7 @@ Public Class TProject
                     ' ない場合
 
                     cla1 = AddSpecializedClass(name1, vtp)
-                    CopyGenCla(cla1)
+                    SetMemberOfSpecializedClass(cla1)
                 End If
 
                 Return cla1
@@ -316,7 +313,7 @@ Public Class TProject
         End If
 
         var_src.CopyVarMem(var1)
-        var1.TypeVar = RepGenType(var_src.TypeVar, dic)
+        var1.TypeVar = SubstituteArgumentClass(var_src.TypeVar, dic)
 
         Return var1
     End Function
@@ -329,12 +326,12 @@ Public Class TProject
 
         fld1.ClaFld = cla1
         fld1.OrgFld = fld_src
-        fld1.TypeVar = RepGenType(fld_src.TypeVar, dic)
+        fld1.TypeVar = SubstituteArgumentClass(fld_src.TypeVar, dic)
 
         Return fld1
     End Function
 
-    Public Function CopyFunction(cla1 As TClass, fnc_src As TFunction, dic As Dictionary(Of String, TClass)) As TFunction
+    Public Function CopyFunctionDeclaration(cla1 As TClass, fnc_src As TFunction, dic As Dictionary(Of String, TClass)) As TFunction
         Dim fnc1 As New TFunction(fnc_src.NameVar, fnc_src.TypeVar)
 
         fnc_src.CopyFncMem(fnc1)
@@ -346,24 +343,13 @@ Public Class TProject
         If fnc_src.RetType Is Nothing Then
             fnc1.RetType = Nothing
         Else
-            fnc1.RetType = TProject.Prj.RepGenType(fnc_src.RetType, dic)
+            fnc1.RetType = TProject.Prj.SubstituteArgumentClass(fnc_src.RetType, dic)
         End If
 
         Return fnc1
     End Function
 
-    Public Sub CopyGenClaSub(cla1 As TClass, dic As Dictionary(Of String, TClass))
-        If cla1 IsNot Nothing AndAlso cla1.OrgCla IsNot Nothing Then
-            cla1.SuperCla = New TList(Of TClass)(From spr1 In cla1.OrgCla.SuperCla Select TProject.Prj.RepGenType(spr1, dic))
-            cla1.InterfacesCls = New TList(Of TClass)(From spr1 In cla1.OrgCla.InterfacesCls Select TProject.Prj.RepGenType(spr1, dic))
-
-            cla1.FldCla = New TList(Of TField)(From fld1 In cla1.OrgCla.FldCla Select CopyField(cla1, fld1, dic))
-
-            cla1.FncCla = New TList(Of TFunction)(From fnc1 In cla1.OrgCla.FncCla Select CopyFunction(cla1, fnc1, dic))
-        End If
-    End Sub
-
-    Public Sub CopyGenCla(cla1 As TClass)
+    Public Sub SetMemberOfSpecializedClass(cla1 As TClass)
         Dim dic As Dictionary(Of String, TClass), i1 As Integer, dlg1 As TDelegate, dlg_org As TDelegate
 
         dic = New Dictionary(Of String, TClass)()
@@ -372,37 +358,18 @@ Public Class TProject
             dic.Add(cla1.OrgCla.GenCla(i1).NameCla(), cla1.GenCla(i1))
         Next
 
-        CopyGenClaSub(cla1, dic)
+        cla1.SuperCla = New TList(Of TClass)(From spr1 In cla1.OrgCla.SuperCla Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
+        cla1.InterfacesCls = New TList(Of TClass)(From spr1 In cla1.OrgCla.InterfacesCls Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
+        cla1.FldCla = New TList(Of TField)(From fld1 In cla1.OrgCla.FldCla Select CopyField(cla1, fld1, dic))
+        cla1.FncCla = New TList(Of TFunction)(From fnc1 In cla1.OrgCla.FncCla Select CopyFunctionDeclaration(cla1, fnc1, dic))
 
         If TypeOf cla1 Is TDelegate Then
             dlg1 = CType(cla1, TDelegate)
             dlg_org = CType(dlg1.OrgCla, TDelegate)
 
             dlg1.ArgDlg = New TList(Of TVariable)(From var_f In dlg_org.ArgDlg Select CopyVariable(var_f, dic))
-            dlg1.RetDlg = TProject.Prj.RepGenType(dlg_org.RetDlg, dic)
+            dlg1.RetDlg = TProject.Prj.SubstituteArgumentClass(dlg_org.RetDlg, dic)
         End If
-    End Sub
-
-    Public Sub CopyGenCla2(cla1 As TClass)
-        Dim dic As Dictionary(Of String, TClass)
-
-        dic = New Dictionary(Of String, TClass)()
-        ' for Each c In OrgCla.GenCla Add (c.NameCla, GenCla(@Idx)) To dic
-        For Each cla2 In cla1.GenCla
-            dic.Add(cla2.NameCla(), cla2)
-        Next
-
-        For Each fld In cla1.FldCla
-            CopyGenClaSub(fld.TypeVar, dic)
-        Next
-
-        For Each fnc In cla1.FncCla
-            CopyGenClaSub(fnc.RetType, dic)
-
-            For Each var1 In fnc.ArgFnc
-                CopyGenClaSub(var1.TypeVar, dic)
-            Next
-        Next
     End Sub
 
     Public Sub CopyGenClaAll()
@@ -412,8 +379,8 @@ Public Class TProject
             gen_cla = vGenTmpCla(0)
             vGenTmpCla.RemoveAt(0)
 
-            ' CopyGenClaの中でvGenTmpClaが変化する
-            CopyGenCla(gen_cla)
+            ' SetMemberOfSpecializedClassの中でvGenTmpClaが変化する
+            SetMemberOfSpecializedClass(gen_cla)
         Loop
 
     End Sub
@@ -438,8 +405,8 @@ Public Class TProject
             Return cla1
         End If
 
-        If dicCla.ContainsKey(name1) Then
-            cla1 = dicCla(name1)
+        If SimpleParameterizedClassTable.ContainsKey(name1) Then
+            cla1 = SimpleParameterizedClassTable(name1)
             Return cla1
         End If
         Return Nothing
@@ -578,7 +545,7 @@ Public Class TProject
     End Function
 
     Public Function FindFunctionByName(class_name As String, fnc_name As String) As TFunction
-        For Each cls1 In vCla
+        For Each cls1 In SimpleParameterizedClassList
             For Each fnc1 In cls1.FncCla
                 If cls1.NameCla() = class_name AndAlso fnc1.NameFnc() = fnc_name Then
                     Return fnc1
@@ -590,7 +557,7 @@ Public Class TProject
     End Function
 
     Public Function FindFieldByName(class_name As String, field_name As String) As TField
-        For Each cls1 In vCla
+        For Each cls1 In SimpleParameterizedClassList
             For Each fld1 In cls1.FldCla
                 If cls1.NameCla() = class_name AndAlso fld1.NameVar = field_name Then
                     Return fld1
@@ -655,7 +622,7 @@ Public Class TProject
         Dim idx As Integer, is_shared As Boolean, new_fnc As TFunction, ini_fnc As TFunction, asn1 As TAssignment, call_ini As TCall, app_ini As TApply, dot1 As TDot, ref1 As TReference
 
 
-        For Each cls1 In vCla
+        For Each cls1 In SimpleParameterizedClassList
             Dim vnew = (From fnc1 In cls1.FncCla Where fnc1.IsNew).ToList()
             If vnew.Count = 0 Then
 
@@ -763,8 +730,8 @@ Public Class TProject
                         Debug.Assert(GetCla(id1.StrTkn) Is Nothing)
 
                         cla1 = New TDelegate(id1.StrTkn)
-                        vCla.Add(cla1)
-                        dicCla.Add(cla1.NameCla(), cla1)
+                        SimpleParameterizedClassList.Add(cla1)
+                        SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
                     Else
                         cla1 = RegCla(id1.StrTkn)
                     End If
@@ -834,16 +801,15 @@ Public Class TProject
             CurSrc = Nothing
         Next
 
-        For i1 = 0 To vArrCla.Count - 1
-            cla2 = vArrCla(i1)
-            If cla2.InterfacesCls.Count = 0 Then
-                cla2.InterfacesCls.Add(GetIEnumerableCla(cla2.GenCla(0)))
-            Else
-                Debug.Print("")
-            End If
+        CopyGenClaAll()
+
+        For i1 = 0 To ArrayClassList.Count - 1
+            cla2 = ArrayClassList(i1)
+            Debug.Assert(cla2.InterfacesCls.Count = 0)
+            cla2.InterfacesCls.Add(GetIEnumerableClass(cla2.GenCla(0)))
         Next
 
-        For Each cls1 In vCla
+        For Each cls1 In SimpleParameterizedClassList
             For Each fnc1 In cls1.FncCla
                 If cls1.NameCla() = MainClassName AndAlso fnc1.NameFnc() = MainFunctionName Then
                     theMain = fnc1
@@ -855,45 +821,26 @@ Public Class TProject
         Next
         Debug.Assert(theMain IsNot Nothing)
 
-        Debug.Print("------------------------------------------------------- クラスリスト")
-        For Each cla1 In vCla
-            'Select Case cla1.GenericType
-            '    Case EGeneric.SimpleClass
-            '        Debug.Print("")
-            '    Case EGeneric.ParameterizedClass
-            '        Debug.Print("")
-            '    Case EGeneric.ArgumentClass
-            '        Debug.Print("")
-            '    Case EGeneric.SpecializedClass
-            '        Debug.Print("特定化 {0}", cla1.LongName())
-            '    Case Else
-            '        Debug.Print("")
-            'End Select
-            Debug.Print("{0} {1}", cla1.GenericType, cla1.LongName())
-
-            If cla1.GenCla IsNot Nothing Then
-                ' 総称型の場合
-
-                CopyGenCla2(cla1)
-            End If
+        For Each cla1 In SimpleParameterizedClassList
+            Debug.Assert(cla1.GenericType = EGeneric.SimpleClass OrElse cla1.GenericType = EGeneric.ParameterizedClass)
         Next
 
         CopyGenClaAll()
 
         Dim sw As New TStringWriter
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             DumpClass(cla1, sw)
-            cla1.SetAllSuperCla()
+            cla1.SetAllSuperClass()
         Next
-        For Each cla1 In vArrCla
-            cla1.SetAllSuperCla()
+        For Each cla1 In ArrayClassList
+            cla1.SetAllSuperClass()
         Next
 
 
         sw.WriteLine("--------------------------------------------------------------------------------------------")
         For Each cla1 In SpecializedClassList
             DumpClass(cla1, sw)
-            cla1.SetAllSuperCla()
+            cla1.SetAllSuperClass()
         Next
         TFile.WriteAllText("C:\usr\prj\MyIDE\MyAlgo\a.txt", sw.ToString())
 
@@ -924,13 +871,13 @@ Public Class TProject
         Debug.Assert(set_ref.RefCnt = nav_test.RefCnt)
 
 
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             Debug.Assert(Not SpecializedClassList.Contains(cla1))
         Next
         For Each cla1 In SpecializedClassList
-            Debug.Assert(Not vCla.Contains(cla1) AndAlso cla1.GenericType = EGeneric.SpecializedClass)
+            Debug.Assert(Not SimpleParameterizedClassList.Contains(cla1) AndAlso cla1.GenericType = EGeneric.SpecializedClass)
         Next
-        vAllClass = New TList(Of TClass)(vCla)
+        vAllClass = New TList(Of TClass)(SimpleParameterizedClassList)
         vAllClass.AddRange(SpecializedClassList)
 
         ' サブクラスをセットする
@@ -960,7 +907,7 @@ Public Class TProject
         DmpCallToAll()
 
         ''''
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             For Each fld1 In cla1.FldCla
                 If fld1.RefVar.Count = 0 Then
                     'Debug.WriteLine("未使用 {0}.{1} {2}", cla1.NameVar, fld1.NameVar, cla1.SrcCla.FileSrc)
@@ -1088,11 +1035,11 @@ Public Class TProject
                     cla1 = GetTermType(frm1.SeqFrom)
                     Debug.Assert(cla1 IsNot Nothing)
                     cla2 = ElementType(cla1)
-                    Return GetIEnumerableCla(cla2)
+                    Return GetIEnumerableClass(cla2)
                 Else
                     cla1 = GetTermType(frm1.SelFrom)
                     Debug.Assert(cla1 IsNot Nothing)
-                    Return GetIEnumerableCla(cla1)
+                    Return GetIEnumerableClass(cla1)
                 End If
 
             ElseIf TypeOf trm1 Is TAggregate Then
@@ -1231,7 +1178,7 @@ Public Class TProject
     ' オーバーロード関数をセットする
     Public Sub SetOvrFnc()
         '  すべてのクラスに対し
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             For Each fnc1 In cla1.FncCla
                 If Not vAllFnc.Contains(fnc1) Then
                     vAllFnc.Add(fnc1)
@@ -1245,7 +1192,7 @@ Public Class TProject
             Next
         Next
 
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             For Each fld1 In cla1.FldCla
                 If vAllFld.Contains(fld1) Then
                     Debug.Assert(False)
@@ -1291,7 +1238,7 @@ Public Class TProject
         Dim changed As Boolean, v As New TList(Of TFunction), i1 As Integer
 
         '  すべてのクラスに対し
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
 
             '  すべてのメソッドに対し
             For Each fnc1 In cla1.FncCla
@@ -1317,7 +1264,7 @@ Public Class TProject
 
 
             '  すべてのクラスに対し
-            For Each cla1 In vCla
+            For Each cla1 In SimpleParameterizedClassList
 
                 '  すべてのメソッドに対し
                 For Each fnc1 In cla1.FncCla
@@ -1420,7 +1367,7 @@ Public Class TProject
         sw = New TStringWriter()
         sw.WriteLine(TCodeGenerator.HTMLHead)
 
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
             For Each fnc1 In cla1.FncCla
                 FncHtml(sw, fnc1)
                 sw.Write("&nbsp; : オーバーロード&nbsp;")
@@ -1568,10 +1515,10 @@ Public Class TProject
         dot_dir = OutputDirectory + "\html\_dot"
 
         ' すべてのクラスに対し
-        For Each cla1 In vCla
+        For Each cla1 In SimpleParameterizedClassList
 
-            If vCla.IndexOf(cla1) Mod 25 = 0 Then
-                Debug.WriteLine("Make Ref Graph {0}", vCla.IndexOf(cla1))
+            If SimpleParameterizedClassList.IndexOf(cla1) Mod 25 = 0 Then
+                Debug.WriteLine("Make Ref Graph {0}", SimpleParameterizedClassList.IndexOf(cla1))
             End If
 
             ' すべてのフィールドに対し
@@ -1764,7 +1711,7 @@ Public Class TProject
                     class_sw.WriteLine("<p style=""text-indent:{0}em"">{1}</p>", indent * 2, cls1.NameVar)
 
                     For Each sub_class In cls1.SubClasses
-                        If vCla.Contains(sub_class) Then
+                        If SimpleParameterizedClassList.Contains(sub_class) Then
                             class_sw.WriteLine("<p style=""text-indent:{0}em""><a href=""../{1}/{1}.html"">{1}</a></p>", (indent + 1) * 2, sub_class.NameVar)
                         End If
                     Next

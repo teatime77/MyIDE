@@ -348,7 +348,7 @@ Public Class TIDE
 
         '  すべてのクラスに対し
         ' for ???
-        For Each cla1 In prj1.vCla
+        For Each cla1 In prj1.SimpleParameterizedClassList
             '  すべてのメソッドに対し
             ' for ???
             For Each fnc1 In cla1.FncCla

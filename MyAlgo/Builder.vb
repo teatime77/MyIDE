@@ -114,10 +114,10 @@ Public Class TBuilder
         RefSugiyamaGraph.Clear()
 
         ' すべてのクラスに対し
-        For Each cla1 In prj1.vCla
+        For Each cla1 In prj1.SimpleParameterizedClassList
 
-            If prj1.vCla.IndexOf(cla1) Mod 25 = 0 Then
-                Debug.WriteLine("Make Ref Graph {0}", prj1.vCla.IndexOf(cla1))
+            If prj1.SimpleParameterizedClassList.IndexOf(cla1) Mod 25 = 0 Then
+                Debug.WriteLine("Make Ref Graph {0}", prj1.SimpleParameterizedClassList.IndexOf(cla1))
             End If
 
             ' すべてのフィールドに対し

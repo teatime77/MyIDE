@@ -376,7 +376,7 @@ Public Class TNaviPrj
 
     Public Overridable Sub NavPrj(prj As TProject, arg1 As Object)
         '  すべてのクラスに対し
-        For Each cla1 In prj.vCla
+        For Each cla1 In prj.SimpleParameterizedClassList
             NavCla(cla1, arg1)
         Next
     End Sub

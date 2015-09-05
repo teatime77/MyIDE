@@ -442,7 +442,7 @@ Public Class TClass
         Next
     End Sub
 
-    Public Sub SetAllSuperCla()
+    Public Sub SetAllSuperClass()
         AllSuperCla = New TList(Of TClass)()
         AllSuperCla2(AllSuperCla)
     End Sub

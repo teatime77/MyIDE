@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceDirectory>C:\usr\prj\MyIDE\MyAlgo</SourceDirectory>
+  <OutputDirectory>C:\usr\prj\MyIDE\MyAlgo\out\MyIDETest\MyAlgo</OutputDirectory>
+  <SourceFileNameList>
+    <string>@lib.vb</string>
+    <string>Builder.vb</string>
+    <string>Invariant.vb</string>
+    <string>BasicCodeGenerator.vb</string>
+    <string>BasicParser.vb</string>
+    <string>CodeGenerator.vb</string>
+    <string>Graph.vb</string>
+    <string>IDE.vb</string>
+    <string>JavaCodeGenerator.vb</string>
+    <string>LALR.vb</string>
+    <string>Logic.vb</string>
+    <string>Navigation.vb</string>
+    <string>ProgramTransformation.vb</string>
+    <string>Project.vb</string>
+    <string>Proof.vb</string>
+    <string>System.vb</string>
+    <string>TWnd.vb</string>
+    <string>WindowsForms.vb</string>
+  </SourceFileNameList>
+  <MainClassName>TIDE</MainClassName>
+  <MainFunctionName>Main</MainFunctionName>
+  <OutputNotUsed>true</OutputNotUsed>
+  <UseReferenceGraph>false</UseReferenceGraph>
+  <ClassNameTablePath />
+  <Dataflow>false</Dataflow>
+</TProject>
