@@ -1,0 +1,6 @@
+﻿TPrj	TProject	プロジェクト
+TCla	TClass		クラス
+TTkn	TToken		字句
+TFnc	TFunction	関数
+TFld	TField		フィールド
+RetType	RetType	戻り値の型

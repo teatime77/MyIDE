@@ -470,7 +470,7 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, vvvar)
 
         If dot1.TypeDot.IsArray() Then
-            Debug.Assert(PrjSetRef.ArrayType Is Nothing)
+			Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
             dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, varg)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, varg)

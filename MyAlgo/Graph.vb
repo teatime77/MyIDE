@@ -1,4 +1,6 @@
 ﻿Imports System.Diagnostics
+Imports System.IO
+Imports System.Text
 
 ' -------------------------------------------------------------------------------- TGraph
 Public Class TGraph
@@ -76,14 +78,14 @@ Public Class TGraph
 
         sw1 = New TStringWriter()
         sw1.WriteLine("digraph " + title + " {")
-        sw1.WriteLine("" + vbTab + "graph [rankdir = LR];")
+		sw1.WriteLine("" + vbTab + "graph [charset=""UTF-8"", rankdir = LR];")
 
         ' ノードの集合からdotファイルを作る
         Node2Dot(sw1, vnd, L)
 
         sw1.WriteLine("}")
 
-        TFile.WriteAllText(path1, sw1.ToString())
+		File.WriteAllText(path1, sw1.ToString(), New UTF8Encoding(False))
     End Sub
 
 
