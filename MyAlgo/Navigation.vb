@@ -404,8 +404,6 @@ Public Class TNaviTest
     End Sub
 End Class
 
-
-
 ' -------------------------------------------------------------------------------- TNaviSetRef
 Public Class TNaviSetRef
     Inherits TNaviPrj
@@ -447,11 +445,8 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, vvvar)
 
         If dot1.TypeDot.IsArray() Then
-            If PrjSetRef.ArrayType Is Nothing Then
-                Debug.Assert(False)
-            Else
-                dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, Nothing)
-            End If
+            Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, Nothing)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, Nothing)
         End If
@@ -467,7 +462,7 @@ Public Class TNaviSetRef
     End Sub
 
 
-    Public Sub NavDot2(dot1 As TDot, arg1 As Object, varg As TList(Of TTerm))
+    Public Sub NavDotMethod(dot1 As TDot, arg1 As Object, varg As TList(Of TTerm))
         Dim vvvar As TList(Of TList(Of TVariable))
 
         vvvar = CType(arg1, TList(Of TList(Of TVariable)))
@@ -475,17 +470,14 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, vvvar)
 
         If dot1.TypeDot.IsArray() Then
-            If PrjSetRef.ArrayType Is Nothing Then
-                Debug.Assert(False)
-            Else
-                dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, varg)
-            End If
+            Debug.Assert(PrjSetRef.ArrayType Is Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, varg)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, varg)
         End If
 
         If dot1.VarRef Is Nothing Then
-            'NavDot2(dot1, vvvar, varg)
+            'NavDotMethod(dot1, vvvar, varg)
             Throw New TError(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
         Else
             If Not TypeOf dot1.VarRef Is TFunction Then
@@ -587,7 +579,7 @@ Public Class TNaviSetRef
 
                     Case EToken.eAppCall
                         If TypeOf app1.FncApp Is TDot Then
-                            NavDot2(app1.FncApp, vvvar, app1.ArgApp)
+                            NavDotMethod(app1.FncApp, vvvar, app1.ArgApp)
                         ElseIf TypeOf app1.FncApp Is TReference Then
                             ref1 = CType(app1.FncApp, TReference)
                             ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, app1.ArgApp)

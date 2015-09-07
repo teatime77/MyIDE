@@ -81,7 +81,6 @@ Public Class TDataflow
     Public RuleCp As TFunction
     Public ChangeableFld As TField
     Public Change As TChange
-    Public RefChangeable As TReference
     Public RefChangeableUpStmt As TStatement
     Public NormalizedCondition As TApply
     Public PreCondition As TApply
@@ -335,7 +334,6 @@ Public Class TDataflow
                 Next
             Next
         Loop
-
     End Sub
 
     ' 値が変化し得るフィールドを解析する
@@ -385,8 +383,6 @@ Public Class TDataflow
 
                 If ref1.FncRef Is RuleCp AndAlso Not ref1.DefRef Then
                     ' 規則内の変数参照で、値の代入ではない場合
-
-                    RefChangeable = ref1
 
                     ' 参照のされ方を得る。
                     Dim ref_type As ERefType = GetRefType(ref1)
@@ -461,7 +457,6 @@ Public Class TDataflow
                 End If
             Next
         Loop
-
 
         ' 影響され得る文を有効な文のリストに入れる
         For Each stmt_list In dic_may_be_affected_stmt_list.Values
@@ -1158,7 +1153,7 @@ Public Class TDataflow
     ' 余分な条件を取り除く
     Public Sub CleanCondition(and1 As TApply)
         Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
-        Dim v As Boolean()
+        Dim is_redundant As Boolean()
 
         For Each trm In and1.ArgApp
             If TypeOf trm Is TApply Then
@@ -1175,7 +1170,7 @@ Public Class TDataflow
             End If
         Next
 
-        ReDim v(and1.ArgApp.Count - 1)
+        ReDim is_redundant(and1.ArgApp.Count - 1)
 
         For i1 = 0 To and1.ArgApp.Count - 1
             If TypeOf and1.ArgApp(i1) Is TApply Then
@@ -1195,9 +1190,9 @@ Public Class TDataflow
                                     Select Case inf
                                         Case EBinomialInference.矛盾
                                         Case EBinomialInference.FirstRedundant
-                                            v(i1) = True
+                                            is_redundant(i1) = True
                                         Case EBinomialInference.SecondRedundant
-                                            v(i2) = True
+                                            is_redundant(i2) = True
                                     End Select
                                 End If
                             End If
@@ -1207,7 +1202,7 @@ Public Class TDataflow
         Next
 
         For i1 = and1.ArgApp.Count - 1 To 0 Step -1
-            If v(i1) Then
+            If is_redundant(i1) Then
                 and1.ArgApp.RemoveAt(i1)
             End If
         Next

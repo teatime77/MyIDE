@@ -3,9 +3,6 @@ Imports System.Xml.Serialization
 Imports System.IO
 Imports System.Diagnostics
 
-
-
-
 Public Class TProgramTransformation
     'Public Shared Function WriteTranslationTable(path As String) As String
     '    Dim v As New TList(Of TNameTable), name_table As TNameTable
@@ -138,7 +135,6 @@ Public Class TProgramTransformation
 
         Return dic
     End Function
-
 
     Public Shared Function FindLocalName(v As TList(Of TLocalName), id As String) As String
         For Each x In v

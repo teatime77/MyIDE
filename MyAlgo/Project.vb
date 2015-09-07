@@ -23,7 +23,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public ArrayClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public vAllClass As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
     <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
     <XmlIgnoreAttribute()> Public CurSrc As TSourceFile ' 現在のソース
@@ -152,8 +152,6 @@ Public Class TProject
                 Return False
         End Select
     End Function
-
-
 
     ' ジェネリック型のクラスを作る
     Public Function AddSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
@@ -631,15 +629,84 @@ Public Class TProject
 
     End Sub
 
+    ' 指定されたクラスのクラスの初期化メソッドまたはインスタンスの初期化メソッドを作る。
+    Public Sub MakeInstanceClassInitializerSub(cls1 As TClass, vnew As List(Of TFunction), is_shared As Boolean)
+        Dim ini_fnc As TFunction, asn1 As TAssignment, call_ini As TCall, app_ini As TApply, dot1 As TDot, ref1 As TReference
+
+        ' 初期化の式があるフィールドのリストを得る。
+        Dim vfld = (From fld1 In cls1.FldCla Where fld1.InitVar IsNot Nothing AndAlso fld1.ModVar.isShared = is_shared).ToList()
+        If vfld.Count <> 0 Then
+
+            ' フィールドの初期化式から作った代入文を集めたメソッドを作る。
+            If is_shared Then
+                ' クラスの初期化の場合
+
+                ini_fnc = New TFunction("Class@Initializer", Nothing)
+            Else
+                ' インスタンスの初期化の場合
+
+                ini_fnc = New TFunction("Instance@Initializer", Nothing)
+            End If
+            cls1.FncCla.Add(ini_fnc)
+
+            ini_fnc.ClaFnc = cls1
+            ini_fnc.ModVar = New TModifier()
+            ini_fnc.TypeFnc = EToken.eSub
+            ini_fnc.ThisFnc = New TVariable("Me", cls1)
+            ini_fnc.BlcFnc = New TBlock()
+
+            ' フィールドの初期化式から作った代入文をメソッドで定義する。
+            For Each fld1 In vfld
+
+                ref1 = New TReference(fld1)
+                asn1 = New TAssignment(ref1, fld1.InitVar)
+                ini_fnc.BlcFnc.AddStmtBlc(asn1)
+            Next
+
+
+            If is_shared Then
+                ' クラスの初期化の場合
+
+                ' クラスの初期化メソッドから、フィールドの初期化式から作った代入文を集めたメソッドを呼ぶ。
+                dot1 = New TDot(New TReference(cls1), ini_fnc)
+                app_ini = TApply.MakeAppCall(dot1)
+                call_ini = New TCall(app_ini)
+                call_ini.IsGenerated = True
+                theMain.BlcFnc.StmtBlc.Insert(0, call_ini)
+                call_ini.BlcStmt = theMain.BlcFnc
+
+                theMain.CallTo.Add(ini_fnc)
+                ini_fnc.CallFrom.Add(theMain)
+            Else
+                ' インスタンスの初期化の場合
+
+                ' すべてのコンストラクターに対し
+                For Each new1 In vnew
+
+                    ' インスタンスの初期化メソッドから、フィールドの初期化式から作った代入文を集めたメソッドを呼ぶ。
+                    app_ini = TApply.MakeAppCall(New TReference(ini_fnc))
+                    call_ini = New TCall(app_ini)
+                    call_ini.IsGenerated = True
+                    new1.BlcFnc.StmtBlc.Insert(0, call_ini)
+                    call_ini.BlcStmt = new1.BlcFnc
+
+                    new1.CallTo.Add(ini_fnc)
+                    ini_fnc.CallFrom.Add(new1)
+                Next
+            End If
+        End If
+    End Sub
+
+    ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
     Public Sub MakeInstanceClassInitializer()
-        Dim idx As Integer, is_shared As Boolean, new_fnc As TFunction, ini_fnc As TFunction, asn1 As TAssignment, call_ini As TCall, app_ini As TApply, dot1 As TDot, ref1 As TReference
-
-
+        ' すべての単純クラスとパラメータ化クラスに対し
         For Each cls1 In SimpleParameterizedClassList
             Dim vnew = (From fnc1 In cls1.FncCla Where fnc1.IsNew).ToList()
             If vnew.Count = 0 Then
+                ' コンストラクターが１つもない場合
 
-                new_fnc = New TFunction("Implicit@New", Nothing)
+                ' 暗黙のコンストラクターを作る。
+                Dim new_fnc As TFunction = New TFunction("Implicit@New", Nothing)
 
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
@@ -652,59 +719,11 @@ Public Class TProject
                 vnew.Add(new_fnc)
             End If
 
-            For idx = 0 To 1
-                is_shared = (idx = 0)
-                Dim vfld = (From fld1 In cls1.FldCla Where fld1.InitVar IsNot Nothing AndAlso fld1.ModVar.isShared = is_shared).ToList()
-                If vfld.Count <> 0 Then
+            ' クラスの初期化メソッドを作る。
+            MakeInstanceClassInitializerSub(cls1, vnew, True)
 
-                    If is_shared Then
-                        ini_fnc = New TFunction("Class@Initializer", Nothing)
-                    Else
-                        ini_fnc = New TFunction("Instance@Initializer", Nothing)
-                    End If
-
-                    ini_fnc.ClaFnc = cls1
-                    ini_fnc.ModVar = New TModifier()
-                    ini_fnc.TypeFnc = EToken.eSub
-                    ini_fnc.ThisFnc = New TVariable("Me", cls1)
-                    ini_fnc.BlcFnc = New TBlock()
-
-                    For Each fld1 In vfld
-
-                        ref1 = New TReference(fld1)
-                        asn1 = New TAssignment(ref1, fld1.InitVar)
-                        ini_fnc.BlcFnc.AddStmtBlc(asn1)
-                    Next
-
-                    cls1.FncCla.Add(ini_fnc)
-
-                    If is_shared Then
-
-                        dot1 = New TDot(New TReference(cls1), ini_fnc)
-                        app_ini = TApply.MakeAppCall(dot1)
-                        call_ini = New TCall(app_ini)
-                        call_ini.IsGenerated = True
-                        theMain.BlcFnc.StmtBlc.Insert(0, call_ini)
-                        call_ini.BlcStmt = theMain.BlcFnc
-
-                        theMain.CallTo.Add(ini_fnc)
-                        ini_fnc.CallFrom.Add(theMain)
-                    Else
-
-                        For Each new1 In vnew
-
-                            app_ini = TApply.MakeAppCall(New TReference(ini_fnc))
-                            call_ini = New TCall(app_ini)
-                            call_ini.IsGenerated = True
-                            new1.BlcFnc.StmtBlc.Insert(0, call_ini)
-                            call_ini.BlcStmt = new1.BlcFnc
-
-                            new1.CallTo.Add(ini_fnc)
-                            ini_fnc.CallFrom.Add(new1)
-                        Next
-                    End If
-                End If
-            Next
+            ' インスタンスの初期化メソッドを作る。
+            MakeInstanceClassInitializerSub(cls1, vnew, False)
         Next
     End Sub
 
@@ -859,6 +878,7 @@ Public Class TProject
         Next
         TFile.WriteAllText("C:\usr\prj\MyIDE\MyAlgo\a.txt", sw.ToString())
 
+        ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
         MakeInstanceClassInitializer()
 
         ' 変数参照を解決する
@@ -885,18 +905,17 @@ Public Class TProject
         nav_test.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = nav_test.RefCnt)
 
-
         For Each cla1 In SimpleParameterizedClassList
             Debug.Assert(Not SpecializedClassList.Contains(cla1))
         Next
         For Each cla1 In SpecializedClassList
             Debug.Assert(Not SimpleParameterizedClassList.Contains(cla1) AndAlso cla1.GenericType = EGeneric.SpecializedClass)
         Next
-        vAllClass = New TList(Of TClass)(SimpleParameterizedClassList)
-        vAllClass.AddRange(SpecializedClassList)
+        SimpleParameterizedSpecializedClassList = New TList(Of TClass)(SimpleParameterizedClassList)
+        SimpleParameterizedSpecializedClassList.AddRange(SpecializedClassList)
 
         ' サブクラスをセットする
-        For Each cls1 In vAllClass
+        For Each cls1 In SimpleParameterizedSpecializedClassList
             For Each super_class In cls1.SuperCla
                 super_class.SubClasses.Add(cls1)
             Next
@@ -907,7 +926,6 @@ Public Class TProject
 
         set_up_trm = New TNaviSetUpTrm()
         set_up_trm.NavPrj(Me, Nothing)
-
 
         ' オーバーロード関数をセットする
         SetOvrFnc()
@@ -940,7 +958,6 @@ Public Class TProject
         Debug.WriteLine("Build Bas 終了")
 
         MakePrjAllSrc()
-
     End Sub
 
     Public Function GetTermType(trm1 As TTerm) As TClass
@@ -1277,7 +1294,6 @@ Public Class TProject
         Do While True
             changed = False
 
-
             '  すべてのクラスに対し
             For Each cla1 In SimpleParameterizedClassList
 
@@ -1353,7 +1369,7 @@ Public Class TProject
         Next
 
         ' すべてのクラスに対し
-        For Each cls1 In vAllClass
+        For Each cls1 In SimpleParameterizedSpecializedClassList
             If cls1.UsedVar Then
                 For Each cls2 In cls1.AllSuperCla
                     cls2.UsedVar = True
