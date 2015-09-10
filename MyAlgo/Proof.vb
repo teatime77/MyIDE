@@ -1355,7 +1355,7 @@ Public Class TTrans
                 ElseIf trm1.IsLog() Then
                     trm2 = TransApp(CType(trm1, TApply), arg1)
                 ElseIf TypeOf trm1 Is TParenthesis Then
-                    trm2 = TransPar(CType(trm1, TParenthesis).TrmPar, arg1)
+                    trm2 = TransPar(CType(trm1, TParenthesis), arg1)
                 ElseIf TypeOf trm1 Is TFrom Then
                     Debug.Assert(False)
                 ElseIf TypeOf trm1 Is TAggregate Then

@@ -524,7 +524,7 @@ Public Class TPanel
         Debug.Assert(ChildWnd.Count = 1)
 
         Content().SetPos(New TPnt(PadX, PadY))
-        Content.SetAutoSize()
+        Content().SetAutoSize()
         SetSize(New TPnt(PadX + Content().WidthWnd() + PadX, PadY + Content().HeightWnd() + PadY))
     End Sub
 End Class
@@ -1572,7 +1572,7 @@ Public Class TDesWnd
         NewFigDes.SetEndPos(DownPosDes, DownPosDes)
 
         If TypeOf NewFigDes Is TWnd Then
-            AddChildWnd(NewFigDes)
+            AddChildWnd(CType(NewFigDes, TWnd))
         Else
             AddChildFig(NewFigDes)
         End If

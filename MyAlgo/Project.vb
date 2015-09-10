@@ -169,6 +169,7 @@ Public Class TProject
         Else
             cla3 = New TClass(cla1.NameCla())
         End If
+        cla3.KndCla = cla1.KndCla
         cla3.GenericType = EGeneric.SpecializedClass
         cla3.OrgCla = cla1
 
@@ -498,7 +499,7 @@ Public Class TProject
         Return fnc1.NameFnc() = name1 AndAlso Not fnc1.IsNew AndAlso Prj.MatchFncArg(fnc1, varg)
     End Function
 
-    Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
+    Public Shared Function FindFieldFunctionSub(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
         Dim var1 As TVariable
 
         ' for Find
@@ -517,7 +518,7 @@ Public Class TProject
 
         ' for Find
         For Each cla_f In cla1.SuperCla
-            var1 = FindFieldFunction(cla_f, name1, varg)
+            var1 = FindFieldFunctionSub(cla_f, name1, varg)
             If var1 IsNot Nothing Then
                 Return var1
             End If
@@ -525,13 +526,25 @@ Public Class TProject
 
         ' for Find
         For Each cla_f In cla1.InterfacesCls
-            var1 = FindFieldFunction(cla_f, name1, varg)
+            var1 = FindFieldFunctionSub(cla_f, name1, varg)
             If var1 IsNot Nothing Then
                 Return var1
             End If
         Next
 
         Return Nothing
+    End Function
+
+    Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
+        Dim var1 As TVariable
+
+        var1 = FindFieldFunctionSub(cla1, name1, varg)
+        If var1 Is Nothing Then
+
+            var1 = FindFieldFunctionSub(Prj.SystemType, name1, varg)
+        End If
+
+        Return var1
     End Function
 
     Public Shared Function FindFieldByName(cla1 As TClass, name1 As String) As TField

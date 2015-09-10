@@ -470,8 +470,8 @@ Public Class TNaviView
                     border_color = .BorderColor
                 End If
 
-                dst1 = MakeBitmap(.ActualWidth, .ActualHeight, background_color)
-                .BackgroundBitmap = DrawRectangle(dst1, 0, 0, .ActualWidth, .ActualHeight, .BorderWidth, border_color)
+                dst1 = MakeBitmap(CInt(.ActualWidth), CInt(.ActualHeight), background_color)
+                .BackgroundBitmap = DrawRectangle(dst1, 0, 0, CInt(.ActualWidth), CInt(.ActualHeight), CInt(.BorderWidth), border_color)
 
                 If TypeOf view Is TPanel Then
                     With CType(view, TPanel)

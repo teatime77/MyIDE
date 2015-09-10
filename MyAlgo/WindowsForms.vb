@@ -374,7 +374,7 @@ Public Class TGraphics
     End Sub
 
     Public Sub DrawRectangle(col As TColor, pen_width As Double, x As Double, y As Double, width As Double, height As Double)
-        mBgGr.DrawRectangle(GetPen(col, pen_width), CSng(Offset.XPnt + x), CSng(Offset.YPnt + y), CSng(width), CSng(height))
+        mBgGr.DrawRectangle(GetPen(col, CInt(pen_width)), CSng(Offset.XPnt + x), CSng(Offset.YPnt + y), CSng(width), CSng(height))
     End Sub
 
     Public Sub DrawString(s As String, font As TFont, col As TColor, x As Double, y As Double)

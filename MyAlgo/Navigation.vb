@@ -589,7 +589,13 @@ Public Class TNaviSetRef
                     NavTrm(dot1, vvvar)
                 ElseIf TypeOf app1.ArgApp(0) Is TReference Then
                     ref1 = CType(app1.ArgApp(0), TReference)
-                    NavTrm(ref1, vvvar)
+
+                    IncRefCnt(ref1)
+                    ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, Nothing)
+                    If ref1.VarRef Is Nothing Then
+                        Debug.Print("Address Of 不明のメソッド {0}", ref1.NameRef)
+                        Debug.Assert(False)
+                    End If
                 Else
                     Debug.Assert(False)
                 End If
@@ -640,7 +646,14 @@ Public Class TNaviSetRef
                                         name1 = "__Mod"
                                 End Select
 
-                                ref1.VarRef = PrjSetRef.FindVariable(name1, vvvar)
+                                Dim vvar = (From fnc In PrjSetRef.SystemType.FncCla Where fnc.NameVar = name1).ToList()
+                                If vvar.Count <> 1 Then
+
+                                    Debug.WriteLine("演算子未定義:{0}", ref1.NameRef)
+                                    Debug.Assert(False)
+                                Else
+                                    ref1.VarRef = vvar(0)
+                                End If
                             End If
 
                             If ref1.VarRef Is Nothing Then
@@ -650,7 +663,7 @@ Public Class TNaviSetRef
 
                     Case EToken.eAppCall
                         If TypeOf app1.FncApp Is TDot Then
-                            NavDotMethod(app1.FncApp, vvvar, app1.ArgApp)
+                            NavDotMethod(CType(app1.FncApp, TDot), vvvar, app1.ArgApp)
                         ElseIf TypeOf app1.FncApp Is TReference Then
                             ref1 = CType(app1.FncApp, TReference)
                             ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, app1.ArgApp)
@@ -976,7 +989,7 @@ Public Class TNaviSetRef
             vvvar = New TList(Of TList(Of TVariable))()
 
             vvvar.Add(New TList(Of TVariable)(From x In PrjSetRef.SystemType.FldCla Select CType(x, TVariable)))
-            vvvar.Add(New TList(Of TVariable)(From x In PrjSetRef.SystemType.FncCla Select CType(x, TVariable)))
+            'vvvar.Add(New TList(Of TVariable)(From x In PrjSetRef.SystemType.FncCla Select CType(x, TVariable)))
 
             vsuper_cla = New TList(Of TClass)()
             vsuper_cla.AddRange(cla1.AllSuperCla)
@@ -985,7 +998,7 @@ Public Class TNaviSetRef
             ' for Add Add
             For Each cla2 In vsuper_cla
                 vvvar.Add(New TList(Of TVariable)(From x In cla2.FldCla Select CType(x, TVariable)))
-                vvvar.Add(New TList(Of TVariable)(From x In cla2.FncCla Select CType(x, TVariable)))
+                'vvvar.Add(New TList(Of TVariable)(From x In cla2.FncCla Select CType(x, TVariable)))
             Next
 
             '  すべてのメソッドに対し
