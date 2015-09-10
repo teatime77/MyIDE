@@ -887,6 +887,10 @@ Public Class TProject
         set_ref.NavPrj(Me, Nothing)
         Debug.Assert(Not set_ref.ErrNav)
 
+        ' ForのLabelForをセットする。
+        Dim navi_set_label = New TNaviSetLabel()
+        navi_set_label.NavPrj(Me, Nothing)
+
         set_var_ref = New TNaviSetVarRef()
         set_var_ref.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)

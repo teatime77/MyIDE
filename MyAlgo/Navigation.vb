@@ -404,14 +404,85 @@ Public Class TNaviTest
     End Sub
 End Class
 
+' -------------------------------------------------------------------------------- TNaviSetLabel
+Public Class TNaviSetLabel
+    Inherits TNaviPrj
+    Public CurLoop As TFor
+    Public InSelect As Boolean
+    Public LabelCnt As Integer
+
+    Public Overrides Sub NavStmt(stmt1 As TStatement, arg1 As Object)
+        Dim loop_sv As TFor, in_switch_sv As Boolean
+
+        If TypeOf stmt1 Is TSelect Then
+
+            in_switch_sv = InSelect
+            InSelect = True
+            NavSelect(CType(stmt1, TSelect), arg1)
+
+            InSelect = in_switch_sv
+
+        ElseIf TypeOf stmt1 Is TFor Then
+            loop_sv = CurLoop
+            CurLoop = CType(stmt1, TFor)
+            in_switch_sv = InSelect
+            InSelect = False
+
+            NavFor(CType(stmt1, TFor), arg1)
+
+            CurLoop = loop_sv
+            InSelect = in_switch_sv
+
+        Else
+            Dim exit_label As Boolean
+
+            exit_label = False
+            Select Case stmt1.TypeStmt
+                Case EToken.eExitDo
+                    Debug.Assert(CurLoop IsNot Nothing)
+                    If InSelect OrElse Not CurLoop.IsDo Then
+                        exit_label = True
+                    End If
+
+                Case EToken.eExitFor
+                    Debug.Assert(CurLoop IsNot Nothing)
+                    If InSelect OrElse CurLoop.IsDo Then
+                        exit_label = True
+                    End If
+            End Select
+
+            If exit_label Then
+                If CurLoop.LabelFor = 0 Then
+
+                    LabelCnt = LabelCnt + 1
+                    CurLoop.LabelFor = LabelCnt
+                End If
+                CType(stmt1, TExit).LabelExit = CurLoop.LabelFor
+            End If
+
+        End If
+    End Sub
+
+    Public Overrides Sub NavCla(cla1 As TClass, arg1 As Object)
+        If (cla1.FldCla.Count <> 0 OrElse cla1.FncCla.Count <> 0) AndAlso Not (cla1.GenCla IsNot Nothing AndAlso cla1.OrgCla Is Nothing) Then
+            '  フィールド/メソッドの定義がある場合
+
+            '  すべてのメソッドに対し
+            For Each fnc1 In cla1.FncCla
+                CurLoop = Nothing
+                InSelect = False
+                LabelCnt = 0
+                NavFnc(fnc1, arg1)
+            Next
+        End If
+    End Sub
+End Class
+
 ' -------------------------------------------------------------------------------- TNaviSetRef
 Public Class TNaviSetRef
     Inherits TNaviPrj
     Public PrjSetRef As TProject
     Public CurFncPrj As TFunction
-    Public CurLoop As TFor
-    Public InSelect As Boolean
-    Public LabelCnt As Integer
 
     Public Sub NavDotLeft(dot1 As TDot, vvvar As TList(Of TList(Of TVariable)))
         IncRefCnt(dot1)
@@ -777,7 +848,6 @@ Public Class TNaviSetRef
 
         Dim if1 As TIf
         Dim red1 As TReDim
-        Dim loop_sv As TFor, in_switch_sv As Boolean, exit_label As Boolean
         Dim dcl1 As TVariableDeclaration
 
         If stmt1 IsNot Nothing Then
@@ -815,12 +885,9 @@ Public Class TNaviSetRef
             ElseIf TypeOf stmt1 Is TBlock Then
                 NavBlc(CType(stmt1, TBlock), vvvar)
             ElseIf TypeOf stmt1 Is TSelect Then
-                in_switch_sv = InSelect
-                InSelect = True
 
                 NavSelect(CType(stmt1, TSelect), vvvar)
 
-                InSelect = in_switch_sv
 
             ElseIf TypeOf stmt1 Is TCase Then
                 NavCase(CType(stmt1, TCase), arg1)
@@ -844,15 +911,9 @@ Public Class TNaviSetRef
                 CurrentWith = with_sv
 
             ElseIf TypeOf stmt1 Is TFor Then
-                loop_sv = CurLoop
-                CurLoop = CType(stmt1, TFor)
-                in_switch_sv = InSelect
-                InSelect = False
 
                 NavFor(CType(stmt1, TFor), vvvar)
 
-                CurLoop = loop_sv
-                InSelect = in_switch_sv
             ElseIf TypeOf stmt1 Is TReturn Then
                 NavTrm(CType(stmt1, TReturn).TrmRet, vvvar)
 
@@ -861,34 +922,6 @@ Public Class TNaviSetRef
 
             ElseIf TypeOf stmt1 Is TComment Then
             Else
-                exit_label = False
-                Select Case stmt1.TypeStmt
-                    Case EToken.eExitDo
-                        Debug.Assert(CurLoop IsNot Nothing)
-                        If InSelect OrElse Not CurLoop.IsDo Then
-                            exit_label = True
-                        End If
-
-                    Case EToken.eExitFor
-                        Debug.Assert(CurLoop IsNot Nothing)
-                        If InSelect OrElse CurLoop.IsDo Then
-                            exit_label = True
-                        End If
-
-                    Case EToken.eExitSub
-
-                    Case Else
-                        Debug.WriteLine("Set Ref Stmt err:{0}", stmt1)
-                        Debug.Assert(False)
-                End Select
-                If exit_label Then
-                    If CurLoop.LabelFor = 0 Then
-
-                        LabelCnt = LabelCnt + 1
-                        CurLoop.LabelFor = LabelCnt
-                    End If
-                    CType(stmt1, TExit).LabelExit = CurLoop.LabelFor
-                End If
             End If
         End If
     End Sub
@@ -958,9 +991,6 @@ Public Class TNaviSetRef
             '  すべてのメソッドに対し
             For Each fnc1 In cla1.FncCla
                 CurFncPrj = fnc1
-                CurLoop = Nothing
-                InSelect = False
-                LabelCnt = 0
                 NavFnc(fnc1, vvvar)
                 CurFncPrj = Nothing
             Next
