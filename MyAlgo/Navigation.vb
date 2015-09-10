@@ -484,7 +484,7 @@ Public Class TNaviSetRef
     Public PrjSetRef As TProject
     Public CurFncPrj As TFunction
 
-    Public Sub NavDotLeft(dot1 As TDot, vvvar As TList(Of TList(Of TVariable)))
+    Public Sub NavDotLeft(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
 
         If dot1.TrmDot Is Nothing Then
@@ -493,13 +493,13 @@ Public Class TNaviSetRef
             dot1.TypeDot = PrjSetRef.GetTermType(CurrentWith.TermWith)
         Else
 
-            NavTrm(dot1.TrmDot, vvvar)
+            NavTrm(dot1.TrmDot, arg1)
 
             dot1.TypeDot = PrjSetRef.GetTermType(dot1.TrmDot)
         End If
 
         If dot1.TypeDot Is Nothing Then
-            NavDotLeft(dot1, vvvar)
+            'NavDotLeft(dot1, arg1)
             Throw New TError(String.Format("ドットの左の項の型が不明 {0}", dot1.NameRef))
         End If
         If TypeOf dot1.TypeDot Is TDelegate Then
@@ -509,11 +509,7 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub NavDot(dot1 As TDot, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
-        NavDotLeft(dot1, vvvar)
+        NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
             Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
@@ -523,7 +519,7 @@ Public Class TNaviSetRef
         End If
 
         If dot1.VarRef Is Nothing Then
-            'NavDot(dot1, vvvar)
+            'NavDot(dot1, arg1)
             Throw New TError(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
         Else
             If TypeOf dot1.VarRef Is TFunction Then
@@ -534,11 +530,7 @@ Public Class TNaviSetRef
 
 
     Public Sub NavDotMethod(dot1 As TDot, arg1 As Object, varg As TList(Of TTerm))
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
-        NavDotLeft(dot1, vvvar)
+        NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
 			Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
@@ -548,7 +540,7 @@ Public Class TNaviSetRef
         End If
 
         If dot1.VarRef Is Nothing Then
-            'NavDotMethod(dot1, vvvar, varg)
+            'NavDotMethod(dot1, arg1, varg)
             Throw New TError(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
         Else
             If Not TypeOf dot1.VarRef Is TFunction Then
@@ -562,31 +554,27 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub NavRef(ref1 As TReference, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
         IncRefCnt(ref1)
         If ref1.VarRef Is Nothing Then
-            ref1.VarRef = PrjSetRef.FindVariable(ref1.NameRef, vvvar)
+            ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, Nothing)
             If ref1.VarRef Is Nothing Then
-                Debug.WriteLine("変数未定義:{0}", ref1.NameRef)
+
+                ref1.VarRef = PrjSetRef.FindVariable(ref1, ref1.NameRef)
+                If ref1.VarRef Is Nothing Then
+                    Debug.WriteLine("変数未定義:{0}", ref1.NameRef)
+                End If
             End If
         End If
     End Sub
 
     Public Overrides Sub NavApp(app1 As TApply, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable)), new_ref As TReference
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
         Dim ref1 As TReference, name1 As String = "", dot1 As TDot, cla1 As TClass, fnc1 As TFunction, spr_cla As TClass, base_new As TReference
 
         If app1 IsNot Nothing Then
             If app1.TypeApp = EToken.eAddressOf Then
                 If TypeOf app1.ArgApp(0) Is TDot Then
                     dot1 = CType(app1.ArgApp(0), TDot)
-                    NavTrm(dot1, vvvar)
+                    NavTrm(dot1, arg1)
                 ElseIf TypeOf app1.ArgApp(0) Is TReference Then
                     ref1 = CType(app1.ArgApp(0), TReference)
 
@@ -602,7 +590,7 @@ Public Class TNaviSetRef
             Else
                 ' for Call
                 For Each trm1 In app1.ArgApp
-                    NavTrm(trm1, vvvar)
+                    NavTrm(trm1, arg1)
                 Next
             End If
 
@@ -663,17 +651,17 @@ Public Class TNaviSetRef
 
                     Case EToken.eAppCall
                         If TypeOf app1.FncApp Is TDot Then
-                            NavDotMethod(CType(app1.FncApp, TDot), vvvar, app1.ArgApp)
+                            NavDotMethod(CType(app1.FncApp, TDot), arg1, app1.ArgApp)
                         ElseIf TypeOf app1.FncApp Is TReference Then
                             ref1 = CType(app1.FncApp, TReference)
                             ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, app1.ArgApp)
                             If ref1.VarRef IsNot Nothing Then
                                 IncRefCnt(ref1)
                             Else
-                                NavRef(ref1, vvvar)
+                                NavRef(ref1, arg1)
                             End If
                         ElseIf TypeOf app1.FncApp Is TApply Then
-                            NavTrm(app1.FncApp, vvvar)
+                            NavTrm(app1.FncApp, arg1)
                         Else
                             Debug.Assert(False)
                         End If
@@ -696,7 +684,8 @@ Public Class TNaviSetRef
                         End If
 
                     Case EToken.eNew
-                        new_ref = CType(app1.FncApp, TReference)
+                        Dim new_ref As TReference = CType(app1.FncApp, TReference)
+
                         IncRefCnt(new_ref)
                         If app1.NewApp.DimCla = 0 Then
                             new_ref.VarRef = TProject.FindNew(app1.NewApp, app1.ArgApp)
@@ -740,101 +729,74 @@ Public Class TNaviSetRef
             End If
 
             If app1.IniApp IsNot Nothing Then
-                NavArr(app1.IniApp, vvvar)
+                NavArr(app1.IniApp, arg1)
             End If
         End If
     End Sub
 
     Public Overrides Sub NavFrom(frm1 As TFrom, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-        Dim vvar As New TList(Of TVariable), type1 As TClass
+        Dim type1 As TClass
 
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
-        NavTrm(frm1.SeqFrom, vvvar)
+        NavTrm(frm1.SeqFrom, arg1)
         type1 = PrjSetRef.GetTermType(frm1.SeqFrom)
         frm1.VarFrom.TypeVar = PrjSetRef.ElementType(type1)
         Debug.Assert(frm1.VarFrom.TypeVar IsNot Nothing)
 
-        vvar.Add(frm1.VarFrom)
-        vvvar.Insert(0, vvar)
-
         If frm1.CndFrom IsNot Nothing Then
 
-            NavTrm(frm1.CndFrom, vvvar)
+            NavTrm(frm1.CndFrom, arg1)
         End If
 
         If frm1.SelFrom IsNot Nothing Then
 
-            NavTrm(frm1.SelFrom, vvvar)
+            NavTrm(frm1.SelFrom, arg1)
         End If
 
         If frm1.TakeFrom IsNot Nothing Then
 
-            NavTrm(frm1.TakeFrom, vvvar)
+            NavTrm(frm1.TakeFrom, arg1)
         End If
-
-        vvvar.RemoveAt(0)
     End Sub
 
     Public Overrides Sub NavAggregate(aggr1 As TAggregate, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-        Dim vvar As New TList(Of TVariable), type1 As TClass
+        Dim type1 As TClass
 
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
-        NavTrm(aggr1.SeqAggr, vvvar)
+        NavTrm(aggr1.SeqAggr, arg1)
         type1 = PrjSetRef.GetTermType(aggr1.SeqAggr)
         aggr1.VarAggr.TypeVar = PrjSetRef.ElementType(type1)
         Debug.Assert(aggr1.VarAggr.TypeVar IsNot Nothing)
 
-        vvar.Add(aggr1.VarAggr)
-        vvvar.Insert(0, vvar)
-
-        NavTrm(aggr1.IntoAggr, vvvar)
-
-        vvvar.RemoveAt(0)
+        NavTrm(aggr1.IntoAggr, arg1)
     End Sub
 
     Public Overrides Sub NavFor(for1 As TFor, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
-        Dim vvar As New TList(Of TVariable), type1 As TClass
+        Dim type1 As TClass
 
         If for1.IdxFor IsNot Nothing Then
-            NavTrm(for1.IdxFor, vvvar)
+            NavTrm(for1.IdxFor, arg1)
         End If
 
         If for1.InVarFor IsNot Nothing Then
-            NavTrm(for1.InTrmFor, vvvar)
+            NavTrm(for1.InTrmFor, arg1)
             type1 = PrjSetRef.GetTermType(for1.InTrmFor)
             for1.InVarFor.TypeVar = PrjSetRef.ElementType(type1)
             Debug.Assert(for1.InVarFor.TypeVar IsNot Nothing)
-            vvar.Add(for1.InVarFor)
         End If
 
-        vvvar.Insert(0, vvar)
-        NavTrm(for1.FromFor, vvvar)
-        NavTrm(for1.ToFor, vvvar)
-        NavTrm(for1.StepFor, vvvar)
+        NavTrm(for1.FromFor, arg1)
+        NavTrm(for1.ToFor, arg1)
+        NavTrm(for1.StepFor, arg1)
 
-        NavStmt(for1.IniFor, vvvar)
-        NavTrm(for1.CndFor, vvvar)
-        NavStmt(for1.StepStmtFor, vvvar)
-        NavBlc(for1.BlcFor, vvvar)
-        vvvar.RemoveAt(0)
+        NavStmt(for1.IniFor, arg1)
+        NavTrm(for1.CndFor, arg1)
+        NavStmt(for1.StepStmtFor, arg1)
+        NavBlc(for1.BlcFor, arg1)
     End Sub
 
     Public Overrides Sub NavAsn(asn1 As TAssignment, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
         Dim app1 As TApply
 
-        NavLog(asn1.RelAsn, vvvar)
+        NavLog(asn1.RelAsn, arg1)
 
         If TypeOf asn1.RelAsn.ArgApp(0) Is TReference Then
             ' 左辺が変数参照の場合
@@ -854,10 +816,7 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub NavStmt(stmt1 As TStatement, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
         Dim try1 As TTry, with1 As TWith, with_sv As TWith
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
 
         Dim if1 As TIf
         Dim red1 As TReDim
@@ -865,15 +824,15 @@ Public Class TNaviSetRef
 
         If stmt1 IsNot Nothing Then
             If TypeOf stmt1 Is TAssignment Then
-                NavAsn(CType(stmt1, TAssignment), vvvar)
+                NavAsn(CType(stmt1, TAssignment), arg1)
             ElseIf TypeOf stmt1 Is TCall Then
-                NavTrm(CType(stmt1, TCall).AppCall, vvvar)
+                NavTrm(CType(stmt1, TCall).AppCall, arg1)
             ElseIf TypeOf stmt1 Is TVariableDeclaration Then
                 dcl1 = CType(stmt1, TVariableDeclaration)
                 ' for Call
                 For Each var1 In dcl1.VarDecl
                     If var1.InitVar IsNot Nothing Then
-                        NavTrm(var1.InitVar, vvvar)
+                        NavTrm(var1.InitVar, arg1)
 
                         If var1.TypeVar Is Nothing Then
                             var1.NoType = True
@@ -883,23 +842,23 @@ Public Class TNaviSetRef
                 Next
             ElseIf TypeOf stmt1 Is TReDim Then
                 red1 = CType(stmt1, TReDim)
-                NavTrm(red1.TrmReDim, vvvar)
+                NavTrm(red1.TrmReDim, arg1)
                 ' for Call
                 For Each trm_f In red1.DimReDim
-                    NavTrm(trm_f, vvvar)
+                    NavTrm(trm_f, arg1)
                 Next
             ElseIf TypeOf stmt1 Is TIf Then
                 if1 = CType(stmt1, TIf)
                 ' for Call
                 For Each if_blc In if1.IfBlc
-                    NavTrm(if_blc.CndIf, vvvar)
-                    NavBlc(if_blc.BlcIf, vvvar)
+                    NavTrm(if_blc.CndIf, arg1)
+                    NavBlc(if_blc.BlcIf, arg1)
                 Next
             ElseIf TypeOf stmt1 Is TBlock Then
-                NavBlc(CType(stmt1, TBlock), vvvar)
+                NavBlc(CType(stmt1, TBlock), arg1)
             ElseIf TypeOf stmt1 Is TSelect Then
 
-                NavSelect(CType(stmt1, TSelect), vvvar)
+                NavSelect(CType(stmt1, TSelect), arg1)
 
 
             ElseIf TypeOf stmt1 Is TCase Then
@@ -907,31 +866,29 @@ Public Class TNaviSetRef
 
             ElseIf TypeOf stmt1 Is TTry Then
                 try1 = CType(stmt1, TTry)
-                NavBlc(try1.BlcTry, vvvar)
-                vvvar.Insert(0, try1.VarCatch)
-                NavBlc(try1.BlcCatch, vvvar)
-                vvvar.RemoveAt(0)
+                NavBlc(try1.BlcTry, arg1)
+                NavBlc(try1.BlcCatch, arg1)
 
             ElseIf TypeOf stmt1 Is TWith Then
                 with1 = CType(stmt1, TWith)
-                NavTrm(with1.TermWith, vvvar)
+                NavTrm(with1.TermWith, arg1)
 
                 with_sv = CurrentWith
                 CurrentWith = with1
 
-                NavBlc(with1.BlcWith, vvvar)
+                NavBlc(with1.BlcWith, arg1)
 
                 CurrentWith = with_sv
 
             ElseIf TypeOf stmt1 Is TFor Then
 
-                NavFor(CType(stmt1, TFor), vvvar)
+                NavFor(CType(stmt1, TFor), arg1)
 
             ElseIf TypeOf stmt1 Is TReturn Then
-                NavTrm(CType(stmt1, TReturn).TrmRet, vvvar)
+                NavTrm(CType(stmt1, TReturn).TrmRet, arg1)
 
             ElseIf TypeOf stmt1 Is TThrow Then
-                NavTrm(CType(stmt1, TThrow).TrmThrow, vvvar)
+                NavTrm(CType(stmt1, TThrow).TrmThrow, arg1)
 
             ElseIf TypeOf stmt1 Is TComment Then
             Else
@@ -940,26 +897,15 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub NavBlc(blc1 As TBlock, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
         If blc1 IsNot Nothing Then
-            vvvar.Insert(0, blc1.VarBlc)
             ' for Call
             For Each stmt1 In blc1.StmtBlc
-                NavStmt(stmt1, vvvar)
+                NavStmt(stmt1, arg1)
             Next
-
-            vvvar.RemoveAt(0)
         End If
     End Sub
 
     Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-
-        vvvar = CType(arg1, TList(Of TList(Of TVariable)))
-
         Dim vvar As TList(Of TVariable)
 
         If fnc1 IsNot Nothing Then
@@ -973,38 +919,18 @@ Public Class TNaviSetRef
             vvar.AddRange(fnc1.ArgFnc)
             Debug.Assert(fnc1.ThisFnc IsNot Nothing)
             vvar.Add(fnc1.ThisFnc)
-            vvvar.Add(vvar)
-            NavBlc(fnc1.BlcFnc, vvvar)
-            vvvar.RemoveAt(vvvar.Count - 1)
+            NavBlc(fnc1.BlcFnc, arg1)
         End If
     End Sub
 
     Public Overrides Sub NavCla(cla1 As TClass, arg1 As Object)
-        Dim vvvar As TList(Of TList(Of TVariable))
-        Dim vsuper_cla As TList(Of TClass)
-
         If (cla1.FldCla.Count <> 0 OrElse cla1.FncCla.Count <> 0) AndAlso Not (cla1.GenCla IsNot Nothing AndAlso cla1.OrgCla Is Nothing) Then
             '  フィールド/メソッドの定義がある場合
-
-            vvvar = New TList(Of TList(Of TVariable))()
-
-            vvvar.Add(New TList(Of TVariable)(From x In PrjSetRef.SystemType.FldCla Select CType(x, TVariable)))
-            'vvvar.Add(New TList(Of TVariable)(From x In PrjSetRef.SystemType.FncCla Select CType(x, TVariable)))
-
-            vsuper_cla = New TList(Of TClass)()
-            vsuper_cla.AddRange(cla1.AllSuperCla)
-            vsuper_cla.Add(cla1)
-
-            ' for Add Add
-            For Each cla2 In vsuper_cla
-                vvvar.Add(New TList(Of TVariable)(From x In cla2.FldCla Select CType(x, TVariable)))
-                'vvvar.Add(New TList(Of TVariable)(From x In cla2.FncCla Select CType(x, TVariable)))
-            Next
 
             '  すべてのメソッドに対し
             For Each fnc1 In cla1.FncCla
                 CurFncPrj = fnc1
-                NavFnc(fnc1, vvvar)
+                NavFnc(fnc1, arg1)
                 CurFncPrj = Nothing
             Next
         End If

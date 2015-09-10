@@ -397,20 +397,77 @@ Public Class TProject
         End If
     End Sub
 
-    Public Function FindVariable(name1 As String, vvvar As TList(Of TList(Of TVariable))) As TVariable
-        Dim cla1 As TClass = Nothing
+    Public Function FindVariable(term As TTerm, name1 As String) As TVariable
+        Dim cla1 As TClass = Nothing, var1 As TVariable
 
-        ' for Find
-        For Each vvar In vvvar
-            ' for Find
-            For Each var1 In vvar
-                If var1.NameVar = name1 Then
-                    '  名前が一致する場合
-                    ' Debug.WriteLine("変数定義:{0}", ref1.NameRef);
-                    Return var1
-                End If
-            Next
-        Next
+        Dim vfld = (From fld In SystemType.FldCla Where fld.NameVar = name1).ToList()
+        If vfld.Count = 1 Then
+
+            Return vfld(0)
+        End If
+
+        Dim navi_up As New TNaviUp
+        Dim obj As Object
+
+        obj = navi_up.UpObj(term)
+        Do While obj IsNot Nothing
+
+            If TypeOf obj Is TFrom Then
+                With CType(obj, TFrom)
+                    If .VarFrom.NameVar = name1 Then
+                        Return .VarFrom
+                    End If
+                End With
+
+            ElseIf TypeOf obj Is TAggregate Then
+                With CType(obj, TAggregate)
+                    If .VarAggr.NameVar = name1 Then
+                        Return .VarAggr
+                    End If
+                End With
+
+            ElseIf TypeOf obj Is TFor Then
+                With CType(obj, TFor)
+                    If .InVarFor IsNot Nothing AndAlso .InVarFor.NameVar = name1 Then
+                        Return .InVarFor
+                    End If
+                End With
+
+            ElseIf TypeOf obj Is TTry Then
+                With CType(obj, TTry)
+                    For Each var1 In .VarCatch
+                        If var1.NameVar = name1 Then
+                            Return var1
+                        End If
+                    Next
+                End With
+
+            ElseIf TypeOf obj Is TBlock Then
+                With CType(obj, TBlock)
+                    For Each var1 In .VarBlc
+                        If var1.NameVar = name1 Then
+                            Return var1
+                        End If
+                    Next
+
+                End With
+
+            ElseIf TypeOf obj Is TFunction Then
+                With CType(obj, TFunction)
+                    For Each var1 In .ArgFnc
+                        If var1.NameVar = name1 Then
+                            Return var1
+                        End If
+                    Next
+
+                    If .ThisFnc.NameVar = name1 Then
+                        Return .ThisFnc
+                    End If
+                End With
+            End If
+
+            obj = navi_up.UpObj(obj)
+        Loop
 
         If dicGenCla.ContainsKey(name1) Then
             cla1 = dicGenCla(name1)
@@ -421,6 +478,7 @@ Public Class TProject
             cla1 = SimpleParameterizedClassTable(name1)
             Return cla1
         End If
+
         Return Nothing
     End Function
 
@@ -893,6 +951,9 @@ Public Class TProject
 
         ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
         MakeInstanceClassInitializer()
+
+        set_parent_stmt = New TNaviSetParentStmt()
+        set_parent_stmt.NavPrj(Me, Nothing)
 
         ' 変数参照を解決する
         set_ref = New TNaviSetRef()
