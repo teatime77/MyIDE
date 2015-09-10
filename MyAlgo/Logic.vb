@@ -292,6 +292,10 @@ Public Class TTerm
     Public Function IsLog() As Boolean
         Return IsOpr() OrElse IsRel()
     End Function
+
+    Public Function ProjectTrm() As TProject
+        Return FunctionTrm.ClaFnc.ProjectCla
+    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TVariable
@@ -1023,6 +1027,10 @@ Public Class TStatement
         End Select
 
         Return False
+    End Function
+
+    Public Function ProjectStmt() As TProject
+        Return FunctionStmt.ClaFnc.ProjectCla
     End Function
 End Class
 

@@ -4,7 +4,6 @@
 Public Class TNaviPrj
     Public RefCnt As Integer
     Public ErrNav As Boolean = False
-    Public CurrentWith As TWith
 
     Public Sub IncRefCnt(ref1 As TReference)
         RefCnt += 1
@@ -74,7 +73,6 @@ Public Class TNaviPrj
         arg1 = StartDot(dot1, arg1)
 
         If dot1.TrmDot Is Nothing Then
-            '            Debug.Assert(CurrentWith IsNot Nothing)
         Else
             NavTrm(dot1.TrmDot, arg1)
         End If
@@ -277,15 +275,8 @@ Public Class TNaviPrj
     End Sub
 
     Public Overridable Sub NavWith(with1 As TWith, arg1 As Object)
-        Dim with_sv As TWith
-
-        with_sv = CurrentWith
-        CurrentWith = with1
-
         NavTrm(with1.TermWith, arg1)
         NavStmt(with1.BlcWith, arg1)
-
-        CurrentWith = with_sv
     End Sub
 
     Public Overridable Sub NavVarDecl(dcl1 As TVariableDeclaration, arg1 As Object)
@@ -389,7 +380,6 @@ Public Class TNaviTest
     Public Overrides Sub NavDot(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
         If dot1.TrmDot Is Nothing Then
-            Debug.Assert(CurrentWith IsNot Nothing)
         Else
             NavTrm(dot1.TrmDot, arg1)
         End If
@@ -486,14 +476,25 @@ Public Class TNaviSetRef
         IncRefCnt(dot1)
 
         If dot1.TrmDot Is Nothing Then
-            Debug.Assert(CurrentWith IsNot Nothing)
+            Dim with1 As TWith = Nothing
 
-            dot1.TypeDot = dot1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(CurrentWith.TermWith)
+            Dim up_obj As Object = TNaviUp.UpObj(dot1)
+            Do While up_obj IsNot Nothing
+                If TypeOf up_obj Is TWith Then
+                    with1 = CType(up_obj, TWith)
+                    Exit Do
+                End If
+
+                up_obj = TNaviUp.UpObj(up_obj)
+            Loop
+            Debug.Assert(with1 IsNot Nothing)
+
+            dot1.TypeDot = dot1.ProjectTrm().GetTermType(with1.TermWith)
         Else
 
             NavTrm(dot1.TrmDot, arg1)
 
-            dot1.TypeDot = dot1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(dot1.TrmDot)
+            dot1.TypeDot = dot1.ProjectTrm().GetTermType(dot1.TrmDot)
         End If
 
         If dot1.TypeDot Is Nothing Then
@@ -510,8 +511,8 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
-            Debug.Assert(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType, dot1.NameRef, Nothing)
+            Debug.Assert(dot1.ProjectTrm().ArrayType IsNot Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(dot1.ProjectTrm().ArrayType, dot1.NameRef, Nothing)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, Nothing)
         End If
@@ -531,8 +532,8 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
-            Debug.Assert(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType, dot1.NameRef, varg)
+            Debug.Assert(dot1.ProjectTrm().ArrayType IsNot Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(dot1.ProjectTrm().ArrayType, dot1.NameRef, varg)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, varg)
         End If
@@ -557,7 +558,7 @@ Public Class TNaviSetRef
             ref1.VarRef = TProject.FindFieldFunction(ref1.FunctionTrm.ClaFnc, ref1.NameRef, Nothing)
             If ref1.VarRef Is Nothing Then
 
-                ref1.VarRef = ref1.FunctionTrm.ClaFnc.ProjectCla.FindVariable(ref1, ref1.NameRef)
+                ref1.VarRef = ref1.ProjectTrm().FindVariable(ref1, ref1.NameRef)
                 If ref1.VarRef Is Nothing Then
                     Debug.WriteLine("変数未定義:{0}", ref1.NameRef)
                 End If
@@ -611,7 +612,7 @@ Public Class TNaviSetRef
                         If ref1.VarRef Is Nothing Then
 
                             ' 演算子オーバーロード関数を得る
-                            fnc1 = app1.FunctionTrm.ClaFnc.ProjectCla.GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
+                            fnc1 = app1.ProjectTrm().GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
                             If fnc1 IsNot Nothing Then
                                 ' 演算子オーバーロード関数を得られた場合
 
@@ -632,7 +633,7 @@ Public Class TNaviSetRef
                                         name1 = "__Mod"
                                 End Select
 
-                                Dim vvar = (From fnc In app1.FunctionTrm.ClaFnc.ProjectCla.SystemType.FncCla Where fnc.NameVar = name1).ToList()
+                                Dim vvar = (From fnc In app1.ProjectTrm().SystemType.FncCla Where fnc.NameVar = name1).ToList()
                                 If vvar.Count <> 1 Then
 
                                     Debug.WriteLine("演算子未定義:{0}", ref1.NameRef)
@@ -667,7 +668,7 @@ Public Class TNaviSetRef
                         If Not (TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction) Then
                             ' 関数呼び出しでない場合
 
-                            cla1 = app1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(app1.FncApp)
+                            cla1 = app1.ProjectTrm().GetTermType(app1.FncApp)
                             Debug.Assert(cla1 IsNot Nothing)
 
                             If cla1.NameCla() = "String" Then
@@ -692,7 +693,7 @@ Public Class TNaviSetRef
                                 Debug.WriteLine("New 未定義 {0} {1}", new_ref.NameRef, app1.ArgApp.Count)
                             End If
                         Else
-                            new_ref.VarRef = app1.FunctionTrm.ClaFnc.ProjectCla.ArrayMaker
+                            new_ref.VarRef = app1.ProjectTrm().ArrayMaker
                         End If
 
                     Case EToken.eBaseCall
@@ -736,8 +737,8 @@ Public Class TNaviSetRef
         Dim type1 As TClass
 
         NavTrm(frm1.SeqFrom, arg1)
-        type1 = frm1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(frm1.SeqFrom)
-        frm1.VarFrom.TypeVar = frm1.FunctionTrm.ClaFnc.ProjectCla.ElementType(type1)
+        type1 = frm1.ProjectTrm().GetTermType(frm1.SeqFrom)
+        frm1.VarFrom.TypeVar = frm1.ProjectTrm().ElementType(type1)
         Debug.Assert(frm1.VarFrom.TypeVar IsNot Nothing)
 
         If frm1.CndFrom IsNot Nothing Then
@@ -760,8 +761,8 @@ Public Class TNaviSetRef
         Dim type1 As TClass
 
         NavTrm(aggr1.SeqAggr, arg1)
-        type1 = aggr1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(aggr1.SeqAggr)
-        aggr1.VarAggr.TypeVar = aggr1.FunctionTrm.ClaFnc.ProjectCla.ElementType(type1)
+        type1 = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
+        aggr1.VarAggr.TypeVar = aggr1.ProjectTrm().ElementType(type1)
         Debug.Assert(aggr1.VarAggr.TypeVar IsNot Nothing)
 
         NavTrm(aggr1.IntoAggr, arg1)
@@ -776,8 +777,8 @@ Public Class TNaviSetRef
 
         If for1.InVarFor IsNot Nothing Then
             NavTrm(for1.InTrmFor, arg1)
-            type1 = for1.FunctionStmt.ClaFnc.ProjectCla.GetTermType(for1.InTrmFor)
-            for1.InVarFor.TypeVar = for1.FunctionStmt.ClaFnc.ProjectCla.ElementType(type1)
+            type1 = for1.ProjectStmt().GetTermType(for1.InTrmFor)
+            for1.InVarFor.TypeVar = for1.ProjectStmt().ElementType(type1)
             Debug.Assert(for1.InVarFor.TypeVar IsNot Nothing)
         End If
 
@@ -814,7 +815,7 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub NavStmt(stmt1 As TStatement, arg1 As Object)
-        Dim try1 As TTry, with1 As TWith, with_sv As TWith
+        Dim try1 As TTry, with1 As TWith
 
         Dim if1 As TIf
         Dim red1 As TReDim
@@ -871,13 +872,7 @@ Public Class TNaviSetRef
                 with1 = CType(stmt1, TWith)
                 NavTrm(with1.TermWith, arg1)
 
-                with_sv = CurrentWith
-                CurrentWith = with1
-
                 NavBlc(with1.BlcWith, arg1)
-
-                CurrentWith = with_sv
-
             ElseIf TypeOf stmt1 Is TFor Then
 
                 NavFor(CType(stmt1, TFor), arg1)
@@ -894,17 +889,7 @@ Public Class TNaviSetRef
         End If
     End Sub
 
-    Public Overrides Sub NavBlc(blc1 As TBlock, arg1 As Object)
-        If blc1 IsNot Nothing Then
-            ' for Call
-            For Each stmt1 In blc1.StmtBlc
-                NavStmt(stmt1, arg1)
-            Next
-        End If
-    End Sub
-
     Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
-        Dim vvar As TList(Of TVariable)
 
         If fnc1 IsNot Nothing Then
 
@@ -913,22 +898,11 @@ Public Class TNaviSetRef
                 Debug.Assert(fnc1.ImplFnc IsNot Nothing)
             End If
 
-            vvar = New TList(Of TVariable)()
-            vvar.AddRange(fnc1.ArgFnc)
             Debug.Assert(fnc1.ThisFnc IsNot Nothing)
-            vvar.Add(fnc1.ThisFnc)
-            NavBlc(fnc1.BlcFnc, arg1)
-        End If
-    End Sub
+            If fnc1.BlcFnc IsNot Nothing Then
 
-    Public Overrides Sub NavCla(cla1 As TClass, arg1 As Object)
-        If (cla1.FldCla.Count <> 0 OrElse cla1.FncCla.Count <> 0) AndAlso Not (cla1.GenCla IsNot Nothing AndAlso cla1.OrgCla Is Nothing) Then
-            '  フィールド/メソッドの定義がある場合
-
-            '  すべてのメソッドに対し
-            For Each fnc1 In cla1.FncCla
-                NavFnc(fnc1, arg1)
-            Next
+                NavStmt(fnc1.BlcFnc, arg1)
+            End If
         End If
     End Sub
 End Class
@@ -975,7 +949,6 @@ Public Class TNaviSetRefFnc
         cur_fnc.RefFnc.Add(dot1)
 
         If dot1.TrmDot Is Nothing Then
-            Debug.Assert(CurrentWith IsNot Nothing)
         Else
             NavTrm(dot1.TrmDot, arg1)
         End If
@@ -1028,7 +1001,6 @@ Public Class TNaviSetCall
         End If
 
         If dot1.TrmDot Is Nothing Then
-            Debug.Assert(CurrentWith IsNot Nothing)
         Else
             NavTrm(dot1.TrmDot, arg1)
         End If
@@ -1192,7 +1164,7 @@ End Class
 
 ' -------------------------------------------------------------------------------- TNaviUp
 Public Class TNaviUp
-    Public Function UpObj(obj As Object) As Object
+    Public Shared Function UpObj(obj As Object) As Object
         If TypeOf obj Is TVariable Then
             Return CType(obj, TVariable).UpVar
         ElseIf TypeOf obj Is TTerm Then

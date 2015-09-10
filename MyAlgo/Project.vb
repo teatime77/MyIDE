@@ -406,10 +406,9 @@ Public Class TProject
             Return vfld(0)
         End If
 
-        Dim navi_up As New TNaviUp
         Dim obj As Object
 
-        obj = navi_up.UpObj(term)
+        obj = TNaviUp.UpObj(term)
         Do While obj IsNot Nothing
 
             If TypeOf obj Is TFrom Then
@@ -466,7 +465,7 @@ Public Class TProject
                 End With
             End If
 
-            obj = navi_up.UpObj(obj)
+            obj = TNaviUp.UpObj(obj)
         Loop
 
         If dicGenCla.ContainsKey(name1) Then
