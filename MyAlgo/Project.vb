@@ -80,7 +80,7 @@ Public Class TProject
 
         Debug.Assert(GetCla(name1) Is Nothing)
 
-        cla1 = New TClass(Nothing, name1)
+        cla1 = New TClass(Me, Nothing, name1)
         SimpleParameterizedClassList.Add(cla1)
         SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
 
@@ -165,9 +165,9 @@ Public Class TProject
 
         ' 新しくジェネリック型のクラスを作る
         If TypeOf cla1 Is TDelegate Then
-            cla3 = New TDelegate(cla1.NameCla())
+            cla3 = New TDelegate(Me, cla1.NameCla())
         Else
-            cla3 = New TClass(cla1.NameCla())
+            cla3 = New TClass(Me, cla1.NameCla())
         End If
         cla3.KndCla = cla1.KndCla
         cla3.GenericType = EGeneric.SpecializedClass
@@ -234,7 +234,7 @@ Public Class TProject
         End If
 
         '  新たに型を作る
-        cla3 = TClass.MakeArr(cla1, dim_cnt)
+        cla3 = TClass.MakeArray(cla1, dim_cnt)
         v.Add(cla3)
         ArrayClassList.Add(cla3)
 
@@ -832,7 +832,7 @@ Public Class TProject
                     If is_delegate Then
                         Debug.Assert(GetCla(id1.StrTkn) Is Nothing)
 
-                        cla1 = New TDelegate(id1.StrTkn)
+                        cla1 = New TDelegate(Me, id1.StrTkn)
                         SimpleParameterizedClassList.Add(cla1)
                         SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
                     Else
@@ -848,7 +848,7 @@ Public Class TProject
                         Do While k1 < v.Count
                             id2 = v(k1)
 
-                            cla2 = New TClass(id2.StrTkn)
+                            cla2 = New TClass(Me, id2.StrTkn)
                             cla2.IsParamCla = True
                             cla2.GenericType = EGeneric.ArgumentClass
                             cla1.GenCla.Add(cla2)
@@ -952,12 +952,14 @@ Public Class TProject
         ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
         MakeInstanceClassInitializer()
 
-        set_parent_stmt = New TNaviSetParentStmt()
+        set_parent_stmt = New TNaviSetParentStmt
         set_parent_stmt.NavPrj(Me, Nothing)
+
+        Dim set_function As New TNaviSetFunction
+        set_function.NavPrj(Me, Nothing)
 
         ' 変数参照を解決する
         set_ref = New TNaviSetRef()
-        set_ref.PrjSetRef = Me
         set_ref.NavPrj(Me, Nothing)
         Debug.Assert(Not set_ref.ErrNav)
 
@@ -1123,7 +1125,7 @@ Public Class TProject
                     Case EToken.eAddressOf
                         ref1 = CType(app1.ArgApp(0), TReference)
                         Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
-                        Return New TDelegate(CType(ref1.VarRef, TFunction))
+                        Return New TDelegate(Me, CType(ref1.VarRef, TFunction))
 
                     Case EToken.eGetType
                         Return TypeType

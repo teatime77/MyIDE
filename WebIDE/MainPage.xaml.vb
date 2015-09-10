@@ -104,7 +104,7 @@ Partial Public Class MainPage
 
         ' オリジナルのソースを出力する
 
-        data_flow = New TDataflow()
+        data_flow = New TDataflow(prj1)
         data_flow.SetChangeableFldList(prj1)
 
         For Each changeable_fld In data_flow.ChangeableFldList
@@ -144,7 +144,7 @@ Partial Public Class MainPage
         nav2.NavPrj(prj1, Nothing)
 
         '-------------------------------------------------- データフロー解析のタイマー表示
-        gDataflow = New TDataflow()
+        gDataflow = New TDataflow(gPrj)
         gDataflow.SetChangeableFldList(gPrj)
         gDataflow.ChangeableFld = gDataflow.ChangeableFldList(0)
         EnumAnalyzeChangeableFld = gDataflow.AnalyzeChangeableFld()

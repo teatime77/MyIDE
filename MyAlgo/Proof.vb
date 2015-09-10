@@ -72,6 +72,7 @@ Public Class TDataflow
     Public Const PrevPrefix As String = "_Prev"
     Public Const CurrentPrefix As String = "_current"
     Public Const ChildPrefix As String = "_child"
+    Public ProjectDtf As TProject
     Public Changed As Boolean
     Public RuleFnc As TFunction
     Public DoneVar As New TList(Of TVariable)
@@ -95,6 +96,10 @@ Public Class TDataflow
     Public MaxLevel As Integer
     Public dicAffectedRefLevelSelf As Dictionary(Of Integer, TList(Of TAffectedRef))
     Public dicAffectedRefLevel As Dictionary(Of Integer, TList(Of TAffectedRef))
+
+    Public Sub New(prj1 As TProject)
+        ProjectDtf = prj1
+    End Sub
 
     Public Shared Function UpStmt(obj1 As Object) As Object
         If obj1 Is Nothing Then
@@ -719,7 +724,7 @@ Public Class TDataflow
         RuleCodeGen = New TBasicCodeGenerator(prj1)
 
         self_var = RuleCp.ArgFnc(0)
-        sync_var = New TVariable("_sync", New TClass(SyncClassName))
+        sync_var = New TVariable("_sync", New TClass(ProjectDtf, SyncClassName))
 
         RuleCp.BlcFnc.StmtBlc(0).BeforeSrc = String.Format("Dim {0} As {1} = CType(_sync.SelfSync,{1})", self_var.NameVar, self_var.TypeVar.NameVar)
 

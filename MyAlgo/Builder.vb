@@ -38,7 +38,7 @@ Public Class TBuilder
             src2 = prj1.SrcPrj(2)
             Debug.Print("---------------------------------------------------- 不変条件 {0}", prj1.SourceFileNameList(2))
 
-            data_flow = New TDataflow()
+            data_flow = New TDataflow(prj1)
             data_flow.SetChangeableFldList(prj1)
 
             For Each changeable_fld In data_flow.ChangeableFldList

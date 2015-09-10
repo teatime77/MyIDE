@@ -481,8 +481,6 @@ End Class
 ' -------------------------------------------------------------------------------- TNaviSetRef
 Public Class TNaviSetRef
     Inherits TNaviPrj
-    Public PrjSetRef As TProject
-    Public CurFncPrj As TFunction
 
     Public Sub NavDotLeft(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
@@ -490,12 +488,12 @@ Public Class TNaviSetRef
         If dot1.TrmDot Is Nothing Then
             Debug.Assert(CurrentWith IsNot Nothing)
 
-            dot1.TypeDot = PrjSetRef.GetTermType(CurrentWith.TermWith)
+            dot1.TypeDot = dot1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(CurrentWith.TermWith)
         Else
 
             NavTrm(dot1.TrmDot, arg1)
 
-            dot1.TypeDot = PrjSetRef.GetTermType(dot1.TrmDot)
+            dot1.TypeDot = dot1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(dot1.TrmDot)
         End If
 
         If dot1.TypeDot Is Nothing Then
@@ -512,8 +510,8 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
-            Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, Nothing)
+            Debug.Assert(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType IsNot Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType, dot1.NameRef, Nothing)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, Nothing)
         End If
@@ -533,8 +531,8 @@ Public Class TNaviSetRef
         NavDotLeft(dot1, arg1)
 
         If dot1.TypeDot.IsArray() Then
-			Debug.Assert(PrjSetRef.ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(PrjSetRef.ArrayType, dot1.NameRef, varg)
+            Debug.Assert(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType IsNot Nothing)
+            dot1.VarRef = TProject.FindFieldFunction(dot1.FunctionTrm.ClaFnc.ProjectCla.ArrayType, dot1.NameRef, varg)
         Else
             dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, varg)
         End If
@@ -556,10 +554,10 @@ Public Class TNaviSetRef
     Public Overrides Sub NavRef(ref1 As TReference, arg1 As Object)
         IncRefCnt(ref1)
         If ref1.VarRef Is Nothing Then
-            ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, Nothing)
+            ref1.VarRef = TProject.FindFieldFunction(ref1.FunctionTrm.ClaFnc, ref1.NameRef, Nothing)
             If ref1.VarRef Is Nothing Then
 
-                ref1.VarRef = PrjSetRef.FindVariable(ref1, ref1.NameRef)
+                ref1.VarRef = ref1.FunctionTrm.ClaFnc.ProjectCla.FindVariable(ref1, ref1.NameRef)
                 If ref1.VarRef Is Nothing Then
                     Debug.WriteLine("変数未定義:{0}", ref1.NameRef)
                 End If
@@ -579,7 +577,7 @@ Public Class TNaviSetRef
                     ref1 = CType(app1.ArgApp(0), TReference)
 
                     IncRefCnt(ref1)
-                    ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, Nothing)
+                    ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, ref1.NameRef, Nothing)
                     If ref1.VarRef Is Nothing Then
                         Debug.Print("Address Of 不明のメソッド {0}", ref1.NameRef)
                         Debug.Assert(False)
@@ -613,7 +611,7 @@ Public Class TNaviSetRef
                         If ref1.VarRef Is Nothing Then
 
                             ' 演算子オーバーロード関数を得る
-                            fnc1 = PrjSetRef.GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
+                            fnc1 = app1.FunctionTrm.ClaFnc.ProjectCla.GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
                             If fnc1 IsNot Nothing Then
                                 ' 演算子オーバーロード関数を得られた場合
 
@@ -634,7 +632,7 @@ Public Class TNaviSetRef
                                         name1 = "__Mod"
                                 End Select
 
-                                Dim vvar = (From fnc In PrjSetRef.SystemType.FncCla Where fnc.NameVar = name1).ToList()
+                                Dim vvar = (From fnc In app1.FunctionTrm.ClaFnc.ProjectCla.SystemType.FncCla Where fnc.NameVar = name1).ToList()
                                 If vvar.Count <> 1 Then
 
                                     Debug.WriteLine("演算子未定義:{0}", ref1.NameRef)
@@ -654,7 +652,7 @@ Public Class TNaviSetRef
                             NavDotMethod(CType(app1.FncApp, TDot), arg1, app1.ArgApp)
                         ElseIf TypeOf app1.FncApp Is TReference Then
                             ref1 = CType(app1.FncApp, TReference)
-                            ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc, ref1.NameRef, app1.ArgApp)
+                            ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, ref1.NameRef, app1.ArgApp)
                             If ref1.VarRef IsNot Nothing Then
                                 IncRefCnt(ref1)
                             Else
@@ -669,7 +667,7 @@ Public Class TNaviSetRef
                         If Not (TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction) Then
                             ' 関数呼び出しでない場合
 
-                            cla1 = PrjSetRef.GetTermType(app1.FncApp)
+                            cla1 = app1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(app1.FncApp)
                             Debug.Assert(cla1 IsNot Nothing)
 
                             If cla1.NameCla() = "String" Then
@@ -694,12 +692,12 @@ Public Class TNaviSetRef
                                 Debug.WriteLine("New 未定義 {0} {1}", new_ref.NameRef, app1.ArgApp.Count)
                             End If
                         Else
-                            new_ref.VarRef = PrjSetRef.ArrayMaker
+                            new_ref.VarRef = app1.FunctionTrm.ClaFnc.ProjectCla.ArrayMaker
                         End If
 
                     Case EToken.eBaseCall
                         ref1 = CType(app1.FncApp, TReference)
-                        ref1.VarRef = TProject.FindFieldFunction(CurFncPrj.ClaFnc.SuperCla(0), ref1.NameRef, app1.ArgApp)
+                        ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc.SuperCla(0), ref1.NameRef, app1.ArgApp)
                         Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
                         IncRefCnt(ref1)
 
@@ -710,7 +708,7 @@ Public Class TNaviSetRef
                 Select Case app1.TypeApp
                     Case EToken.eBaseNew
 
-                        spr_cla = CurFncPrj.ClaFnc.SuperCla(0)
+                        spr_cla = app1.FunctionTrm.ClaFnc.SuperCla(0)
                         base_new = New TReference("New@" + spr_cla.NameCla())
                         base_new.VarRef = TProject.FindNew(spr_cla, app1.ArgApp)
                         If base_new.VarRef Is Nothing Then
@@ -738,8 +736,8 @@ Public Class TNaviSetRef
         Dim type1 As TClass
 
         NavTrm(frm1.SeqFrom, arg1)
-        type1 = PrjSetRef.GetTermType(frm1.SeqFrom)
-        frm1.VarFrom.TypeVar = PrjSetRef.ElementType(type1)
+        type1 = frm1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(frm1.SeqFrom)
+        frm1.VarFrom.TypeVar = frm1.FunctionTrm.ClaFnc.ProjectCla.ElementType(type1)
         Debug.Assert(frm1.VarFrom.TypeVar IsNot Nothing)
 
         If frm1.CndFrom IsNot Nothing Then
@@ -762,8 +760,8 @@ Public Class TNaviSetRef
         Dim type1 As TClass
 
         NavTrm(aggr1.SeqAggr, arg1)
-        type1 = PrjSetRef.GetTermType(aggr1.SeqAggr)
-        aggr1.VarAggr.TypeVar = PrjSetRef.ElementType(type1)
+        type1 = aggr1.FunctionTrm.ClaFnc.ProjectCla.GetTermType(aggr1.SeqAggr)
+        aggr1.VarAggr.TypeVar = aggr1.FunctionTrm.ClaFnc.ProjectCla.ElementType(type1)
         Debug.Assert(aggr1.VarAggr.TypeVar IsNot Nothing)
 
         NavTrm(aggr1.IntoAggr, arg1)
@@ -778,8 +776,8 @@ Public Class TNaviSetRef
 
         If for1.InVarFor IsNot Nothing Then
             NavTrm(for1.InTrmFor, arg1)
-            type1 = PrjSetRef.GetTermType(for1.InTrmFor)
-            for1.InVarFor.TypeVar = PrjSetRef.ElementType(type1)
+            type1 = for1.FunctionStmt.ClaFnc.ProjectCla.GetTermType(for1.InTrmFor)
+            for1.InVarFor.TypeVar = for1.FunctionStmt.ClaFnc.ProjectCla.ElementType(type1)
             Debug.Assert(for1.InVarFor.TypeVar IsNot Nothing)
         End If
 
@@ -929,9 +927,7 @@ Public Class TNaviSetRef
 
             '  すべてのメソッドに対し
             For Each fnc1 In cla1.FncCla
-                CurFncPrj = fnc1
                 NavFnc(fnc1, arg1)
-                CurFncPrj = Nothing
             Next
         End If
     End Sub
@@ -1056,6 +1052,34 @@ Public Class TNaviSetCall
         End If
     End Sub
 
+End Class
+
+' -------------------------------------------------------------------------------- TNaviSetFunction
+Public Class TNaviSetFunction
+    Inherits TNaviPrj
+    Public FunctionNavi As TFunction
+
+    Public Overrides Function StartTerm(trm1 As TTerm, arg1 As Object) As Object
+        If trm1 IsNot Nothing Then
+            trm1.FunctionTrm = FunctionNavi
+        End If
+
+        Return arg1
+    End Function
+
+    Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
+        If stmt1 IsNot Nothing Then
+            stmt1.FunctionStmt = FunctionNavi
+        End If
+
+        Return arg1
+    End Function
+
+    Public Overrides Function StartFnc(fnc1 As TFunction, arg1 As Object) As Object
+        FunctionNavi = fnc1
+
+        Return arg1
+    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviSetParentStmt

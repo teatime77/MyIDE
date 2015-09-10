@@ -245,6 +245,7 @@ End Class
 Public Class TTerm
     Public UpTrm As Object
     Public TokenList As List(Of TToken)
+    Public FunctionTrm As TFunction
 
     Public Sub New()
     End Sub
@@ -366,6 +367,7 @@ End Class
 ' -------------------------------------------------------------------------------- TClass
 Public Class TClass
     Inherits TVariable
+    Public ProjectCla As TProject
     Public KndCla As EClass = EClass.eClassCla
     Public OrgCla As TClass
     Public GenCla As TList(Of TClass)
@@ -387,12 +389,14 @@ Public Class TClass
         Debug.WriteLine("@a")
     End Sub
 
-    Public Sub New(name1 As String)
+    Public Sub New(prj1 As TProject, name1 As String)
         MyBase.New(name1, CType(Nothing, TClass))
+        ProjectCla = prj1
     End Sub
 
-    Public Sub New(mod1 As TModifier, name1 As String)
+    Public Sub New(prj1 As TProject, mod1 As TModifier, name1 As String)
         MyBase.New(name1, CType(Nothing, TClass))
+        ProjectCla = prj1
         ModVar = mod1
     End Sub
 
@@ -416,11 +420,11 @@ Public Class TClass
         fld.ClaFld = Me
     End Sub
 
-    Public Shared Function MakeArr(cla1 As TClass, dim1 As Integer) As TClass
+    Public Shared Function MakeArray(cla1 As TClass, dim1 As Integer) As TClass
         Dim cla2 As TClass
 
         Debug.Assert(cla1 IsNot Nothing)
-        cla2 = New TClass("Array")
+        cla2 = New TClass(cla1.ProjectCla, "Array")
         cla2.GenCla = New TList(Of TClass)()
         cla2.GenCla.Add(cla1)
         cla2.DimCla = dim1
@@ -531,12 +535,12 @@ Public Class TDelegate
     Public RetDlg As TClass
     Public ArgDlg As New TList(Of TVariable)
 
-    Public Sub New(name1 As String)
-        MyBase.New(name1)
+    Public Sub New(prj1 As TProject, name1 As String)
+        MyBase.New(prj1, name1)
     End Sub
 
-    Public Sub New(fnc1 As TFunction)
-        MyBase.New("Delegate@" + fnc1.NameVar)
+    Public Sub New(prj1 As TProject, fnc1 As TFunction)
+        MyBase.New(prj1, "Delegate@" + fnc1.NameVar)
         RetDlg = fnc1.RetType
         ArgDlg = New TList(Of TVariable)(fnc1.ArgFnc)
     End Sub
@@ -1003,6 +1007,7 @@ Public Class TStatement
 
     Public TokenList As List(Of TTokenLine)
     Public TabStmt As Integer
+    Public FunctionStmt As TFunction
 
     Public Sub New()
         StmtIdx = StmtCnt
