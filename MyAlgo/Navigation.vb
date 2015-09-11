@@ -30,6 +30,10 @@ Public Class TNaviPrj
         Return arg1
     End Function
 
+    Public Overridable Function StartAsn(asn1 As TAssignment, arg1 As Object) As Object
+        Return arg1
+    End Function
+
     Public Overridable Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
         Return arg1
     End Function
@@ -244,10 +248,8 @@ Public Class TNaviPrj
     End Sub
 
     Public Overridable Sub NavAsn(asn1 As TAssignment, arg1 As Object)
+        arg1 = StartAsn(asn1, arg1)
         NavTrm(asn1.RelAsn, arg1)
-        If TypeOf asn1.RelAsn.ArgApp(0) Is TReference Then
-            CType(asn1.RelAsn.ArgApp(0), TReference).DefRef = True
-        End If
     End Sub
 
     Public Overridable Sub NavCall(call1 As TCall, arg1 As Object)
@@ -792,28 +794,6 @@ Public Class TNaviSetRef
         NavBlc(for1.BlcFor, arg1)
     End Sub
 
-    Public Overrides Sub NavAsn(asn1 As TAssignment, arg1 As Object)
-        Dim app1 As TApply
-
-        NavLog(asn1.RelAsn, arg1)
-
-        If TypeOf asn1.RelAsn.ArgApp(0) Is TReference Then
-            ' 左辺が変数参照の場合
-
-            CType(asn1.RelAsn.ArgApp(0), TReference).DefRef = True
-        Else
-            ' 左辺が関数呼び出しの場合
-
-            Debug.Assert(asn1.RelAsn.ArgApp(0).IsApp())
-            app1 = CType(asn1.RelAsn.ArgApp(0), TApply)
-
-            Debug.Assert(app1.KndApp = EApply.eArrayApp OrElse app1.KndApp = EApply.eListApp)
-            Debug.Assert(TypeOf app1.FncApp Is TReference)
-
-            CType(app1.FncApp, TReference).DefRef = True
-        End If
-    End Sub
-
     Public Overrides Sub NavStmt(stmt1 As TStatement, arg1 As Object)
         Dim try1 As TTry, with1 As TWith
 
@@ -889,22 +869,41 @@ Public Class TNaviSetRef
         End If
     End Sub
 
-    Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
-
-        If fnc1 IsNot Nothing Then
-
-            If fnc1.InterfaceFnc IsNot Nothing Then
-                fnc1.ImplFnc.VarRef = TProject.FindFieldFunction(fnc1.InterfaceFnc, fnc1.ImplFnc.NameRef, Nothing)
-                Debug.Assert(fnc1.ImplFnc IsNot Nothing)
-            End If
-
-            Debug.Assert(fnc1.ThisFnc IsNot Nothing)
-            If fnc1.BlcFnc IsNot Nothing Then
-
-                NavStmt(fnc1.BlcFnc, arg1)
-            End If
+    Public Overrides Function StartFnc(fnc1 As TFunction, arg1 As Object) As Object
+        If fnc1.InterfaceFnc IsNot Nothing Then
+            fnc1.ImplFnc.VarRef = TProject.FindFieldFunction(fnc1.InterfaceFnc, fnc1.ImplFnc.NameRef, Nothing)
+            Debug.Assert(fnc1.ImplFnc IsNot Nothing)
         End If
-    End Sub
+
+        Debug.Assert(fnc1.ThisFnc IsNot Nothing)
+        Return arg1
+    End Function
+End Class
+
+
+' -------------------------------------------------------------------------------- TNaviSetDefRef
+Public Class TNaviSetDefRef
+    Inherits TNaviPrj
+
+    Public Overrides Function StartAsn(asn1 As TAssignment, arg1 As Object) As Object
+        If TypeOf asn1.RelAsn.ArgApp(0) Is TReference Then
+            ' 左辺が変数参照の場合
+
+            CType(asn1.RelAsn.ArgApp(0), TReference).DefRef = True
+        Else
+            ' 左辺が関数呼び出しの場合
+
+            Debug.Assert(asn1.RelAsn.ArgApp(0).IsApp())
+            Dim app1 As TApply = CType(asn1.RelAsn.ArgApp(0), TApply)
+
+            Debug.Assert(app1.KndApp = EApply.eArrayApp OrElse app1.KndApp = EApply.eListApp)
+            Debug.Assert(TypeOf app1.FncApp Is TReference)
+
+            CType(app1.FncApp, TReference).DefRef = True
+        End If
+
+        Return arg1
+    End Function
 End Class
 
 

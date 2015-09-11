@@ -966,6 +966,10 @@ Public Class TProject
         Dim navi_set_label = New TNaviSetLabel()
         navi_set_label.NavPrj(Me, Nothing)
 
+        ' DefRefをセットする。
+        Dim set_def_ref = New TNaviSetDefRef()
+        set_def_ref.NavPrj(Me, Nothing)
+
         set_var_ref = New TNaviSetVarRef()
         set_var_ref.NavPrj(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)
@@ -1040,99 +1044,104 @@ Public Class TProject
     End Sub
 
     Public Function GetTermType(trm1 As TTerm) As TClass
-        Dim ref1 As TReference
-        Dim app1 As TApply
-        Dim cns1 As TConstant
-        Dim fnc1 As TFunction
         Dim cla1 As TClass, cla2 As TClass
-        Dim frm1 As TFrom
 
         If trm1 IsNot Nothing Then
             If TypeOf trm1 Is TConstant Then
-                cns1 = CType(trm1, TConstant)
-                Select Case cns1.TypeAtm
-                    Case EToken.eString
-                        Return StringType
-                    Case EToken.eInt, EToken.eHex
-                        Return IntType
-                    Case EToken.eChar
-                        Return CharType
-                    Case Else
-                        Debug.WriteLine("@h")
-                        Return Nothing
-                End Select
+                With CType(trm1, TConstant)
+
+                    Select Case .TypeAtm
+                        Case EToken.eString
+                            Return StringType
+                        Case EToken.eInt, EToken.eHex
+                            Return IntType
+                        Case EToken.eChar
+                            Return CharType
+                        Case Else
+                            Debug.WriteLine("@h")
+                            Return Nothing
+                    End Select
+                End With
+
             ElseIf TypeOf trm1 Is TArray Then
             ElseIf TypeOf trm1 Is TReference Then
-                ref1 = CType(trm1, TReference)
-                If ref1.VarRef IsNot Nothing Then
-                    If TypeOf ref1.VarRef Is TFunction Then
-                        Return CType(ref1.VarRef, TFunction).RetType
-                    ElseIf TypeOf ref1.VarRef Is TClass Then
-                        Return CType(ref1.VarRef, TClass)
-                    Else
-                        Return ref1.VarRef.TypeVar
+                With CType(trm1, TReference)
+
+                    If .VarRef IsNot Nothing Then
+                        If TypeOf .VarRef Is TFunction Then
+                            Return CType(.VarRef, TFunction).RetType
+                        ElseIf TypeOf .VarRef Is TClass Then
+                            Return CType(.VarRef, TClass)
+                        Else
+                            Return .VarRef.TypeVar
+                        End If
                     End If
-                End If
+                End With
+
             ElseIf trm1.IsApp() Then
-                app1 = CType(trm1, TApply)
-                Select Case app1.TypeApp
-                    Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
-                        Return GetTermType(app1.ArgApp(0))
-                    Case EToken.eAppCall
-                        If TypeOf app1.FncApp Is TReference Then
-                            ref1 = CType(app1.FncApp, TReference)
-                            If TypeOf ref1.VarRef Is TFunction Then
-                                fnc1 = CType(ref1.VarRef, TFunction)
-                                Return fnc1.RetType
-                            Else
-                                Select Case app1.KndApp
-                                    Case EApply.eArrayApp
-                                        Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
-                                        Return ref1.VarRef.TypeVar.GenCla(0)
-                                    Case EApply.eStringApp
-                                        Return CharType
-                                    Case EApply.eListApp
-                                        Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
-                                        Return ref1.VarRef.TypeVar.GenCla(0)
-                                    Case EApply.eDictionaryApp
-                                        Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 2)
-                                        Return ref1.VarRef.TypeVar.GenCla(1)
-                                    Case Else
-                                        Debug.Assert(False)
-                                        Return Nothing
-                                End Select
+                With CType(trm1, TApply)
+
+                    Select Case .TypeApp
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                            Return GetTermType(.ArgApp(0))
+                        Case EToken.eAppCall
+                            If TypeOf .FncApp Is TReference Then
+
+                                Dim ref1 As TReference = CType(.FncApp, TReference)
+                                If TypeOf ref1.VarRef Is TFunction Then
+                                    Dim fnc1 As TFunction = CType(ref1.VarRef, TFunction)
+                                    Return fnc1.RetType
+                                Else
+                                    Select Case .KndApp
+                                        Case EApply.eArrayApp
+                                            Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
+                                            Return ref1.VarRef.TypeVar.GenCla(0)
+                                        Case EApply.eStringApp
+                                            Return CharType
+                                        Case EApply.eListApp
+                                            Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
+                                            Return ref1.VarRef.TypeVar.GenCla(0)
+                                        Case EApply.eDictionaryApp
+                                            Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 2)
+                                            Return ref1.VarRef.TypeVar.GenCla(1)
+                                        Case Else
+                                            Debug.Assert(False)
+                                            Return Nothing
+                                    End Select
+                                End If
                             End If
-                        End If
-                        cla1 = GetTermType(app1.FncApp)
-                        If cla1 Is StringType Then
-                            Return CharType
-                        End If
-                        Return cla1
-                    Case EToken.eBaseCall
-                        Return Nothing
-                    Case EToken.eBaseNew
-                        Return Nothing
-                    Case EToken.eAs, EToken.eCast
-                        Return app1.ClassApp
-                    Case EToken.eQUE
-                        Return GetTermType(app1.ArgApp(1))
-                    Case EToken.eTypeof
-                        Return BoolType
-                    Case EToken.eNew
-                        Return app1.NewApp
+                            cla1 = GetTermType(.FncApp)
+                            If cla1 Is StringType Then
+                                Return CharType
+                            End If
+                            Return cla1
+                        Case EToken.eBaseCall
+                            Return Nothing
+                        Case EToken.eBaseNew
+                            Return Nothing
+                        Case EToken.eAs, EToken.eCast
+                            Return .ClassApp
+                        Case EToken.eQUE
+                            Return GetTermType(.ArgApp(1))
+                        Case EToken.eTypeof
+                            Return BoolType
+                        Case EToken.eNew
+                            Return .NewApp
 
-                    Case EToken.eAddressOf
-                        ref1 = CType(app1.ArgApp(0), TReference)
-                        Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
-                        Return New TDelegate(Me, CType(ref1.VarRef, TFunction))
+                        Case EToken.eAddressOf
+                            Dim ref1 As TReference = CType(.ArgApp(0), TReference)
+                            Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
+                            Return New TDelegate(Me, CType(ref1.VarRef, TFunction))
 
-                    Case EToken.eGetType
-                        Return TypeType
+                        Case EToken.eGetType
+                            Return TypeType
 
-                    Case Else
-                        Debug.WriteLine("Err Trm Src2:{0}", app1.TypeApp)
-                        Debug.Assert(False)
-                End Select
+                        Case Else
+                            Debug.WriteLine("Err Trm Src2:{0}", .TypeApp)
+                            Debug.Assert(False)
+                    End Select
+                End With
+
             ElseIf trm1.IsLog() Then
                 If CType(trm1, TApply).IsRel() Then
                     Return BoolType
@@ -1141,27 +1150,31 @@ Public Class TProject
                 Return GetTermType(CType(trm1, TParenthesis).TrmPar)
             ElseIf TypeOf trm1 Is TFrom Then
 
-                frm1 = CType(trm1, TFrom)
-                If frm1.SelFrom Is Nothing Then
-                    cla1 = GetTermType(frm1.SeqFrom)
-                    Debug.Assert(cla1 IsNot Nothing)
-                    cla2 = ElementType(cla1)
-                    Return GetIEnumerableClass(cla2)
-                Else
-                    cla1 = GetTermType(frm1.SelFrom)
-                    Debug.Assert(cla1 IsNot Nothing)
-                    Return GetIEnumerableClass(cla1)
-                End If
+                With CType(trm1, TFrom)
+
+                    If .SelFrom Is Nothing Then
+                        cla1 = GetTermType(.SeqFrom)
+                        Debug.Assert(cla1 IsNot Nothing)
+                        cla2 = ElementType(cla1)
+                        Return GetIEnumerableClass(cla2)
+                    Else
+                        cla1 = GetTermType(.SelFrom)
+                        Debug.Assert(cla1 IsNot Nothing)
+                        Return GetIEnumerableClass(cla1)
+                    End If
+                End With
 
             ElseIf TypeOf trm1 Is TAggregate Then
-                Dim aggr1 As TAggregate = CType(trm1, TAggregate)
+                With CType(trm1, TAggregate)
 
-                Return GetTermType(aggr1.IntoAggr)
+                    Return GetTermType(.IntoAggr)
+                End With
 
             Else
                 Debug.Assert(False)
             End If
         End If
+
         Return Nothing
     End Function
 
