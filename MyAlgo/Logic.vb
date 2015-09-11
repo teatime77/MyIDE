@@ -779,8 +779,8 @@ Public Class TApply
             app1.TypeApp = EToken.eBaseNew
         Else
             app1.TypeApp = EToken.eBaseCall
-            app1.FncApp = New TReference(tkn1)
         End If
+        app1.FncApp = New TReference(tkn1)
 
         Return app1
     End Function

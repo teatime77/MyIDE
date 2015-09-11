@@ -70,16 +70,21 @@ Public Class TNavi
         Return arg1
     End Function
 
+    Public Overridable Sub EndDot(dot1 As TDot, arg1 As Object)
+    End Sub
+
+    Public Overridable Sub EndApply(app1 As TApply, arg1 As Object)
+    End Sub
+
     Public Overridable Sub EndStatement(stmt1 As TStatement, arg1 As Object)
     End Sub
 
     Public Overridable Sub NaviDot(dot1 As TDot, arg1 As Object)
         arg1 = StartDot(dot1, arg1)
 
-        If dot1.TrmDot Is Nothing Then
-        Else
-            NaviTerm(dot1.TrmDot, arg1)
-        End If
+        NaviTerm(dot1.TrmDot, arg1)
+
+        EndDot(dot1, arg1)
     End Sub
 
     Public Overridable Sub NaviReference(ref1 As TReference, arg1 As Object)
@@ -87,9 +92,10 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviTerm(trm1 As TTerm, arg1 As Object)
-        arg1 = StartTerm(trm1, arg1)
-
         If trm1 IsNot Nothing Then
+
+            arg1 = StartTerm(trm1, arg1)
+
             Try
                 If TypeOf trm1 Is TConstant Then
                 ElseIf TypeOf trm1 Is TArray Then
@@ -178,22 +184,8 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviApply(app1 As TApply, arg1 As Object)
-        Dim ref1 As TReference, dot1 As TDot
-
         If app1 IsNot Nothing Then
-            If app1.TypeApp = EToken.eAddressOf Then
-                If TypeOf app1.ArgApp(0) Is TDot Then
-                    dot1 = CType(app1.ArgApp(0), TDot)
-                    NaviTerm(dot1, arg1)
-                ElseIf TypeOf app1.ArgApp(0) Is TReference Then
-                    ref1 = CType(app1.ArgApp(0), TReference)
-                    NaviTerm(ref1, arg1)
-                Else
-                    Debug.Assert(False)
-                End If
-            Else
-                NaviTermList(app1.ArgApp, arg1)
-            End If
+            NaviTermList(app1.ArgApp, arg1)
 
             If app1.FncApp IsNot Nothing Then
                 NaviTerm(app1.FncApp, arg1)
@@ -202,6 +194,8 @@ Public Class TNavi
             If app1.IniApp IsNot Nothing Then
                 NaviTerm(app1.IniApp, arg1)
             End If
+
+            EndApply(app1, arg1)
         End If
     End Sub
 
@@ -474,263 +468,219 @@ End Class
 Public Class TNaviSetRef
     Inherits TNavi
 
-    Public Sub NavDotLeft(dot1 As TDot, arg1 As Object)
+    Public Overrides Sub EndDot(dot1 As TDot, arg1 As Object)
         IncRefCnt(dot1)
 
-        If dot1.TrmDot Is Nothing Then
-            Dim with1 As TWith = Nothing
+        With dot1
+            'NaviTerm(.TrmDot, arg1)
 
-            Dim up_obj As Object = TNaviUp.UpObj(dot1)
-            Do While up_obj IsNot Nothing
-                If TypeOf up_obj Is TWith Then
-                    with1 = CType(up_obj, TWith)
-                    Exit Do
-                End If
+            If .TrmDot Is Nothing Then
+                Dim with1 As TWith = Nothing
 
-                up_obj = TNaviUp.UpObj(up_obj)
-            Loop
-            Debug.Assert(with1 IsNot Nothing)
+                Dim up_obj As Object = TNaviUp.UpObj(dot1)
+                Do While up_obj IsNot Nothing
+                    If TypeOf up_obj Is TWith Then
+                        with1 = CType(up_obj, TWith)
+                        Exit Do
+                    End If
 
-            dot1.TypeDot = dot1.ProjectTrm().GetTermType(with1.TermWith)
-        Else
+                    up_obj = TNaviUp.UpObj(up_obj)
+                Loop
+                Debug.Assert(with1 IsNot Nothing)
 
-            NaviTerm(dot1.TrmDot, arg1)
+                .TypeDot = .ProjectTrm().GetTermType(with1.TermWith)
+            Else
 
-            dot1.TypeDot = dot1.ProjectTrm().GetTermType(dot1.TrmDot)
-        End If
 
-        If dot1.TypeDot Is Nothing Then
-            'NavDotLeft(dot1, arg1)
-            Throw New TError(String.Format("ドットの左の項の型が不明 {0}", dot1.NameRef))
-        End If
-        If TypeOf dot1.TypeDot Is TDelegate Then
-            Debug.Assert(dot1.NameRef = "Invoke")
-        End If
-
-    End Sub
-
-    Public Overrides Sub NaviDot(dot1 As TDot, arg1 As Object)
-        NavDotLeft(dot1, arg1)
-
-        If dot1.TypeDot.IsArray() Then
-            Debug.Assert(dot1.ProjectTrm().ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(dot1.ProjectTrm().ArrayType, dot1.NameRef, Nothing)
-        Else
-            dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, Nothing)
-        End If
-
-        If dot1.VarRef Is Nothing Then
-            'NaviDot(dot1, arg1)
-            Throw New TError(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
-        Else
-            If TypeOf dot1.VarRef Is TFunction Then
-                Debug.WriteLine("メソッドを値として参照 {0}", dot1.VarRef.NameVar)
+                .TypeDot = .ProjectTrm().GetTermType(.TrmDot)
             End If
-        End If
-    End Sub
 
+            If .TypeDot Is Nothing Then
+                Throw New TError(String.Format("ドットの左の項の型が不明 {0}", .NameRef))
+            End If
+            If TypeOf .TypeDot Is TDelegate Then
+                Debug.Assert(.NameRef = "Invoke")
+            End If
 
-    Public Sub NavDotMethod(dot1 As TDot, arg1 As Object, varg As TList(Of TTerm))
-        NavDotLeft(dot1, arg1)
+            Dim obj As Object = TNaviUp.UpObj(dot1)
+            If TypeOf obj Is TApply Then
+                Dim app1 As TApply = CType(obj, TApply)
 
-        If dot1.TypeDot.IsArray() Then
-            Debug.Assert(dot1.ProjectTrm().ArrayType IsNot Nothing)
-            dot1.VarRef = TProject.FindFieldFunction(dot1.ProjectTrm().ArrayType, dot1.NameRef, varg)
-        Else
-            dot1.VarRef = TProject.FindFieldFunction(dot1.TypeDot, dot1.NameRef, varg)
-        End If
+                If dot1 Is app1.FncApp Then
 
-        If dot1.VarRef Is Nothing Then
-            'NavDotMethod(dot1, arg1, varg)
-            Throw New TError(String.Format("不明なメンバー {0} {1}", dot1.TypeDot.LongName(), dot1.NameRef))
-        Else
-            If Not TypeOf dot1.VarRef Is TFunction Then
-                If dot1.VarRef.TypeVar.HasIndex() Then
-                ElseIf TypeOf dot1.VarRef.TypeVar Is TDelegate Then
-                Else
-                    Debug.Assert(False)
+                    Debug.Assert(app1.TypeApp = EToken.eAppCall)
+
+                    If .TypeDot.IsArray() Then
+                        Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
+                        .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, app1.ArgApp)
+                    Else
+                        .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
+                    End If
+
+                    If .VarRef Is Nothing Then
+                        Throw New TError(String.Format("不明なメンバー {0} {1}", .TypeDot.LongName(), .NameRef))
+                    Else
+                        If Not TypeOf .VarRef Is TFunction Then
+                            If .VarRef.TypeVar.HasIndex() Then
+                            ElseIf TypeOf .VarRef.TypeVar Is TDelegate Then
+                            Else
+                                Debug.Assert(False)
+                            End If
+                        End If
+                    End If
+                    Return
                 End If
             End If
-        End If
+
+            If .TypeDot.IsArray() Then
+                Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
+                .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, Nothing)
+            Else
+                .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
+            End If
+
+            If .VarRef Is Nothing Then
+                Throw New TError(String.Format("不明なメンバー {0} {1}", .TypeDot.LongName(), .NameRef))
+            Else
+                If TypeOf .VarRef Is TFunction Then
+                    Debug.WriteLine("メソッドを値として参照 {0}", .VarRef.NameVar)
+                End If
+            End If
+
+        End With
     End Sub
+
 
     Public Overrides Sub NaviReference(ref1 As TReference, arg1 As Object)
-        IncRefCnt(ref1)
-        If ref1.VarRef Is Nothing Then
-            ref1.VarRef = TProject.FindFieldFunction(ref1.FunctionTrm.ClaFnc, ref1.NameRef, Nothing)
-            If ref1.VarRef Is Nothing Then
+        With ref1
+            IncRefCnt(ref1)
+            Dim obj As Object = TNaviUp.UpObj(ref1)
+            If TypeOf obj Is TApply Then
+                Dim app1 As TApply = CType(obj, TApply)
 
-                ref1.VarRef = ref1.ProjectTrm().FindVariable(ref1, ref1.NameRef)
-                If ref1.VarRef Is Nothing Then
-                    Debug.WriteLine("変数未定義:{0}", ref1.NameRef)
-                End If
-            End If
-        End If
-    End Sub
-
-    Public Overrides Sub NaviApply(app1 As TApply, arg1 As Object)
-        Dim ref1 As TReference, name1 As String = "", dot1 As TDot, cla1 As TClass, fnc1 As TFunction, spr_cla As TClass, base_new As TReference
-
-        If app1 IsNot Nothing Then
-            If app1.TypeApp = EToken.eAddressOf Then
-                If TypeOf app1.ArgApp(0) Is TDot Then
-                    dot1 = CType(app1.ArgApp(0), TDot)
-                    NaviTerm(dot1, arg1)
-                ElseIf TypeOf app1.ArgApp(0) Is TReference Then
-                    ref1 = CType(app1.ArgApp(0), TReference)
-
-                    IncRefCnt(ref1)
-                    ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, ref1.NameRef, Nothing)
-                    If ref1.VarRef Is Nothing Then
-                        Debug.Print("Address Of 不明のメソッド {0}", ref1.NameRef)
+                If app1.TypeApp = EToken.eAddressOf Then
+                    Debug.Assert(ref1 Is app1.ArgApp(0))
+                    .VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, .NameRef, Nothing)
+                    If .VarRef Is Nothing Then
+                        Debug.Print("Address Of 不明のメソッド {0}", .NameRef)
                         Debug.Assert(False)
                     End If
-                Else
-                    Debug.Assert(False)
-                End If
-            Else
-                ' for Call
-                For Each trm1 In app1.ArgApp
-                    NaviTerm(trm1, arg1)
-                Next
-            End If
 
-            If app1.FncApp IsNot Nothing Then
-
-                If TypeOf app1.FncApp Is TDot Then
-                    Debug.Assert(app1.TypeApp = EToken.eAppCall)
-                ElseIf TypeOf app1.FncApp Is TReference Then
-                ElseIf app1.FncApp.IsApp() Then
-                Else
-                    Debug.Assert(False)
+                    Return
                 End If
 
-                Select Case app1.TypeApp
-                    Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
-                        Debug.Assert(TypeOf app1.FncApp Is TReference)
-                        ref1 = CType(app1.FncApp, TReference)
-                        IncRefCnt(ref1)
+                If ref1 Is app1.FncApp Then
+                    Select Case app1.TypeApp
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
 
-                        If ref1.VarRef Is Nothing Then
+                            If .VarRef Is Nothing Then
 
-                            ' 演算子オーバーロード関数を得る
-                            fnc1 = app1.ProjectTrm().GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
-                            If fnc1 IsNot Nothing Then
-                                ' 演算子オーバーロード関数を得られた場合
+                                ' 演算子オーバーロード関数を得る
+                                Dim fnc1 As TFunction = app1.ProjectTrm().GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
+                                If fnc1 IsNot Nothing Then
+                                    ' 演算子オーバーロード関数を得られた場合
 
-                                ref1.VarRef = fnc1
-                            Else
-                                ' 演算子オーバーロード関数を得られない場合
-
-                                Select Case app1.TypeApp
-                                    Case EToken.eADD
-                                        name1 = "__Add"
-                                    Case EToken.eMns
-                                        name1 = "__Mns"
-                                    Case EToken.eMUL
-                                        name1 = "__Mul"
-                                    Case EToken.eDIV
-                                        name1 = "__Div"
-                                    Case EToken.eMOD
-                                        name1 = "__Mod"
-                                End Select
-
-                                Dim vvar = (From fnc In app1.ProjectTrm().SystemType.FncCla Where fnc.NameVar = name1).ToList()
-                                If vvar.Count <> 1 Then
-
-                                    Debug.WriteLine("演算子未定義:{0}", ref1.NameRef)
-                                    Debug.Assert(False)
+                                    .VarRef = fnc1
                                 Else
-                                    ref1.VarRef = vvar(0)
+                                    ' 演算子オーバーロード関数を得られない場合
+
+                                    Dim name1 As String = ""
+                                    Select Case app1.TypeApp
+                                        Case EToken.eADD
+                                            name1 = "__Add"
+                                        Case EToken.eMns
+                                            name1 = "__Mns"
+                                        Case EToken.eMUL
+                                            name1 = "__Mul"
+                                        Case EToken.eDIV
+                                            name1 = "__Div"
+                                        Case EToken.eMOD
+                                            name1 = "__Mod"
+                                    End Select
+
+                                    Dim vvar = (From fnc In app1.ProjectTrm().SystemType.FncCla Where fnc.NameVar = name1).ToList()
+                                    If vvar.Count <> 1 Then
+
+                                        Debug.WriteLine("演算子未定義:{0}", .NameRef)
+                                        Debug.Assert(False)
+                                    Else
+                                        .VarRef = vvar(0)
+                                    End If
+                                End If
+
+                                If .VarRef Is Nothing Then
+                                    Debug.WriteLine("演算子未定義:{0}", .NameRef)
                                 End If
                             End If
 
-                            If ref1.VarRef Is Nothing Then
-                                Debug.WriteLine("演算子未定義:{0}", ref1.NameRef)
+                        Case EToken.eAppCall
+                            .VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, .NameRef, app1.ArgApp)
+                            If .VarRef IsNot Nothing Then
+                                Return
                             End If
-                        End If
 
-                    Case EToken.eAppCall
-                        If TypeOf app1.FncApp Is TDot Then
-                            NavDotMethod(CType(app1.FncApp, TDot), arg1, app1.ArgApp)
-                        ElseIf TypeOf app1.FncApp Is TReference Then
-                            ref1 = CType(app1.FncApp, TReference)
-                            ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, ref1.NameRef, app1.ArgApp)
-                            If ref1.VarRef IsNot Nothing Then
-                                IncRefCnt(ref1)
+                        Case EToken.eNew
+                            If app1.NewApp.DimCla = 0 Then
+                                .VarRef = TProject.FindNew(app1.NewApp, app1.ArgApp)
+                                'AndAlso app1.ArgApp.Count <> 0 AndAlso app1.NewApp.DimCla = 0
+                                If .VarRef Is Nothing Then
+                                    Debug.WriteLine("New 未定義 {0} {1}", .NameRef, app1.ArgApp.Count)
+                                End If
                             Else
-                                NaviReference(ref1, arg1)
+                                .VarRef = .ProjectTrm().ArrayMaker
                             End If
-                        ElseIf TypeOf app1.FncApp Is TApply Then
-                            NaviTerm(app1.FncApp, arg1)
-                        Else
-                            Debug.Assert(False)
-                        End If
+                            Return
 
-                        If Not (TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction) Then
-                            ' 関数呼び出しでない場合
+                        Case EToken.eBaseCall
+                            .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.SuperCla(0), .NameRef, app1.ArgApp)
+                            Debug.Assert(.VarRef IsNot Nothing AndAlso TypeOf .VarRef Is TFunction)
+                            Return
 
-                            cla1 = app1.ProjectTrm().GetTermType(app1.FncApp)
-                            Debug.Assert(cla1 IsNot Nothing)
+                        Case EToken.eBaseNew
+                            .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.SuperCla(0), app1.ArgApp)
+                            If .VarRef Is Nothing Then
+                                If app1.ArgApp.Count <> 0 Then
 
-                            If cla1.NameCla() = "String" Then
-                                app1.KndApp = EApply.eStringApp
-                            ElseIf cla1.IsArray() Then
-                                app1.KndApp = EApply.eArrayApp
-                            ElseIf cla1.IsList() Then
-                                app1.KndApp = EApply.eListApp
-                            ElseIf cla1.IsDictionary() Then
-                                app1.KndApp = EApply.eDictionaryApp
+                                    Debug.WriteLine("New 未定義 {0} {1}", .NameRef, app1.ArgApp.Count)
+                                End If
                             End If
-                        End If
 
-                    Case EToken.eNew
-                        Dim new_ref As TReference = CType(app1.FncApp, TReference)
-
-                        IncRefCnt(new_ref)
-                        If app1.NewApp.DimCla = 0 Then
-                            new_ref.VarRef = TProject.FindNew(app1.NewApp, app1.ArgApp)
-                            'AndAlso app1.ArgApp.Count <> 0 AndAlso app1.NewApp.DimCla = 0
-                            If new_ref.VarRef Is Nothing Then
-                                Debug.WriteLine("New 未定義 {0} {1}", new_ref.NameRef, app1.ArgApp.Count)
-                            End If
-                        Else
-                            new_ref.VarRef = app1.ProjectTrm().ArrayMaker
-                        End If
-
-                    Case EToken.eBaseCall
-                        ref1 = CType(app1.FncApp, TReference)
-                        ref1.VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc.SuperCla(0), ref1.NameRef, app1.ArgApp)
-                        Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
-                        IncRefCnt(ref1)
-
-                    Case Else
-                        Debug.Assert(False)
-                End Select
-            Else
-                Select Case app1.TypeApp
-                    Case EToken.eBaseNew
-
-                        spr_cla = app1.FunctionTrm.ClaFnc.SuperCla(0)
-                        base_new = New TReference("New@" + spr_cla.NameCla())
-                        base_new.VarRef = TProject.FindNew(spr_cla, app1.ArgApp)
-                        If base_new.VarRef Is Nothing Then
-                            If app1.ArgApp.Count <> 0 Then
-
-                                Debug.WriteLine("New 未定義 {0} {1}", base_new.NameRef, app1.ArgApp.Count)
-                            End If
-                        End If
-                        app1.FncApp = base_new
-                        IncRefCnt(base_new)
-
-                    Case EToken.eCast, EToken.eAddressOf, EToken.eGetType
-                    Case Else
-                        Debug.Assert(False)
-                End Select
+                    End Select
+                End If
             End If
 
-            If app1.IniApp IsNot Nothing Then
-                NaviArray(app1.IniApp, arg1)
+            If .VarRef Is Nothing Then
+                .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc, .NameRef, Nothing)
+                If .VarRef Is Nothing Then
+
+                    .VarRef = .ProjectTrm().FindVariable(ref1, .NameRef)
+                    If .VarRef Is Nothing Then
+                        Debug.WriteLine("変数未定義:{0}", .NameRef)
+                    End If
+                End If
+            End If
+
+        End With
+    End Sub
+
+    Public Overrides Sub EndApply(app1 As TApply, arg1 As Object)
+        If app1.FncApp IsNot Nothing AndAlso app1.TypeApp = EToken.eAppCall Then
+
+            If Not (TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction) Then
+                ' 関数呼び出しでない場合
+
+                Dim cla1 As TClass = app1.ProjectTrm().GetTermType(app1.FncApp)
+                Debug.Assert(cla1 IsNot Nothing)
+
+                If cla1.NameCla() = "String" Then
+                    app1.KndApp = EApply.eStringApp
+                ElseIf cla1.IsArray() Then
+                    app1.KndApp = EApply.eArrayApp
+                ElseIf cla1.IsList() Then
+                    app1.KndApp = EApply.eListApp
+                ElseIf cla1.IsDictionary() Then
+                    app1.KndApp = EApply.eDictionaryApp
+                End If
             End If
         End If
     End Sub
