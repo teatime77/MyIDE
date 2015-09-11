@@ -61,7 +61,7 @@ Public Class TBuilder
         Else
 
             Debug.WriteLine("Basic ソース 生成")
-            prj1.MakeAllBasicCode()
+            'prj1.MakeAllBasicCode()
 
             Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
             'prj1.MakeAllHtml()

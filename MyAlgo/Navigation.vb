@@ -76,6 +76,9 @@ Public Class TNavi
     Public Overridable Sub EndApply(app1 As TApply, arg1 As Object)
     End Sub
 
+    Public Overridable Sub EndLocalVariable(var1 As TVariable, arg1 As Object)
+    End Sub
+
     Public Overridable Sub EndStatement(stmt1 As TStatement, arg1 As Object)
     End Sub
 
@@ -172,9 +175,14 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviLocalVariable(var1 As TVariable, arg1 As Object)
-        arg1 = StartLocalVariable(var1, arg1)
+        If var1 IsNot Nothing Then
 
-        NaviTerm(var1.InitVar, arg1)
+            arg1 = StartLocalVariable(var1, arg1)
+
+            NaviTerm(var1.InitVar, arg1)
+
+            EndLocalVariable(var1, arg1)
+        End If
     End Sub
 
     Public Overridable Sub NaviArray(arr1 As TArray, arg1 As Object)
@@ -220,15 +228,18 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviFor(for1 As TFor, arg1 As Object)
-        NaviTerm(for1.IdxFor, arg1)
-        NaviTerm(for1.InTrmFor, arg1)
-        NaviTerm(for1.FromFor, arg1)
-        NaviTerm(for1.ToFor, arg1)
-        NaviTerm(for1.StepFor, arg1)
-        NaviStatement(for1.IniFor, arg1)
-        NaviTerm(for1.CndFor, arg1)
-        NaviStatement(for1.StepStmtFor, arg1)
-        NaviStatement(for1.BlcFor, arg1)
+        With for1
+            NaviTerm(.IdxFor, arg1)
+            NaviTerm(.InTrmFor, arg1)
+            NaviLocalVariable(.InVarFor, arg1)
+            NaviTerm(.FromFor, arg1)
+            NaviTerm(.ToFor, arg1)
+            NaviTerm(.StepFor, arg1)
+            NaviStatement(.IniFor, arg1)
+            NaviTerm(.CndFor, arg1)
+            NaviStatement(.StepStmtFor, arg1)
+            NaviStatement(.BlcFor, arg1)
+        End With
     End Sub
 
     Public Overridable Sub NaviCase(cas1 As TCase, arg1 As Object)
@@ -346,11 +357,14 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
-        arg1 = StartFunction(fnc1, arg1)
+        With fnc1
+            arg1 = StartFunction(fnc1, arg1)
 
-        If fnc1.BlcFnc IsNot Nothing Then
-            NaviStatement(fnc1.BlcFnc, arg1)
-        End If
+            If fnc1.BlcFnc IsNot Nothing Then
+                NaviStatement(.BlcFnc, arg1)
+            End If
+
+        End With
     End Sub
 
     Public Overridable Sub NaviClass(cla1 As TClass, arg1 As Object)
@@ -552,7 +566,6 @@ Public Class TNaviSetRef
         End With
     End Sub
 
-
     Public Overrides Sub NaviReference(ref1 As TReference, arg1 As Object)
         With ref1
             IncRefCnt(ref1)
@@ -666,29 +679,32 @@ Public Class TNaviSetRef
     End Sub
 
     Public Overrides Sub EndApply(app1 As TApply, arg1 As Object)
-        If app1.FncApp IsNot Nothing AndAlso app1.TypeApp = EToken.eAppCall Then
+        With app1
 
-            If Not (TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction) Then
-                ' 関数呼び出しでない場合
+            If .FncApp IsNot Nothing AndAlso .TypeApp = EToken.eAppCall Then
 
-                Dim cla1 As TClass = app1.ProjectTrm().GetTermType(app1.FncApp)
-                Debug.Assert(cla1 IsNot Nothing)
+                If Not (TypeOf .FncApp Is TReference AndAlso TypeOf CType(.FncApp, TReference).VarRef Is TFunction) Then
+                    ' 関数呼び出しでない場合
 
-                If cla1.NameCla() = "String" Then
-                    app1.KndApp = EApply.eStringApp
-                ElseIf cla1.IsArray() Then
-                    app1.KndApp = EApply.eArrayApp
-                ElseIf cla1.IsList() Then
-                    app1.KndApp = EApply.eListApp
-                ElseIf cla1.IsDictionary() Then
-                    app1.KndApp = EApply.eDictionaryApp
+                    Dim cla1 As TClass = .ProjectTrm().GetTermType(.FncApp)
+                    Debug.Assert(cla1 IsNot Nothing)
+
+                    If cla1.NameCla() = "String" Then
+                        .KndApp = EApply.eStringApp
+                    ElseIf cla1.IsArray() Then
+                        .KndApp = EApply.eArrayApp
+                    ElseIf cla1.IsList() Then
+                        .KndApp = EApply.eListApp
+                    ElseIf cla1.IsDictionary() Then
+                        .KndApp = EApply.eDictionaryApp
+                    End If
                 End If
             End If
-        End If
+        End With
     End Sub
 
 
-    Public Overrides Function StartLocalVariable(var1 As TVariable, arg1 As Object) As Object
+    Public Overrides Sub EndLocalVariable(var1 As TVariable, arg1 As Object)
         With var1
 
             Dim obj As Object = TNaviUp.UpObj(var1)
@@ -708,119 +724,44 @@ Public Class TNaviSetRef
                 Dim type1 As TClass = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
                 .TypeVar = aggr1.ProjectTrm().ElementType(type1)
                 Debug.Assert(.TypeVar IsNot Nothing)
-            End If
 
-            Return arg1
-        End With
-    End Function
+            ElseIf TypeOf obj Is TFor Then
+                Dim for1 As TFor = CType(obj, TFor)
+                Debug.Assert(var1 Is for1.InVarFor)
 
-    Public Overrides Sub NaviFor(for1 As TFor, arg1 As Object)
-        Dim type1 As TClass
+                Dim type1 As TClass = for1.ProjectStmt().GetTermType(for1.InTrmFor)
+                .TypeVar = for1.ProjectStmt().ElementType(type1)
+                Debug.Assert(.TypeVar IsNot Nothing)
 
-        If for1.IdxFor IsNot Nothing Then
-            NaviTerm(for1.IdxFor, arg1)
-        End If
+            Else
 
-        If for1.InVarFor IsNot Nothing Then
-            NaviTerm(for1.InTrmFor, arg1)
-            type1 = for1.ProjectStmt().GetTermType(for1.InTrmFor)
-            for1.InVarFor.TypeVar = for1.ProjectStmt().ElementType(type1)
-            Debug.Assert(for1.InVarFor.TypeVar IsNot Nothing)
-        End If
+                Dim stmt As TStatement = TNaviUp.UpToStmt(var1)
+                If TypeOf stmt Is TVariableDeclaration Then
 
-        NaviTerm(for1.FromFor, arg1)
-        NaviTerm(for1.ToFor, arg1)
-        NaviTerm(for1.StepFor, arg1)
+                    If .InitVar IsNot Nothing Then
 
-        NaviStatement(for1.IniFor, arg1)
-        NaviTerm(for1.CndFor, arg1)
-        NaviStatement(for1.StepStmtFor, arg1)
-        NaviBlock(for1.BlcFor, arg1)
-    End Sub
-
-    Public Overrides Sub NaviStatement(stmt1 As TStatement, arg1 As Object)
-        Dim try1 As TTry, with1 As TWith
-
-        Dim if1 As TIf
-        Dim red1 As TReDim
-        Dim dcl1 As TVariableDeclaration
-
-        If stmt1 IsNot Nothing Then
-            If TypeOf stmt1 Is TAssignment Then
-                NaviAssignment(CType(stmt1, TAssignment), arg1)
-            ElseIf TypeOf stmt1 Is TCall Then
-                NaviTerm(CType(stmt1, TCall).AppCall, arg1)
-            ElseIf TypeOf stmt1 Is TVariableDeclaration Then
-                dcl1 = CType(stmt1, TVariableDeclaration)
-                ' for Call
-                For Each var1 In dcl1.VarDecl
-                    If var1.InitVar IsNot Nothing Then
-                        NaviTerm(var1.InitVar, arg1)
-
-                        If var1.TypeVar Is Nothing Then
-                            var1.NoType = True
-                            var1.TypeVar = TProject.Prj.GetTermType(var1.InitVar)
+                        If .TypeVar Is Nothing Then
+                            .NoType = True
+                            .TypeVar = TProject.Prj.GetTermType(.InitVar)
                         End If
                     End If
-                Next
-            ElseIf TypeOf stmt1 Is TReDim Then
-                red1 = CType(stmt1, TReDim)
-                NaviTerm(red1.TrmReDim, arg1)
-                ' for Call
-                For Each trm_f In red1.DimReDim
-                    NaviTerm(trm_f, arg1)
-                Next
-            ElseIf TypeOf stmt1 Is TIf Then
-                if1 = CType(stmt1, TIf)
-                ' for Call
-                For Each if_blc In if1.IfBlc
-                    NaviTerm(if_blc.CndIf, arg1)
-                    NaviBlock(if_blc.BlcIf, arg1)
-                Next
-            ElseIf TypeOf stmt1 Is TBlock Then
-                NaviBlock(CType(stmt1, TBlock), arg1)
-            ElseIf TypeOf stmt1 Is TSelect Then
 
-                NaviSelect(CType(stmt1, TSelect), arg1)
-
-
-            ElseIf TypeOf stmt1 Is TCase Then
-                NaviCase(CType(stmt1, TCase), arg1)
-
-            ElseIf TypeOf stmt1 Is TTry Then
-                try1 = CType(stmt1, TTry)
-                NaviBlock(try1.BlcTry, arg1)
-                NaviBlock(try1.BlcCatch, arg1)
-
-            ElseIf TypeOf stmt1 Is TWith Then
-                with1 = CType(stmt1, TWith)
-                NaviTerm(with1.TermWith, arg1)
-
-                NaviBlock(with1.BlcWith, arg1)
-            ElseIf TypeOf stmt1 Is TFor Then
-
-                NaviFor(CType(stmt1, TFor), arg1)
-
-            ElseIf TypeOf stmt1 Is TReturn Then
-                NaviTerm(CType(stmt1, TReturn).TrmRet, arg1)
-
-            ElseIf TypeOf stmt1 Is TThrow Then
-                NaviTerm(CType(stmt1, TThrow).TrmThrow, arg1)
-
-            ElseIf TypeOf stmt1 Is TComment Then
-            Else
+                End If
             End If
-        End If
+        End With
     End Sub
 
     Public Overrides Function StartFunction(fnc1 As TFunction, arg1 As Object) As Object
-        If fnc1.InterfaceFnc IsNot Nothing Then
-            fnc1.ImplFnc.VarRef = TProject.FindFieldFunction(fnc1.InterfaceFnc, fnc1.ImplFnc.NameRef, Nothing)
-            Debug.Assert(fnc1.ImplFnc IsNot Nothing)
-        End If
+        With fnc1
+            If .InterfaceFnc IsNot Nothing Then
+                .ImplFnc.VarRef = TProject.FindFieldFunction(.InterfaceFnc, .ImplFnc.NameRef, Nothing)
+                Debug.Assert(.ImplFnc IsNot Nothing)
+            End If
 
-        Debug.Assert(fnc1.ThisFnc IsNot Nothing)
-        Return arg1
+            Debug.Assert(.ThisFnc IsNot Nothing)
+            Return arg1
+
+        End With
     End Function
 End Class
 
@@ -1089,7 +1030,7 @@ Public Class TNaviSetUpTrm
 
         NavUp.UpToFnc(ref1)
 
-        stmt1 = NavUp.UpToStmt(ref1)
+        stmt1 = TNaviUp.UpToStmt(ref1)
     End Sub
 
     Public Overrides Function StartReference(ref1 As TReference, arg1 As Object) As Object
@@ -1143,7 +1084,7 @@ Public Class TNaviUp
         Return CType(obj2, TFunction)
     End Function
 
-    Public Function UpToStmt(obj1 As Object) As TStatement
+    Public Shared Function UpToStmt(obj1 As Object) As TStatement
         Dim obj2 As Object
 
         obj2 = obj1
