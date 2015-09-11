@@ -64,12 +64,12 @@ Public Class TBuilder
             prj1.MakeAllBasicCode()
 
             Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
-            prj1.MakeAllHtml()
+            'prj1.MakeAllHtml()
         End If
 
         ' コード解析
         Debug.WriteLine("コード解析 ---------------------------------------------- 時間がかかるのでコメントアウト")
-        prj1.CodeAnalysis()
+        'prj1.CodeAnalysis()
 
         Debug.WriteLine("共通部分式")
         nav2 = New TNaviCSE()

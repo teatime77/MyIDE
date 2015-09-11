@@ -207,6 +207,7 @@ Public Class TNavi
 
     Public Overridable Sub NaviFrom(frm1 As TFrom, arg1 As Object)
         NaviTerm(frm1.SeqFrom, arg1)
+        NaviLocalVariable(frm1.VarFrom, arg1)
         NaviTerm(frm1.CndFrom, arg1)
         NaviTerm(frm1.SelFrom, arg1)
         NaviTerm(frm1.TakeFrom, arg1)
@@ -214,6 +215,7 @@ Public Class TNavi
 
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate, arg1 As Object)
         NaviTerm(aggr1.SeqAggr, arg1)
+        NaviLocalVariable(aggr1.VarAggr, arg1)
         NaviTerm(aggr1.IntoAggr, arg1)
     End Sub
 
@@ -685,40 +687,32 @@ Public Class TNaviSetRef
         End If
     End Sub
 
-    Public Overrides Sub NaviFrom(frm1 As TFrom, arg1 As Object)
-        Dim type1 As TClass
 
-        NaviTerm(frm1.SeqFrom, arg1)
-        type1 = frm1.ProjectTrm().GetTermType(frm1.SeqFrom)
-        frm1.VarFrom.TypeVar = frm1.ProjectTrm().ElementType(type1)
-        Debug.Assert(frm1.VarFrom.TypeVar IsNot Nothing)
+    Public Overrides Function StartLocalVariable(var1 As TVariable, arg1 As Object) As Object
+        With var1
 
-        If frm1.CndFrom IsNot Nothing Then
+            Dim obj As Object = TNaviUp.UpObj(var1)
 
-            NaviTerm(frm1.CndFrom, arg1)
-        End If
+            If TypeOf obj Is TFrom Then
+                Dim frm1 As TFrom = CType(obj, TFrom)
+                Debug.Assert(var1 Is frm1.VarFrom)
 
-        If frm1.SelFrom IsNot Nothing Then
+                Dim type1 As TClass = frm1.ProjectTrm().GetTermType(frm1.SeqFrom)
+                .TypeVar = frm1.ProjectTrm().ElementType(type1)
+                Debug.Assert(.TypeVar IsNot Nothing)
 
-            NaviTerm(frm1.SelFrom, arg1)
-        End If
+            ElseIf TypeOf obj Is TAggregate Then
+                Dim aggr1 As TAggregate = CType(obj, TAggregate)
+                Debug.Assert(var1 Is aggr1.VarAggr)
 
-        If frm1.TakeFrom IsNot Nothing Then
+                Dim type1 As TClass = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
+                .TypeVar = aggr1.ProjectTrm().ElementType(type1)
+                Debug.Assert(.TypeVar IsNot Nothing)
+            End If
 
-            NaviTerm(frm1.TakeFrom, arg1)
-        End If
-    End Sub
-
-    Public Overrides Sub NaviAggregate(aggr1 As TAggregate, arg1 As Object)
-        Dim type1 As TClass
-
-        NaviTerm(aggr1.SeqAggr, arg1)
-        type1 = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
-        aggr1.VarAggr.TypeVar = aggr1.ProjectTrm().ElementType(type1)
-        Debug.Assert(aggr1.VarAggr.TypeVar IsNot Nothing)
-
-        NaviTerm(aggr1.IntoAggr, arg1)
-    End Sub
+            Return arg1
+        End With
+    End Function
 
     Public Overrides Sub NaviFor(for1 As TFor, arg1 As Object)
         Dim type1 As TClass
