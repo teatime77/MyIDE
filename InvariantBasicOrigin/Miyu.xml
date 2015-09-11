@@ -15,6 +15,7 @@
     <string>LALR.vb</string>
     <string>Logic.vb</string>
     <string>Navigation.vb</string>
+    <string>Declarative.vb</string>
     <string>ProgramTransformation.vb</string>
     <string>Project.vb</string>
     <string>Proof.vb</string>

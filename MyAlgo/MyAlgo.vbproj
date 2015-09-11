@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="BasicCodeGenerator.vb" />
     <Compile Include="Builder.vb" />
+    <Compile Include="Declarative.vb" />
     <Compile Include="Graph.vb" />
     <Compile Include="IDE.vb" />
     <Compile Include="Invariant.vb" />

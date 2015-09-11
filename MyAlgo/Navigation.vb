@@ -485,10 +485,8 @@ Public Class TNaviSetRef
     Inherits TNavi
 
     Public Overrides Sub EndDot(dot1 As TDot, arg1 As Object)
-        IncRefCnt(dot1)
-
         With dot1
-            'NaviTerm(.TrmDot, arg1)
+            IncRefCnt(dot1)
 
             If .TrmDot Is Nothing Then
                 Dim with1 As TWith = Nothing

@@ -80,6 +80,9 @@
     <Compile Include="..\MyAlgo\CodeGenerator.vb">
       <Link>CodeGenerator.vb</Link>
     </Compile>
+    <Compile Include="..\MyAlgo\Declarative.vb">
+      <Link>Declarative.vb</Link>
+    </Compile>
     <Compile Include="..\MyAlgo\Graph.vb">
       <Link>Graph.vb</Link>
     </Compile>

@@ -871,7 +871,7 @@ Public Class TProject
     End Sub
 
     Public Sub Compile()
-        Dim set_ref As TNaviSetRef, set_ref_fnc As TNaviSetRefFnc, set_var_ref As TNaviSetVarRef
+        Dim set_ref_fnc As TNaviSetRefFnc, set_var_ref As TNaviSetVarRef
         Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
@@ -958,9 +958,12 @@ Public Class TProject
         set_function.NaviProject(Me, Nothing)
 
         ' 変数参照を解決する
-        set_ref = New TNaviSetRef()
-        set_ref.NaviProject(Me, Nothing)
-        Debug.Assert(Not set_ref.ErrNav)
+        'Dim set_ref As New TNaviSetRef()
+        'set_ref.NaviProject(Me, Nothing)
+        'Debug.Assert(Not set_ref.ErrNav)
+
+        Dim set_ref As New TSetRefDeclarative
+        set_ref.NaviProject(Me)
 
         ' ForのLabelForをセットする。
         Dim navi_set_label = New TNaviSetLabel()
