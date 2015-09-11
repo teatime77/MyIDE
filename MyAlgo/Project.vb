@@ -952,40 +952,40 @@ Public Class TProject
         MakeInstanceClassInitializer()
 
         set_parent_stmt = New TNaviSetParentStmt
-        set_parent_stmt.NavPrj(Me, Nothing)
+        set_parent_stmt.NaviProject(Me, Nothing)
 
         Dim set_function As New TNaviSetFunction
-        set_function.NavPrj(Me, Nothing)
+        set_function.NaviProject(Me, Nothing)
 
         ' 変数参照を解決する
         set_ref = New TNaviSetRef()
-        set_ref.NavPrj(Me, Nothing)
+        set_ref.NaviProject(Me, Nothing)
         Debug.Assert(Not set_ref.ErrNav)
 
         ' ForのLabelForをセットする。
         Dim navi_set_label = New TNaviSetLabel()
-        navi_set_label.NavPrj(Me, Nothing)
+        navi_set_label.NaviProject(Me, Nothing)
 
         ' DefRefをセットする。
         Dim set_def_ref = New TNaviSetDefRef()
-        set_def_ref.NavPrj(Me, Nothing)
+        set_def_ref.NaviProject(Me, Nothing)
 
         set_var_ref = New TNaviSetVarRef()
-        set_var_ref.NavPrj(Me, Nothing)
+        set_var_ref.NaviProject(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)
 
         set_call = New TNaviSetCall()
-        set_call.NavPrj(Me, Nothing)
+        set_call.NaviProject(Me, Nothing)
 
         Debug.Assert(set_ref.RefCnt = set_call.RefCnt)
 
         ' 関数内の参照をセットする
         set_ref_fnc = New TNaviSetRefFnc()
-        set_ref_fnc.NavPrj(Me, Nothing)
+        set_ref_fnc.NaviProject(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_ref_fnc.RefCnt)
 
         nav_test = New TNaviTest()
-        nav_test.NavPrj(Me, Nothing)
+        nav_test.NaviProject(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = nav_test.RefCnt)
 
         For Each cla1 In SimpleParameterizedClassList
@@ -1005,10 +1005,10 @@ Public Class TProject
         Next
 
         set_parent_stmt = New TNaviSetParentStmt()
-        set_parent_stmt.NavPrj(Me, Nothing)
+        set_parent_stmt.NaviProject(Me, Nothing)
 
         set_up_trm = New TNaviSetUpTrm()
-        set_up_trm.NavPrj(Me, Nothing)
+        set_up_trm.NaviProject(Me, Nothing)
 
         ' オーバーロード関数をセットする
         SetOvrFnc()

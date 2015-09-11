@@ -3,18 +3,18 @@ Imports System.Diagnostics
 
 ' -------------------------------------------------------------------------------- TNaviCSE
 Public Class TNaviCSE
-    Inherits TNaviPrj
+    Inherits TNavi
 
-    Public Overrides Sub NavTrm(trm1 As TTerm, arg1 As Object)
+    Public Overrides Sub NaviTerm(trm1 As TTerm, arg1 As Object)
         Dim dat1 As TNaviCSEDat, s1 As String, s2 As String
 
         If trm1 Is Nothing OrElse arg1 Is Nothing Then
             Exit Sub
         Else
             If Not TypeOf trm1 Is TDot Then
-                MyBase.NavTrm(trm1, arg1)
+                MyBase.NaviTerm(trm1, arg1)
             Else
-                MyBase.NavTrm(CType(trm1, TDot).TrmDot, arg1)
+                MyBase.NaviTerm(CType(trm1, TDot).TrmDot, arg1)
 
                 dat1 = CType(arg1, TNaviCSEDat)
 
@@ -33,12 +33,12 @@ Public Class TNaviCSE
         End If
     End Sub
 
-    Public Overrides Sub NavFnc(fnc1 As TFunction, arg1 As Object)
+    Public Overrides Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
         Dim dat1 As New TNaviCSEDat
 
         If fnc1.BlcFnc IsNot Nothing Then
             dat1.FncCSE = fnc1
-            NavBlc(fnc1.BlcFnc, dat1)
+            NaviBlock(fnc1.BlcFnc, dat1)
         End If
     End Sub
 End Class
@@ -254,7 +254,7 @@ Public Class TDataflow
 
                     ' Ifブロックと内部の文を列挙する。
                     Dim enum_stmt As New TEnumInnerStmt
-                    enum_stmt.NavStmt(if_blc, Nothing)
+                    enum_stmt.NaviStatement(if_blc, Nothing)
 
                     ' Ifブロックと内部の文は影響され得る
                     may_be_affected_stmt.AddRange(enum_stmt.vStmt)
@@ -266,7 +266,7 @@ Public Class TDataflow
 
             ' Select文と内部の文を列挙する。
             Dim enum_stmt As New TEnumInnerStmt
-            enum_stmt.NavStmt(stmt, Nothing)
+            enum_stmt.NaviStatement(stmt, Nothing)
 
             ' Select文と内部の文は影響され得る
             may_be_affected_stmt.AddRange(enum_stmt.vStmt)
@@ -309,7 +309,7 @@ Public Class TDataflow
             Loop
 
             ' 局所変数の参照を列挙する
-            enum_localRef.NavStmt(wk_stmt, Nothing)
+            enum_localRef.NaviStatement(wk_stmt, Nothing)
             For Each var_f In enum_localRef.vNewVar
                 For Each ref_f In var_f.RefVar
                     If ref_f.DefRef Then
@@ -618,12 +618,12 @@ Public Class TDataflow
         Dim find_sync_field As New TFindSyncField
 
         find_sync_field.ValidStmt = valid_stmt
-        find_sync_field.NavFnc(RuleCp, Nothing)
+        find_sync_field.NaviFunction(RuleCp, Nothing)
         SyncFldList = find_sync_field.SyncFldList
 
         ' 並列処理の文を探す
         Dim nav_parallel_for_each As New TNaviParallelForEach
-        nav_parallel_for_each.NavFnc(RuleCp, Nothing)
+        nav_parallel_for_each.NaviFunction(RuleCp, Nothing)
 
         For Each call_f In nav_parallel_for_each.ParallelForEachList
             Dim children_fld As TField
@@ -634,7 +634,7 @@ Public Class TDataflow
 
         ' 規則内のすべての文を得る
         Dim nav_all_stmt As New TNaviAllStmt
-        nav_all_stmt.NavFnc(RuleCp, Nothing)
+        nav_all_stmt.NaviFunction(RuleCp, Nothing)
 
         ' _Set_* の呼び出しのソースを作る。
         Dim vasn = From x In nav_all_stmt.AllStmts Where TypeOf (x) Is TAssignment Select CType(x, TAssignment)
@@ -673,7 +673,7 @@ Public Class TDataflow
 
         ' 親の文が無効な文は無効とする。
         Dim nav_set_valid_stmt As New TNaviSetValidStmt
-        nav_set_valid_stmt.NavFnc(RuleCp, Nothing)
+        nav_set_valid_stmt.NaviFunction(RuleCp, Nothing)
 
         ' 同期用のクラスのソースを作る
         SyncClassSrc = MakeSyncClassSrc(prj1, ChangeableFld, SyncFldList)
@@ -815,7 +815,7 @@ Public Class TDataflow
         GlobalRule = prj1.FindFunctionByName("TNaviView", "GlobalRule")
 
         nav_changeable_field = New TNaviChangeableField()
-        nav_changeable_field.NavFnc(GlobalRule, Nothing)
+        nav_changeable_field.NaviFunction(GlobalRule, Nothing)
 
         ChangeableFldList = New TList(Of TField)(nav_changeable_field.dicChangeableFld.Values)
 
@@ -1472,12 +1472,12 @@ End Class
 
 ' 局所変数の参照を列挙する
 Public Class TEnumInnerLocalRef
-    Inherits TNaviPrj
+    Inherits TNavi
 
     Public vVar As New TList(Of TVariable)
     Public vNewVar As New TList(Of TVariable)
 
-    Public Overrides Function StartRef(ref1 As TReference, arg1 As Object) As Object
+    Public Overrides Function StartReference(ref1 As TReference, arg1 As Object) As Object
         If Not ref1.DefRef AndAlso Not ref1.NameRef.StartsWith(TDataflow.CurrentPrefix) AndAlso Not ref1.NameRef.StartsWith(TDataflow.ChildPrefix) Then
             ' 代入ではなく、自身や子でない場合
 
@@ -1495,10 +1495,10 @@ End Class
 
 ' 内部の文を列挙する
 Public Class TEnumInnerStmt
-    Inherits TNaviPrj
+    Inherits TNavi
     Public vStmt As New TList(Of TStatement)
 
-    Public Overrides Function StartStmt(stmt1 As TStatement, arg1 As Object) As Object
+    Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
             vStmt.Add(stmt1)
         End If
@@ -1507,7 +1507,7 @@ Public Class TEnumInnerStmt
 End Class
 
 Public Class TNaviChangeableField
-    Inherits TNaviPrj
+    Inherits TNavi
 
     Public dicFld As New Dictionary(Of String, TField)
     Public dicChangeableFld As New Dictionary(Of String, TField)
@@ -1541,7 +1541,7 @@ End Class
 ' 同期が必要なフィールドを探す
 ' 自身のフィールドに代入し、親・子・直前のフィールドで参照されるフィールドを探す。
 Public Class TFindSyncField
-    Inherits TNaviPrj
+    Inherits TNavi
 
     Public ValidStmt As Dictionary(Of TStatement, TStatement)
     Public GetFld As New TList(Of TField)
@@ -1593,11 +1593,11 @@ End Class
 
 ' 並列処理の文を探す
 Public Class TNaviParallelForEach
-    Inherits TNaviPrj
+    Inherits TNavi
 
     Public ParallelForEachList As New TList(Of TCall)
 
-    Public Overrides Sub NavCall(call1 As TCall, arg1 As Object)
+    Public Overrides Sub NaviCall(call1 As TCall, arg1 As Object)
         Dim ref1 As TReference
 
         If TypeOf call1.AppCall.FncApp Is TReference Then
@@ -1606,7 +1606,7 @@ Public Class TNaviParallelForEach
                 ParallelForEachList.Add(call1)
             End If
         End If
-        '        NavTrm(call1.AppCall, arg1)
+        '        NaviTerm(call1.AppCall, arg1)
     End Sub
 End Class
 
@@ -2042,7 +2042,7 @@ Public Class Sys
         fnc2.OrgFnc = fnc1.OrgFnc
 
         set_parent_stmt = New TNaviSetParentStmt()
-        set_parent_stmt.NavFnc(fnc2, Nothing)
+        set_parent_stmt.NaviFunction(fnc2, Nothing)
 
         Return fnc2
     End Function

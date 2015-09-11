@@ -73,7 +73,7 @@ Public Class TBuilder
 
         Debug.WriteLine("共通部分式")
         nav2 = New TNaviCSE()
-        nav2.NavPrj(prj1, Nothing)
+        nav2.NaviProject(prj1, Nothing)
 
         If Not prj1.Dataflow Then
 

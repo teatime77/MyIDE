@@ -141,7 +141,7 @@ Partial Public Class MainPage
 
         Debug.WriteLine("共通部分式")
         nav2 = New TNaviCSE()
-        nav2.NavPrj(prj1, Nothing)
+        nav2.NaviProject(prj1, Nothing)
 
         '-------------------------------------------------- データフロー解析のタイマー表示
         gDataflow = New TDataflow(gPrj)
