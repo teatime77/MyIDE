@@ -4,6 +4,14 @@ Imports System.Text
 Imports System.Diagnostics
 'Imports System.Web
 
+
+Public Class TAttribute
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
 ' -------------------------------------------------------------------------------- TProject
 Public Class TProject
     <XmlIgnoreAttribute()> Public Shared Prj As TProject
@@ -18,7 +26,7 @@ Public Class TProject
     Public ClassNameTablePath As String = ""
     Public Dataflow As Boolean = False
 
-    <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
+    <XmlIgnoreAttribute(), TAttribute()> Public ClassNameTable As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
@@ -776,7 +784,7 @@ Public Class TProject
                 ' コンストラクターが１つもない場合
 
                 ' 暗黙のコンストラクターを作る。
-                Dim new_fnc As TFunction = New TFunction("Implicit@New", Nothing)
+                Dim new_fnc As New TFunction("Implicit@New", Nothing)
 
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
@@ -951,17 +959,13 @@ Public Class TProject
         ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
         MakeInstanceClassInitializer()
 
-        set_parent_stmt = New TNaviSetParentStmt
+        set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NaviProject(Me, Nothing)
 
         Dim set_function As New TNaviSetFunction
         set_function.NaviProject(Me, Nothing)
 
         ' 変数参照を解決する
-        'Dim set_ref As New TNaviSetRef()
-        'set_ref.NaviProject(Me, Nothing)
-        'Debug.Assert(Not set_ref.ErrNav)
-
         Dim set_ref As New TSetRefDeclarative
         set_ref.NaviProject(Me)
 

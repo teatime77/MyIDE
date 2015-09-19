@@ -1175,10 +1175,20 @@ Public Class TBasicParser
 
                 Case EToken.eLT
                     GetTkn(EToken.eLT)
-                    Debug.Assert(CurTkn.TypeTkn = EToken.eId AndAlso CurTkn.StrTkn = "XmlIgnoreAttribute")
-                    GetTkn(EToken.eId)
-                    GetTkn(EToken.eLP)
-                    GetTkn(EToken.eRP)
+                    Do While True
+                        Dim id1 As TToken
+
+                        id1 = GetTkn(EToken.eId)
+                        Debug.Assert(id1.StrTkn = "XmlIgnoreAttribute" OrElse id1.StrTkn = "TAttribute")
+                        GetTkn(EToken.eLP)
+                        GetTkn(EToken.eRP)
+
+                        If CurTkn.TypeTkn <> EToken.eComma Then
+                            Exit Do
+                        End If
+                        GetTkn(EToken.eComma)
+
+                    Loop
                     Debug.Assert(CurTkn.TypeTkn = EToken.eGT)
 
                     mod1.isXmlIgnore = True

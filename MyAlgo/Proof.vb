@@ -415,7 +415,7 @@ Public Class TDataflow
                     If NormalizedCondition Is Nothing OrElse Consistent(NormalizedCondition, PreCondition) Then
                         ' 代入時の条件と、文の実行の条件が矛盾しない場合
 
-                        Dim afr As TAffectedRef = New TAffectedRef(Change, ref1, ref_type, RefChangeableUpStmt)
+                        Dim afr As New TAffectedRef(Change, ref1, ref_type, RefChangeableUpStmt)
 
                         ' タスクの起動のコードを作る
                         MakeInvokeCode(Change, ref_type)
@@ -651,7 +651,7 @@ Public Class TDataflow
                     Debug.Assert(with1 IsNot Nothing)
 
                     Dim with_cls As TClass = prj1.GetTermType(with1.TermWith)
-                    Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm))
+                    Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm)())
                     If set_fnc IsNot Nothing Then
 
                         x.AfterSrc += "." + set_fnc.NameVar + "()" + vbCrLf
