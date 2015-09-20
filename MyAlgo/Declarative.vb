@@ -629,3 +629,42 @@ Public Class TSetRefDeclarative
         End If
     End Sub
 End Class
+
+
+' -------------------------------------------------------------------------------- TNaviSetDefRef
+Public Class TNaviSetDefRef2
+    Inherits TDeclarative
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TReference Then
+
+            With CType(self, TReference)
+
+                Dim up_stmt As TStatement = TNaviUp.UpToStmt(self)
+                If TypeOf up_stmt Is TAssignment Then
+                    Dim asn1 As TAssignment = CType(up_stmt, TAssignment)
+
+                    If TypeOf asn1.RelAsn.ArgApp(0) Is TReference Then
+                        ' 左辺が変数参照の場合
+
+                        If asn1.RelAsn.ArgApp(0) Is self Then
+                            .DefRef = True
+                        End If
+                    Else
+                        ' 左辺が関数呼び出しの場合
+
+                        Debug.Assert(asn1.RelAsn.ArgApp(0).IsApp())
+                        Dim app1 As TApply = CType(asn1.RelAsn.ArgApp(0), TApply)
+
+                        Debug.Assert(app1.KndApp = EApply.eArrayApp OrElse app1.KndApp = EApply.eListApp)
+
+                        If app1.FncApp Is self Then
+
+                            .DefRef = True
+                        End If
+                    End If
+                End If
+            End With
+        End If
+    End Sub
+End Class

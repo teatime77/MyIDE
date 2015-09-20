@@ -703,7 +703,6 @@ End Class
 Public Class TReference
     Inherits TAtom
     Public VarRef As TVariable
-    Public FncRef As TFunction
     Public DefRef As Boolean = False
 
 

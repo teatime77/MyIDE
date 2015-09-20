@@ -386,7 +386,7 @@ Public Class TDataflow
             For Each ref1 In Change.VariableChn.RefVar
                 ' すべての変数参照に対し
 
-                If ref1.FncRef Is RuleCp AndAlso Not ref1.DefRef Then
+                If ref1.FunctionTrm Is RuleCp AndAlso Not ref1.DefRef Then
                     ' 規則内の変数参照で、値の代入ではない場合
 
                     ' 参照のされ方を得る。
@@ -735,7 +735,7 @@ Public Class TDataflow
             Dim signal_name As String = "Wait_" + sync_fld.FullFldName()
 
             For Each ref1 In sync_fld.RefVar
-                If ref1.FncRef Is RuleCp Then
+                If ref1.FunctionTrm Is RuleCp Then
                     Dim stmt1 As TStatement = UpStmt(ref1)
                     If ref1.DefRef Then
                         Debug.Assert(TypeOf stmt1 Is TAssignment)
@@ -1777,7 +1777,7 @@ Public Class Sys
         If cpy IsNot Nothing Then
 
             dot2.VarRef.RefVar.Add(dot2)
-            dot2.FncRef = cpy.CurFncCpy
+            dot2.FunctionTrm = cpy.CurFncCpy
         End If
 
         Return dot2
@@ -1807,7 +1807,7 @@ Public Class Sys
         ref2.DefRef = ref1.DefRef
 
         If cpy IsNot Nothing Then
-            ref2.FncRef = cpy.CurFncCpy
+            ref2.FunctionTrm = cpy.CurFncCpy
         End If
 
         Return ref2

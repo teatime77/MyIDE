@@ -879,7 +879,7 @@ Public Class TProject
     End Sub
 
     Public Sub Compile()
-        Dim set_ref_fnc As TNaviSetRefFnc, set_var_ref As TNaviSetVarRef
+        Dim set_var_ref As TNaviSetVarRef
         Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
@@ -962,6 +962,7 @@ Public Class TProject
         set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NaviProject(Me, Nothing)
 
+        ' 関数内の参照をセットする
         Dim set_function As New TNaviSetFunction
         set_function.NaviProject(Me, Nothing)
 
@@ -985,11 +986,6 @@ Public Class TProject
         set_call.NaviProject(Me, Nothing)
 
         Debug.Assert(set_ref.RefCnt = set_call.RefCnt)
-
-        ' 関数内の参照をセットする
-        set_ref_fnc = New TNaviSetRefFnc()
-        set_ref_fnc.NaviProject(Me, Nothing)
-        Debug.Assert(set_ref.RefCnt = set_ref_fnc.RefCnt)
 
         nav_test = New TNaviTest()
         nav_test.NaviProject(Me, Nothing)
@@ -1448,7 +1444,7 @@ Public Class TProject
         '  すべてのフィールドに対し
         For Each fld1 In vAllFld
             For Each ref1 In fld1.RefVar
-                If ref1.FncRef.Reachable Then
+                If ref1.FunctionTrm.Reachable Then
                     fld1.UsedVar = True
                     If fld1.OrgFld IsNot Nothing Then
                         fld1.OrgFld.UsedVar = (fld1.OrgFld.UsedVar OrElse fld1.UsedVar)
@@ -1576,18 +1572,18 @@ Public Class TProject
                 ' すべての関数呼び出しに対し
                 For Each ref2 In fnc2.RefVar
 
-                    If ref2.FncRef.Reachable Then
+                    If ref2.FunctionTrm.Reachable Then
                         ' 到達可能の関数内で参照されている場合
 
-                        If dic1.ContainsKey(ref2.FncRef) Then
+                        If dic1.ContainsKey(ref2.FunctionTrm) Then
                             ' 関数が辞書にある場合
 
-                            fncnd2 = dic1(ref2.FncRef)
+                            fncnd2 = dic1(ref2.FunctionTrm)
                         Else
                             ' 関数が辞書にない場合
 
                             ' 関数のノードをグラフに追加する
-                            fncnd2 = AddFncGraph(dic1, ref2.FncRef)
+                            fncnd2 = AddFncGraph(dic1, ref2.FunctionTrm)
                         End If
 
                         ' 関数から関数への矢印を追加する
@@ -1616,15 +1612,15 @@ Public Class TProject
         Debug.Assert(Not dic1.ContainsKey(ref1))
         dic1.Add(ref1, refnd)
 
-        If dic1.ContainsKey(ref1.FncRef) Then
+        If dic1.ContainsKey(ref1.FunctionTrm) Then
             ' 変数参照を含む関数のノードが辞書にある場合
 
-            fncnd = CType(dic1(ref1.FncRef), TFncNode)
+            fncnd = CType(dic1(ref1.FunctionTrm), TFncNode)
         Else
             ' 変数参照を含む関数のノードが辞書にない場合
 
             ' 関数のノードをグラフに追加する
-            fncnd = AddFncGraph(dic1, ref1.FncRef)
+            fncnd = AddFncGraph(dic1, ref1.FunctionTrm)
         End If
 
         ' 関数から変数参照への矢印を追加する。
@@ -1668,13 +1664,13 @@ Public Class TProject
                         ' すべてのフィールド参照に対し
                         For Each ref1 In fld1.RefVar
 
-                            If ref1.DefRef = def_ref AndAlso ref1.FncRef.Reachable Then
+                            If ref1.DefRef = def_ref AndAlso ref1.FunctionTrm.Reachable Then
                                 ' 到達可能の関数内で参照されている場合
 
-                                If Not vfnc.Contains(ref1.FncRef) Then
+                                If Not vfnc.Contains(ref1.FunctionTrm) Then
                                     ' 同一関数内での変数参照が未処理の場合
 
-                                    vfnc.Add(ref1.FncRef)
+                                    vfnc.Add(ref1.FunctionTrm)
 
                                     ' 変数参照のノードをグラフに追加する
                                     AddRefGraph(dic1, ref1)
@@ -1880,11 +1876,11 @@ Public Class TProject
                                         vfnc = New List(Of TFunction)()
                                         sw.WriteLine("<ul>")
                                         For Each ref1 In vref
-                                            If Not vfnc.Contains(ref1.FncRef) Then
+                                            If Not vfnc.Contains(ref1.FunctionTrm) Then
                                                 ' 未処理の場合
 
-                                                vfnc.Add(ref1.FncRef)
-                                                sw.Write("<li><a href=""../{0}/{1}.html"" >{2}</a></li>", GetHtmlFileName(ref1.FncRef.GetClassVar()), GetHtmlFileName(ref1.FncRef), ref1.FncRef.FullName())
+                                                vfnc.Add(ref1.FunctionTrm)
+                                                sw.Write("<li><a href=""../{0}/{1}.html"" >{2}</a></li>", GetHtmlFileName(ref1.FunctionTrm.GetClassVar()), GetHtmlFileName(ref1.FunctionTrm), ref1.FunctionTrm.FullName())
                                             End If
                                         Next
                                         sw.WriteLine("</ul>")

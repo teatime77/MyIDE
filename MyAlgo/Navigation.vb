@@ -441,12 +441,14 @@ Public Class TNaviSetLabel
             exit_label = False
             Select Case stmt1.TypeStmt
                 Case EToken.eExitDo
+                    Debug.Assert(TypeOf stmt1 Is TExit)
                     Debug.Assert(CurLoop IsNot Nothing)
                     If InSelect OrElse Not CurLoop.IsDo Then
                         exit_label = True
                     End If
 
                 Case EToken.eExitFor
+                    Debug.Assert(TypeOf stmt1 Is TExit)
                     Debug.Assert(CurLoop IsNot Nothing)
                     If InSelect OrElse CurLoop.IsDo Then
                         exit_label = True
@@ -531,45 +533,6 @@ Public Class TNaviSetVarRef
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNaviSetRefFnc
-Public Class TNaviSetRefFnc
-    Inherits TNavi
-
-    Public Overrides Sub NaviDot(dot1 As TDot, arg1 As Object)
-        Dim cur_fnc As TFunction
-
-        Debug.Assert(arg1 IsNot Nothing AndAlso TypeOf arg1 Is TFunction)
-        cur_fnc = CType(arg1, TFunction)
-
-        IncRefCnt(dot1)
-
-        dot1.FncRef = cur_fnc
-        cur_fnc.RefFnc.Add(dot1)
-
-        If dot1.TrmDot Is Nothing Then
-        Else
-            NaviTerm(dot1.TrmDot, arg1)
-        End If
-    End Sub
-
-    Public Overrides Sub NaviReference(ref1 As TReference, arg1 As Object)
-        Dim cur_fnc As TFunction
-
-        Debug.Assert(arg1 IsNot Nothing AndAlso TypeOf arg1 Is TFunction)
-        cur_fnc = CType(arg1, TFunction)
-
-        IncRefCnt(ref1)
-
-        ref1.FncRef = cur_fnc
-        cur_fnc.RefFnc.Add(ref1)
-    End Sub
-
-    Public Overrides Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
-        If fnc1.BlcFnc IsNot Nothing Then
-            NaviBlock(fnc1.BlcFnc, fnc1)
-        End If
-    End Sub
-End Class
 
 ' -------------------------------------------------------------------------------- TNaviSetCall
 Public Class TNaviSetCall
@@ -632,6 +595,9 @@ Public Class TNaviSetFunction
     Public Overrides Function StartTerm(trm1 As TTerm, arg1 As Object) As Object
         If trm1 IsNot Nothing Then
             trm1.FunctionTrm = FunctionNavi
+            If TypeOf trm1 Is TReference Then
+                trm1.FunctionTrm.RefFnc.Add(CType(trm1, TReference))
+            End If
         End If
 
         Return arg1

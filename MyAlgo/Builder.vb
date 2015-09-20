@@ -133,7 +133,7 @@ Public Class TBuilder
                     ' すべてのフィールド参照に対し
                     For Each ref1 In fld1.RefVar
 
-                        If ref1.FncRef.Reachable Then
+                        If ref1.FunctionTrm.Reachable Then
                             ' 到達可能の関数内で参照されている場合
 
                             ' 変数参照のノードをグラフに追加する
