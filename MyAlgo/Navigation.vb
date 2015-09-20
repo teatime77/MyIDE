@@ -538,27 +538,25 @@ End Class
 Public Class TNaviSetCall
     Inherits TNavi
 
-    Public Sub SetCall(fnc1 As TFunction, ref1 As TReference)
+    Public Sub SetCall(ref1 As TReference)
         Dim fnc2 As TFunction
 
         fnc2 = CType(ref1.VarRef, TFunction)
 
-        If Not fnc1.CallTo.Contains(fnc2) Then
-            fnc1.CallTo.Add(fnc2)
+        If Not ref1.FunctionTrm.CallTo.Contains(fnc2) Then
+            ref1.FunctionTrm.CallTo.Add(fnc2)
         End If
-        If Not fnc2.CallFrom.Contains(fnc1) Then
-            fnc2.CallFrom.Add(fnc1)
+        If Not fnc2.CallFrom.Contains(ref1.FunctionTrm) Then
+            fnc2.CallFrom.Add(ref1.FunctionTrm)
         End If
     End Sub
 
     Public Overrides Sub NaviDot(dot1 As TDot, arg1 As Object)
-        Debug.Assert(arg1 IsNot Nothing AndAlso TypeOf arg1 Is TFunction)
-
         IncRefCnt(dot1)
 
         If dot1.VarRef IsNot Nothing AndAlso TypeOf dot1.VarRef Is TFunction Then
 
-            SetCall(CType(arg1, TFunction), dot1)
+            SetCall(dot1)
         End If
 
         If dot1.TrmDot Is Nothing Then
@@ -568,23 +566,12 @@ Public Class TNaviSetCall
     End Sub
 
     Public Overrides Sub NaviReference(ref1 As TReference, arg1 As Object)
-        Debug.Assert(arg1 IsNot Nothing AndAlso TypeOf arg1 Is TFunction)
-
         IncRefCnt(ref1)
         If ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction Then
 
-            SetCall(CType(arg1, TFunction), ref1)
+            SetCall(ref1)
         End If
     End Sub
-
-
-    Public Overrides Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
-        Debug.Assert(arg1 Is Nothing)
-        If fnc1.BlcFnc IsNot Nothing Then
-            NaviBlock(fnc1.BlcFnc, fnc1)
-        End If
-    End Sub
-
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviSetFunction
