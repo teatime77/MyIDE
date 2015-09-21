@@ -18,6 +18,7 @@ End Enum
 
 Public Enum EApply
     eUnknownApp
+    eCallApp
     eArrayApp
     eStringApp
     eListApp
@@ -246,6 +247,7 @@ Public Class TTerm
     Public UpTrm As Object
     Public TokenList As List(Of TToken)
     Public FunctionTrm As TFunction
+    Public TypeTrm As TClass
 
     Public Sub New()
     End Sub

@@ -1772,6 +1772,7 @@ Public Class Sys
         trm2 = CopyTrm(dot1.TrmDot, cpy)
         dot2 = New TDot(trm2, dot1.VarRef)
         dot2.TypeDot = dot1.TypeDot
+        dot2.TypeTrm = dot1.TypeTrm
         dot2.DefRef = dot1.DefRef
 
         If cpy IsNot Nothing Then
@@ -1804,6 +1805,7 @@ Public Class Sys
                 ref2.VarRef.RefVar.Add(ref2)
             End If
         End If
+        ref2.TypeTrm = ref1.TypeTrm
         ref2.DefRef = ref1.DefRef
 
         If cpy IsNot Nothing Then
@@ -1818,6 +1820,7 @@ Public Class Sys
 
         app2 = New TApply()
 
+        app2.TypeTrm = app1.TypeTrm
         app2.TypeApp = app1.TypeApp
         app2.Negation = app1.Negation
         For Each trm1 In app1.ArgApp

@@ -1306,9 +1306,11 @@ End Class
 
 '-------------------------------------------------------------------------------- TSystem
 Public Class TSystem
-	Public IsFirst As Boolean
+    Public Shared Function IsFirst() As Boolean
+        Return True
+    End Function
 
-	Public Shared Function PrevValue(o As Object) As Object
+    Public Shared Function PrevValue(o As Object) As Object
 		Return Nothing
 	End Function
 
