@@ -289,12 +289,12 @@ Public Class TInvariant
                         Select Case .TypeApp
                             Case EToken.eEq, EToken.eNE
                                 tw.Fmt(.ArgApp(0).TokenList)
-                                tp1 = TProject.Prj.GetTermType(.ArgApp(0))
-                                tp2 = TProject.Prj.GetTermType(.ArgApp(1))
+                                tp1 = .ArgApp(0).TypeTrm
+                                tp2 = .ArgApp(1).TypeTrm
                                 If tp1 Is Nothing OrElse tp2 Is Nothing Then
                                     ' Debug.WriteLine("");
-                                    ' tp1 = TProject.Prj.GetTermType(.ArgApp[0]);
-                                    ' tp2 = TProject.Prj.GetTermType(.ArgApp[1]);
+                                    ' tp1 = .ArgApp[0].TypeTrm;
+                                    ' tp2 = .ArgApp[1].TypeTrm;
                                 End If
                                 If tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
                                     tw.Fmt(.TypeApp)

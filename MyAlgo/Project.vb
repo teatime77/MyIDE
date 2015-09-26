@@ -544,7 +544,7 @@ Public Class TProject
 
                     var1 = fnc1.ArgFnc(i1)
                     trm1 = varg(i1)
-                    tp1 = GetTermType(trm1)
+                    tp1 = trm1.TypeTrm
                     If var1.TypeVar Is Nothing Then
                     ElseIf tp1 Is Nothing Then
                     ElseIf TypeOf trm1 Is TReference AndAlso CType(trm1, TReference).IsAddressOf Then
@@ -1047,11 +1047,6 @@ Public Class TProject
         MakePrjAllSrc()
     End Sub
 
-    Public Function GetTermType(trm1 As TTerm) As TClass
-        Debug.Assert(trm1 IsNot Nothing AndAlso trm1.TypeTrm IsNot Nothing)
-        Return trm1.TypeTrm
-    End Function
-
     Public Function ElementType(type1 As TClass) As TClass
         chk(type1 IsNot Nothing)
         If type1.DimCla <> 0 OrElse type1.NameType() = "List" OrElse type1.NameType() = "TList" OrElse type1.NameType() = "IEnumerable" Then
@@ -1093,7 +1088,7 @@ Public Class TProject
         End Select
 
         ' 最初の引数の型を得る
-        tp1 = GetTermType(trm1)
+        tp1 = trm1.TypeTrm
         Debug.Assert(tp1 IsNot Nothing)
 
         ' すべてのメソッドに対し

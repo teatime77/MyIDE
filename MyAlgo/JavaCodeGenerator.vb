@@ -389,9 +389,9 @@ Public Class TJavaCodeGenerator
 
                         For i1 = 0 To app1.ArgApp.Count - 1
                             WordAdd("[", EFigType.eSymFig, app1)
-                            Debug.Assert(PrjMK.GetTermType(app1.ArgApp(i1)) IsNot Nothing)
+                            Debug.Assert(app1.ArgApp(i1).TypeTrm IsNot Nothing)
 
-                            If PrjMK.GetTermType(app1.ArgApp(i1)).KndCla = EClass.eEnumCla Then
+                            If app1.ArgApp(i1).TypeTrm.KndCla = EClass.eEnumCla Then
                                 TrmSrc(app1.ArgApp(i1))
                                 WordAdd(".ordinal()", EFigType.eSymFig, app1)
                             Else
@@ -493,7 +493,7 @@ Public Class TJavaCodeGenerator
                     TrmSrc(app1.ArgApp(0))
                     WordAdd("]", EFigType.eSymFig, app1)
                 Else
-                    tp1 = PrjMK.GetTermType(app1.ArgApp(0))
+                    tp1 = app1.ArgApp(0).TypeTrm
                     If tp1.KndCla = EClass.eEnumCla Then
                         ' enumからintに変換する場合
 
@@ -540,7 +540,7 @@ Public Class TJavaCodeGenerator
                     Return
                 End If
                 asn1 = CType(CType(app1.UpTrm, TTerm).UpTrm, TAssignment)
-                cla1 = PrjMK.GetTermType(asn1.RelAsn.ArgApp(0))
+                cla1 = asn1.RelAsn.ArgApp(0).TypeTrm
                 If TypeOf app1.ArgApp(0) Is TDot Then
                     dot1 = CType(app1.ArgApp(0), TDot)
                     Debug.Assert(TypeOf dot1.VarRef Is TFunction)
@@ -765,7 +765,7 @@ Public Class TJavaCodeGenerator
                 WordAdd("(", EFigType.eSymFig, for1)
                 VarSrc(for1.InVarFor)
                 WordAdd(":", EFigType.eSymFig, for1)
-                If PrjMK.GetTermType(for1.InTrmFor) Is PrjMK.StringType Then
+                If for1.InTrmFor.TypeTrm Is PrjMK.StringType Then
                     WordAdd("(", EFigType.eSymFig, for1)
                     TrmSrc(for1.InTrmFor)
                     WordAdd(").toCharArray()", EFigType.eSymFig, for1)

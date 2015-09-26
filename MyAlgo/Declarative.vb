@@ -423,7 +423,7 @@ Public Class TSetRefDeclarative
                             .TypeTrm = .ProjectTrm().BoolType
 
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
-                            .TypeTrm = .ProjectTrm().GetTermType(.ArgApp(0))
+                            .TypeTrm = .ArgApp(0).TypeTrm
 
                         Case EToken.eAppCall
                             If TypeOf .FncApp Is TReference Then
@@ -455,7 +455,7 @@ Public Class TSetRefDeclarative
                             Else
                                 Dim cla1 As TClass
 
-                                cla1 = .ProjectTrm().GetTermType(.FncApp)
+                                cla1 = .FncApp.TypeTrm
                                 If cla1 Is .ProjectTrm().StringType Then
                                     .TypeTrm = .ProjectTrm().CharType
                                 Else
@@ -473,7 +473,7 @@ Public Class TSetRefDeclarative
                             .TypeTrm = .ClassApp
 
                         Case EToken.eQUE
-                            .TypeTrm = .ProjectTrm().GetTermType(.ArgApp(1))
+                            .TypeTrm = .ArgApp(1).TypeTrm
 
                         Case EToken.eTypeof
                             .TypeTrm = .ProjectTrm().BoolType
@@ -492,7 +492,7 @@ Public Class TSetRefDeclarative
 
             ElseIf TypeOf trm1 Is TParenthesis Then
                 With CType(trm1, TParenthesis)
-                    .TypeTrm = .ProjectTrm().GetTermType(.TrmPar)
+                    .TypeTrm = .TrmPar.TypeTrm
                 End With
 
             ElseIf TypeOf trm1 Is TFrom Then
@@ -500,12 +500,12 @@ Public Class TSetRefDeclarative
                     Dim cla1 As TClass, cla2 As TClass
 
                     If .SelFrom Is Nothing Then
-                        cla1 = .ProjectTrm().GetTermType(.SeqFrom)
+                        cla1 = .SeqFrom.TypeTrm
                         Debug.Assert(cla1 IsNot Nothing)
                         cla2 = .ProjectTrm().ElementType(cla1)
                         .TypeTrm = .ProjectTrm().GetIEnumerableClass(cla2)
                     Else
-                        cla1 = .ProjectTrm().GetTermType(.SelFrom)
+                        cla1 = .SelFrom.TypeTrm
                         Debug.Assert(cla1 IsNot Nothing)
                         .TypeTrm = .ProjectTrm().GetIEnumerableClass(cla1)
                     End If
@@ -514,7 +514,7 @@ Public Class TSetRefDeclarative
             ElseIf TypeOf trm1 Is TAggregate Then
                 With CType(trm1, TAggregate)
 
-                    .TypeTrm = .ProjectTrm().GetTermType(.IntoAggr)
+                    .TypeTrm = .IntoAggr.TypeTrm
                 End With
 
             Else
@@ -549,10 +549,10 @@ Public Class TSetRefDeclarative
                         Loop
                         Debug.Assert(with1 IsNot Nothing)
 
-                        .TypeDot = .ProjectTrm().GetTermType(with1.TermWith)
+                        .TypeDot = with1.TermWith.TypeTrm
                     Else
 
-                        .TypeDot = .ProjectTrm().GetTermType(.TrmDot)
+                        .TypeDot = .TrmDot.TypeTrm
                     End If
 
                     If .TypeDot Is Nothing Then
@@ -737,7 +737,7 @@ Public Class TSetRefDeclarative
                                 Else
                                     ' 関数呼び出しでない場合
 
-                                    Dim cla1 As TClass = .ProjectTrm().GetTermType(.FncApp)
+                                    Dim cla1 As TClass = .FncApp.TypeTrm
                                     Debug.Assert(cla1 IsNot Nothing)
 
                                     If cla1.NameCla() = "String" Then
@@ -789,7 +789,7 @@ Public Class TSetRefDeclarative
                     Dim frm1 As TFrom = CType(obj, TFrom)
                     Debug.Assert(self Is frm1.VarFrom)
 
-                    Dim type1 As TClass = frm1.ProjectTrm().GetTermType(frm1.SeqFrom)
+                    Dim type1 As TClass = frm1.SeqFrom.TypeTrm
                     .TypeVar = frm1.ProjectTrm().ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
@@ -797,7 +797,7 @@ Public Class TSetRefDeclarative
                     Dim aggr1 As TAggregate = CType(obj, TAggregate)
                     Debug.Assert(self Is aggr1.VarAggr)
 
-                    Dim type1 As TClass = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
+                    Dim type1 As TClass = aggr1.SeqAggr.TypeTrm
                     .TypeVar = aggr1.ProjectTrm().ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
@@ -805,7 +805,7 @@ Public Class TSetRefDeclarative
                     Dim for1 As TFor = CType(obj, TFor)
                     Debug.Assert(self Is for1.InVarFor)
 
-                    Dim type1 As TClass = for1.ProjectStmt().GetTermType(for1.InTrmFor)
+                    Dim type1 As TClass = for1.InTrmFor.TypeTrm
                     .TypeVar = for1.ProjectStmt().ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
@@ -816,7 +816,7 @@ Public Class TSetRefDeclarative
                         If .InitVar IsNot Nothing Then
                             If .TypeVar Is Nothing Then
                                 .NoType = True
-                                .TypeVar = TProject.Prj.GetTermType(.InitVar)
+                                .TypeVar = .InitVar.TypeTrm
                             End If
                         End If
                     End If

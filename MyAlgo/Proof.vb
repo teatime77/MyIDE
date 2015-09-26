@@ -650,7 +650,7 @@ Public Class TDataflow
                     Dim with1 As TWith = UpWith(x.ParentStmt)
                     Debug.Assert(with1 IsNot Nothing)
 
-                    Dim with_cls As TClass = prj1.GetTermType(with1.TermWith)
+                    Dim with_cls As TClass = with1.TermWith.TypeTrm
                     Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm)())
                     If set_fnc IsNot Nothing Then
 

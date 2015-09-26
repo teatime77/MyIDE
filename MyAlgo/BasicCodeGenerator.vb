@@ -206,12 +206,12 @@ Public Class TBasicCodeGenerator
         Select Case rel1.TypeApp
             Case EToken.eEq, EToken.eNE
                 TrmSrc(rel1.ArgApp(0))
-                tp1 = TProject.Prj.GetTermType(rel1.ArgApp(0))
-                tp2 = TProject.Prj.GetTermType(rel1.ArgApp(1))
+                tp1 = rel1.ArgApp(0).TypeTrm
+                tp2 = rel1.ArgApp(1).TypeTrm
                 If tp1 Is Nothing OrElse tp2 Is Nothing Then
                     ' Debug.WriteLine("");
-                    ' tp1 = TProject.Prj.GetTermType(rel1.ArgApp[0]);
-                    ' tp2 = TProject.Prj.GetTermType(rel1.ArgApp[1]);
+                    ' tp1 = rel1.ArgApp[0].TypeTrm;
+                    ' tp2 = rel1.ArgApp[1].TypeTrm;
                 End If
                 If tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
                     WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
