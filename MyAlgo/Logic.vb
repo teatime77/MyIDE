@@ -255,7 +255,7 @@ Public Class TTerm
     Public Function IsApp() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eAddressOf, EToken.eGetType
+                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType
                     Return True
             End Select
         End If
@@ -706,6 +706,7 @@ Public Class TReference
     Inherits TAtom
     Public VarRef As TVariable
     Public DefRef As Boolean = False
+    Public IsAddressOf As Boolean = False
 
 
     Public Sub New()
@@ -859,17 +860,6 @@ Public Class TApply
         app1 = New TApply()
         app1.TypeApp = EToken.eGetType
         app1.ClassApp = type1
-
-        Return app1
-    End Function
-
-    Public Shared Function MakeAppAddressOf(trm1 As TTerm) As TApply
-        Dim app1 As TApply
-
-        app1 = New TApply()
-        app1.TypeApp = EToken.eAddressOf
-        app1.AddInArg(trm1)
-        Debug.Assert(TypeOf trm1 Is TReference)
 
         Return app1
     End Function

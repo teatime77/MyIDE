@@ -374,8 +374,6 @@ Public Class TSetRefDeclarative
 
     Public Sub SetTypeTrm(trm1 As TTerm)
         With trm1
-            Dim cla1 As TClass, cla2 As TClass
-
             If TypeOf trm1 Is TConstant Then
                 With CType(trm1, TConstant)
                     Select Case .TypeAtm
@@ -392,14 +390,19 @@ Public Class TSetRefDeclarative
                 End With
 
             ElseIf TypeOf trm1 Is TArray Then
+
             ElseIf TypeOf trm1 Is TReference Then
                 With CType(trm1, TReference)
 
                     If .VarRef IsNot Nothing Then
                         If TypeOf .VarRef Is TFunction Then
-                            .TypeTrm = CType(.VarRef, TFunction).RetType
-                            If .TypeTrm Is Nothing Then
-                                'Debug.Print("void型 {0}", .VarRef.NameVar)
+                            If .IsAddressOf Then
+                                .TypeTrm = New TDelegate(.ProjectTrm(), CType(.VarRef, TFunction))
+                            Else
+                                .TypeTrm = CType(.VarRef, TFunction).RetType
+                                If .TypeTrm Is Nothing Then
+                                    'Debug.Print("void型 {0}", .VarRef.NameVar)
+                                End If
                             End If
                         ElseIf TypeOf .VarRef Is TClass Then
                             .TypeTrm = CType(.VarRef, TClass)
@@ -410,12 +413,18 @@ Public Class TSetRefDeclarative
                     End If
                 End With
 
-            ElseIf trm1.IsApp() Then
+            ElseIf TypeOf trm1 Is TApply Then
                 With CType(trm1, TApply)
-
                     Select Case .TypeApp
+                        Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
+                            .TypeTrm = .ProjectTrm().BoolType
+
+                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs
+                            .TypeTrm = .ProjectTrm().BoolType
+
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
                             .TypeTrm = .ProjectTrm().GetTermType(.ArgApp(0))
+
                         Case EToken.eAppCall
                             If TypeOf .FncApp Is TReference Then
 
@@ -444,6 +453,8 @@ Public Class TSetRefDeclarative
                                     End Select
                                 End If
                             Else
+                                Dim cla1 As TClass
+
                                 cla1 = .ProjectTrm().GetTermType(.FncApp)
                                 If cla1 Is .ProjectTrm().StringType Then
                                     .TypeTrm = .ProjectTrm().CharType
@@ -451,23 +462,24 @@ Public Class TSetRefDeclarative
                                     .TypeTrm = cla1
                                 End If
                             End If
+
                         Case EToken.eBaseCall
                             .TypeTrm = Nothing
+
                         Case EToken.eBaseNew
                             .TypeTrm = Nothing
+
                         Case EToken.eAs, EToken.eCast
                             .TypeTrm = .ClassApp
+
                         Case EToken.eQUE
                             .TypeTrm = .ProjectTrm().GetTermType(.ArgApp(1))
+
                         Case EToken.eTypeof
                             .TypeTrm = .ProjectTrm().BoolType
+
                         Case EToken.eNew
                             .TypeTrm = .NewApp
-
-                        Case EToken.eAddressOf
-                            Dim ref1 As TReference = CType(.ArgApp(0), TReference)
-                            Debug.Assert(ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TFunction)
-                            .TypeTrm = New TDelegate(.ProjectTrm(), CType(ref1.VarRef, TFunction))
 
                         Case EToken.eGetType
                             .TypeTrm = .ProjectTrm().TypeType
@@ -478,13 +490,14 @@ Public Class TSetRefDeclarative
                     End Select
                 End With
 
-            ElseIf trm1.IsLog() Then
-                .TypeTrm = .ProjectTrm().BoolType
             ElseIf TypeOf trm1 Is TParenthesis Then
-                .TypeTrm = .ProjectTrm().GetTermType(CType(trm1, TParenthesis).TrmPar)
-            ElseIf TypeOf trm1 Is TFrom Then
+                With CType(trm1, TParenthesis)
+                    .TypeTrm = .ProjectTrm().GetTermType(.TrmPar)
+                End With
 
+            ElseIf TypeOf trm1 Is TFrom Then
                 With CType(trm1, TFrom)
+                    Dim cla1 As TClass, cla2 As TClass
 
                     If .SelFrom Is Nothing Then
                         cla1 = .ProjectTrm().GetTermType(.SeqFrom)
@@ -557,11 +570,15 @@ Public Class TSetRefDeclarative
                         Debug.Assert(dot1 Is app1.FncApp)
                         Debug.Assert(app1.TypeApp = EToken.eAppCall)
 
-                        If .TypeDot.IsArray() Then
-                            Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
-                            .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, app1.ArgApp)
+                        If .IsAddressOf Then
+                            .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
                         Else
-                            .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
+                            If .TypeDot.IsArray() Then
+                                Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
+                                .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, app1.ArgApp)
+                            Else
+                                .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
+                            End If
                         End If
 
                         If .VarRef Is Nothing Then
@@ -604,17 +621,6 @@ Public Class TSetRefDeclarative
                     Dim obj As Object = TNaviUp.UpObj(ref1)
                     If TypeOf obj Is TApply Then
                         Dim app1 As TApply = CType(obj, TApply)
-
-                        If app1.TypeApp = EToken.eAddressOf Then
-                            Debug.Assert(ref1 Is app1.ArgApp(0))
-                            .VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, .NameRef, Nothing)
-                            If .VarRef Is Nothing Then
-                                Debug.Print("Address Of 不明のメソッド {0}", .NameRef)
-                                Debug.Assert(False)
-                            End If
-
-                            Return
-                        End If
 
                         If ref1 Is app1.FncApp Then
                             Select Case app1.TypeApp
@@ -716,8 +722,7 @@ Public Class TSetRefDeclarative
                 End With
 
             ElseIf TypeOf self Is TApply Then
-                Dim app1 As TApply = CType(self, TApply)
-                With app1
+                With CType(self, TApply)
                     Select Case .TypeApp
                         Case EToken.eAppCall
                             If .FncApp IsNot Nothing Then
@@ -753,7 +758,7 @@ Public Class TSetRefDeclarative
                             End If
 
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
-                        Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eAddressOf, EToken.eBaseCall
+                        Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eBaseCall
                         Case Else
                             If .IsLog() Then
                             Else
@@ -764,23 +769,25 @@ Public Class TSetRefDeclarative
 
                     SetTypeTrm(trm1)
                 End With
+
             ElseIf TypeOf trm1 Is TParenthesis Then
                 SetTypeTrm(trm1)
+
             ElseIf TypeOf trm1 Is TFrom Then
                 SetTypeTrm(trm1)
+
             ElseIf TypeOf trm1 Is TAggregate Then
                 SetTypeTrm(trm1)
+
             End If
 
         ElseIf TypeOf self Is TVariable Then
-            Dim var1 As TVariable = CType(self, TVariable)
-            With var1
-
-                Dim obj As Object = TNaviUp.UpObj(var1)
+            With CType(self, TVariable)
+                Dim obj As Object = TNaviUp.UpObj(self)
 
                 If TypeOf obj Is TFrom Then
                     Dim frm1 As TFrom = CType(obj, TFrom)
-                    Debug.Assert(var1 Is frm1.VarFrom)
+                    Debug.Assert(self Is frm1.VarFrom)
 
                     Dim type1 As TClass = frm1.ProjectTrm().GetTermType(frm1.SeqFrom)
                     .TypeVar = frm1.ProjectTrm().ElementType(type1)
@@ -788,7 +795,7 @@ Public Class TSetRefDeclarative
 
                 ElseIf TypeOf obj Is TAggregate Then
                     Dim aggr1 As TAggregate = CType(obj, TAggregate)
-                    Debug.Assert(var1 Is aggr1.VarAggr)
+                    Debug.Assert(self Is aggr1.VarAggr)
 
                     Dim type1 As TClass = aggr1.ProjectTrm().GetTermType(aggr1.SeqAggr)
                     .TypeVar = aggr1.ProjectTrm().ElementType(type1)
@@ -796,7 +803,7 @@ Public Class TSetRefDeclarative
 
                 ElseIf TypeOf obj Is TFor Then
                     Dim for1 As TFor = CType(obj, TFor)
-                    Debug.Assert(var1 Is for1.InVarFor)
+                    Debug.Assert(self Is for1.InVarFor)
 
                     Dim type1 As TClass = for1.ProjectStmt().GetTermType(for1.InTrmFor)
                     .TypeVar = for1.ProjectStmt().ElementType(type1)
@@ -804,17 +811,14 @@ Public Class TSetRefDeclarative
 
                 Else
 
-                    Dim stmt As TStatement = TNaviUp.UpToStmt(var1)
+                    Dim stmt As TStatement = TNaviUp.UpToStmt(self)
                     If TypeOf stmt Is TVariableDeclaration Then
-
                         If .InitVar IsNot Nothing Then
-
                             If .TypeVar Is Nothing Then
                                 .NoType = True
                                 .TypeVar = TProject.Prj.GetTermType(.InitVar)
                             End If
                         End If
-
                     End If
                 End If
             End With

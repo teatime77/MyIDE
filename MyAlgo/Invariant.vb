@@ -276,9 +276,6 @@ Public Class TInvariant
                             Case EToken.eTypeof
                                 tw.Fmt(EToken.eTypeof, EToken.eLP, .ArgApp(0).TokenList, EToken.eRP)
 
-                            Case EToken.eAddressOf
-                                tw.Fmt(EToken.eAddressOf, .ArgApp(0).TokenList)
-
                             Case Else
                                 Debug.WriteLine("Err Trm Src2:{0}", .TypeApp)
                                 Debug.Assert(False)

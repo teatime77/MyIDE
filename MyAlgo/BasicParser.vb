@@ -1975,8 +1975,9 @@ Public Class TBasicParser
             Case EToken.eAddressOf
                 GetTkn(EToken.eAddressOf)
                 trm1 = TermExpression()
-                app1 = TApply.MakeAppAddressOf(trm1)
-                Return app1
+                Debug.Assert(TypeOf trm1 Is TReference)
+                CType(trm1, TReference).IsAddressOf = True
+                Return trm1
 
             Case EToken.eFrom
                 Return FromExpression()

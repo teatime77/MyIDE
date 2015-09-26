@@ -547,6 +547,7 @@ Public Class TProject
                     tp1 = GetTermType(trm1)
                     If var1.TypeVar Is Nothing Then
                     ElseIf tp1 Is Nothing Then
+                    ElseIf TypeOf trm1 Is TReference AndAlso CType(trm1, TReference).IsAddressOf Then
                     Else
                         If Not CanCnvCla(var1.TypeVar, trm1, tp1) Then
                             Return False

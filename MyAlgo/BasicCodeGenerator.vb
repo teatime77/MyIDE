@@ -107,10 +107,6 @@ Public Class TBasicCodeGenerator
                 TrmSrc(app1.ArgApp(0))
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case EToken.eAddressOf
-                WordAdd(EToken.eAddressOf, EFigType.eResFig, app1)
-                TrmSrc(app1.ArgApp(0))
-
             Case Else
                 Debug.WriteLine("Err Trm Src2:{0}", app1.TypeApp)
                 Debug.Assert(False)
@@ -143,6 +139,10 @@ Public Class TBasicCodeGenerator
 
         Debug.Assert(is_enum OrElse dot1.TypeDot IsNot Nothing)
         Debug.Assert(dot1.VarRef IsNot Nothing AndAlso (is_enum OrElse dot1.VarRef.ModVar IsNot Nothing))
+
+        If dot1.IsAddressOf Then
+            WordAdd(EToken.eAddressOf, EFigType.eResFig, dot1)
+        End If
 
         If dot1.TrmDot Is Nothing Then
 
@@ -188,6 +188,10 @@ Public Class TBasicCodeGenerator
 
     Public Overrides Sub RefSrc(ref1 As TReference)
         PrjMK.CheckRefVar(ref1)
+
+        If ref1.IsAddressOf Then
+            WordAdd(EToken.eAddressOf, EFigType.eResFig, ref1)
+        End If
 
         Fmt(ref1)
         If ref1.VarRef Is Nothing AndAlso ref1.NameRef <> "true" AndAlso ref1.NameRef <> "false" AndAlso ref1.NameRef <> "null" AndAlso ref1.NameRef <> "undefined" AndAlso ref1.NameRef <> "this" Then
