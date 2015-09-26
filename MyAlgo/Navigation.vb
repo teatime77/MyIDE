@@ -712,11 +712,16 @@ Public Class TNaviSetUpTrm
 
 End Class
 
-
 ' -------------------------------------------------------------------------------- TNaviUp
 Public Class TNaviUp
     Public Shared Function UpObj(obj As Object) As Object
-        If TypeOf obj Is TVariable Then
+        If TypeOf obj Is TFunction Then
+            Return CType(obj, TFunction).ClaFnc
+        ElseIf TypeOf obj Is TClass Then
+            Return CType(obj, TClass).ProjectCla
+        ElseIf TypeOf obj Is TProject Then
+            Return Nothing
+        ElseIf TypeOf obj Is TVariable Then
             Return CType(obj, TVariable).UpVar
         ElseIf TypeOf obj Is TTerm Then
             Return CType(obj, TTerm).UpTrm
@@ -761,7 +766,21 @@ Public Class TNaviUp
 
         Debug.Assert(obj2 IsNot Nothing AndAlso TypeOf obj2 Is TStatement)
 
+        Dim stmt1 = From obj3 In AncestorList(obj1) Where TypeOf obj3 Is TStatement
+        Dim obj4 As Object = stmt1.First()
+        Debug.Assert(obj4 Is obj2)
+
         Return CType(obj2, TStatement)
+    End Function
+
+    Public Shared Iterator Function AncestorList(obj1 As Object) As IEnumerable(Of Object)
+        Dim up_obj As Object
+
+        up_obj = UpObj(obj1)
+        Do While up_obj IsNot Nothing
+            Yield up_obj
+            up_obj = UpObj(up_obj)
+        Loop
     End Function
 End Class
 

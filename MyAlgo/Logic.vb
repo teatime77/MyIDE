@@ -248,6 +248,7 @@ Public Class TTerm
     Public TokenList As List(Of TToken)
     Public FunctionTrm As TFunction
     Public TypeTrm As TClass
+    Public ProjectTrm As TProject
 
     Public Sub New()
     End Sub
@@ -293,10 +294,6 @@ Public Class TTerm
 
     Public Function IsLog() As Boolean
         Return IsOpr() OrElse IsRel()
-    End Function
-
-    Public Function ProjectTrm() As TProject
-        Return FunctionTrm.ClaFnc.ProjectCla
     End Function
 End Class
 

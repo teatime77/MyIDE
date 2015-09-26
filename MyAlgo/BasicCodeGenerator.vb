@@ -569,7 +569,11 @@ Public Class TBasicCodeGenerator
         ElseIf TypeOf stmt1 Is TReturn Then
             ret1 = CType(stmt1, TReturn)
             Tab(tab1)
-            WordAdd(EToken.eReturn, EFigType.eResFig, stmt1)
+            If ret1.YieldRet Then
+                WordAdd(EToken.eYield, EFigType.eResFig, stmt1)
+            Else
+                WordAdd(EToken.eReturn, EFigType.eResFig, stmt1)
+            End If
             If ret1.TrmRet IsNot Nothing Then
                 TrmSrc(ret1.TrmRet)
             End If

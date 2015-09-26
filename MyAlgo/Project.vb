@@ -967,6 +967,9 @@ Public Class TProject
         Dim set_function As New TNaviSetFunction
         set_function.NaviProject(Me, Nothing)
 
+        Dim set_project_trm As New TNaviSetProjectTrm
+        set_project_trm.NaviProject(Me)
+
         ' 変数参照を解決する
         Dim set_ref As New TSetRefDeclarative
         set_ref.NaviProject(Me)

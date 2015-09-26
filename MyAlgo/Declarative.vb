@@ -378,11 +378,11 @@ Public Class TSetRefDeclarative
                 With CType(trm1, TConstant)
                     Select Case .TypeAtm
                         Case EToken.eString
-                            .TypeTrm = .ProjectTrm().StringType
+                            .TypeTrm = .ProjectTrm.StringType
                         Case EToken.eInt, EToken.eHex
-                            .TypeTrm = .ProjectTrm().IntType
+                            .TypeTrm = .ProjectTrm.IntType
                         Case EToken.eChar
-                            .TypeTrm = .ProjectTrm().CharType
+                            .TypeTrm = .ProjectTrm.CharType
                         Case Else
                             Debug.WriteLine("@h")
                             .TypeTrm = Nothing
@@ -397,7 +397,7 @@ Public Class TSetRefDeclarative
                     If .VarRef IsNot Nothing Then
                         If TypeOf .VarRef Is TFunction Then
                             If .IsAddressOf Then
-                                .TypeTrm = New TDelegate(.ProjectTrm(), CType(.VarRef, TFunction))
+                                .TypeTrm = New TDelegate(.ProjectTrm, CType(.VarRef, TFunction))
                             Else
                                 .TypeTrm = CType(.VarRef, TFunction).RetType
                                 If .TypeTrm Is Nothing Then
@@ -417,10 +417,10 @@ Public Class TSetRefDeclarative
                 With CType(trm1, TApply)
                     Select Case .TypeApp
                         Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
-                            .TypeTrm = .ProjectTrm().BoolType
+                            .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs
-                            .TypeTrm = .ProjectTrm().BoolType
+                            .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
                             .TypeTrm = .ArgApp(0).TypeTrm
@@ -441,7 +441,7 @@ Public Class TSetRefDeclarative
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(0)
                                         Case EApply.eStringApp
-                                            .TypeTrm = .ProjectTrm().CharType
+                                            .TypeTrm = .ProjectTrm.CharType
                                         Case EApply.eListApp
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(0)
@@ -456,8 +456,8 @@ Public Class TSetRefDeclarative
                                 Dim cla1 As TClass
 
                                 cla1 = .FncApp.TypeTrm
-                                If cla1 Is .ProjectTrm().StringType Then
-                                    .TypeTrm = .ProjectTrm().CharType
+                                If cla1 Is .ProjectTrm.StringType Then
+                                    .TypeTrm = .ProjectTrm.CharType
                                 Else
                                     .TypeTrm = cla1
                                 End If
@@ -476,13 +476,13 @@ Public Class TSetRefDeclarative
                             .TypeTrm = .ArgApp(1).TypeTrm
 
                         Case EToken.eTypeof
-                            .TypeTrm = .ProjectTrm().BoolType
+                            .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eNew
                             .TypeTrm = .NewApp
 
                         Case EToken.eGetType
-                            .TypeTrm = .ProjectTrm().TypeType
+                            .TypeTrm = .ProjectTrm.TypeType
 
                         Case Else
                             Debug.WriteLine("Err Trm Src2:{0}", .TypeApp)
@@ -502,12 +502,12 @@ Public Class TSetRefDeclarative
                     If .SelFrom Is Nothing Then
                         cla1 = .SeqFrom.TypeTrm
                         Debug.Assert(cla1 IsNot Nothing)
-                        cla2 = .ProjectTrm().ElementType(cla1)
-                        .TypeTrm = .ProjectTrm().GetIEnumerableClass(cla2)
+                        cla2 = .ProjectTrm.ElementType(cla1)
+                        .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla2)
                     Else
                         cla1 = .SelFrom.TypeTrm
                         Debug.Assert(cla1 IsNot Nothing)
-                        .TypeTrm = .ProjectTrm().GetIEnumerableClass(cla1)
+                        .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla1)
                     End If
                 End With
 
@@ -574,8 +574,8 @@ Public Class TSetRefDeclarative
                             .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
                         Else
                             If .TypeDot.IsArray() Then
-                                Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
-                                .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, app1.ArgApp)
+                                Debug.Assert(.ProjectTrm.ArrayType IsNot Nothing)
+                                .VarRef = TProject.FindFieldFunction(.ProjectTrm.ArrayType, .NameRef, app1.ArgApp)
                             Else
                                 .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
                             End If
@@ -584,19 +584,13 @@ Public Class TSetRefDeclarative
                         If .VarRef Is Nothing Then
                             Throw New TError(String.Format("不明なメンバー {0} {1}", .TypeDot.LongName(), .NameRef))
                         Else
-                            If Not TypeOf .VarRef Is TFunction Then
-                                If .VarRef.TypeVar.HasIndex() Then
-                                ElseIf TypeOf .VarRef.TypeVar Is TDelegate Then
-                                Else
-                                    Debug.Assert(False)
-                                End If
-                            End If
+                            Debug.Assert(TypeOf .VarRef Is TFunction OrElse TypeOf .VarRef.TypeVar Is TDelegate OrElse .VarRef.TypeVar.HasIndex())
                         End If
                     Else
 
                         If .TypeDot.IsArray() Then
-                            Debug.Assert(.ProjectTrm().ArrayType IsNot Nothing)
-                            .VarRef = TProject.FindFieldFunction(.ProjectTrm().ArrayType, .NameRef, Nothing)
+                            Debug.Assert(.ProjectTrm.ArrayType IsNot Nothing)
+                            .VarRef = TProject.FindFieldFunction(.ProjectTrm.ArrayType, .NameRef, Nothing)
                         Else
                             .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
                         End If
@@ -629,7 +623,7 @@ Public Class TSetRefDeclarative
                                     If .VarRef Is Nothing Then
 
                                         ' 演算子オーバーロード関数を得る
-                                        Dim fnc1 As TFunction = app1.ProjectTrm().GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
+                                        Dim fnc1 As TFunction = app1.ProjectTrm.GetOperatorFunction(app1.TypeApp, app1.ArgApp(0))
                                         If fnc1 IsNot Nothing Then
                                             ' 演算子オーバーロード関数を得られた場合
 
@@ -651,7 +645,7 @@ Public Class TSetRefDeclarative
                                                     name1 = "__Mod"
                                             End Select
 
-                                            Dim vvar = (From fnc In app1.ProjectTrm().SystemType.FncCla Where fnc.NameVar = name1).ToList()
+                                            Dim vvar = (From fnc In app1.ProjectTrm.SystemType.FncCla Where fnc.NameVar = name1).ToList()
                                             If vvar.Count <> 1 Then
 
                                                 Debug.WriteLine("演算子未定義:{0}", .NameRef)
@@ -670,7 +664,7 @@ Public Class TSetRefDeclarative
                                     .VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, .NameRef, app1.ArgApp)
                                     If .VarRef Is Nothing Then
 
-                                        .VarRef = .ProjectTrm().FindVariable(ref1, .NameRef)
+                                        .VarRef = .ProjectTrm.FindVariable(ref1, .NameRef)
                                         If .VarRef Is Nothing Then
 
                                             Debug.WriteLine("関数呼び出し 未定義:{0}", .NameRef)
@@ -685,7 +679,7 @@ Public Class TSetRefDeclarative
                                             Debug.WriteLine("New 未定義 {0} {1}", .NameRef, app1.ArgApp.Count)
                                         End If
                                     Else
-                                        .VarRef = .ProjectTrm().ArrayMaker
+                                        .VarRef = .ProjectTrm.ArrayMaker
                                     End If
                                     Return
 
@@ -711,7 +705,7 @@ Public Class TSetRefDeclarative
                         .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc, .NameRef, Nothing)
                         If .VarRef Is Nothing Then
 
-                            .VarRef = .ProjectTrm().FindVariable(ref1, .NameRef)
+                            .VarRef = .ProjectTrm.FindVariable(ref1, .NameRef)
                             If .VarRef Is Nothing Then
                                 Debug.WriteLine("変数未定義:{0}", .NameRef)
                             End If
@@ -790,7 +784,7 @@ Public Class TSetRefDeclarative
                     Debug.Assert(self Is frm1.VarFrom)
 
                     Dim type1 As TClass = frm1.SeqFrom.TypeTrm
-                    .TypeVar = frm1.ProjectTrm().ElementType(type1)
+                    .TypeVar = frm1.ProjectTrm.ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
                 ElseIf TypeOf obj Is TAggregate Then
@@ -798,7 +792,7 @@ Public Class TSetRefDeclarative
                     Debug.Assert(self Is aggr1.VarAggr)
 
                     Dim type1 As TClass = aggr1.SeqAggr.TypeTrm
-                    .TypeVar = aggr1.ProjectTrm().ElementType(type1)
+                    .TypeVar = aggr1.ProjectTrm.ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
                 ElseIf TypeOf obj Is TFor Then
@@ -860,6 +854,21 @@ Public Class TNaviSetDefRef2
                         End If
                     End If
                 End If
+            End With
+        End If
+    End Sub
+End Class
+
+
+' -------------------------------------------------------------------------------- TNaviSetProjectTrm
+Public Class TNaviSetProjectTrm
+    Inherits TDeclarative
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TTerm Then
+            With CType(self, TTerm)
+                Dim prj = From obj In TNaviUp.AncestorList(self) Where TypeOf obj Is TProject
+                .ProjectTrm = CType(prj.First(), TProject)
             End With
         End If
     End Sub

@@ -300,6 +300,9 @@ Public MustInherit Class TCodeGenerator
             If mod1.isShared Then
                 WordAdd(EToken.eShared, EFigType.eResFig, obj1)
             End If
+            If mod1.isIterator Then
+                WordAdd(EToken.eIterator, EFigType.eResFig, obj1)
+            End If
             If mod1.isConst Then
                 WordAdd(EToken.eConst, EFigType.eResFig, obj1)
             End If
