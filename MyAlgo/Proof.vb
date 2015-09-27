@@ -1716,6 +1716,11 @@ Public Class Sys
 
             Return IsEqTrm(par1.TrmPar, par2.TrmPar)
 
+        ElseIf TypeOf trm1 Is TFrom Then
+            ' Fromの共通部分式は探さない。
+
+            Return False
+
         Else
             Debug.Assert(False)
             Return False

@@ -873,3 +873,55 @@ Public Class TNaviSetProjectTrm
         End If
     End Sub
 End Class
+
+' -------------------------------------------------------------------------------- TNaviSetLabel
+Public Class TNaviSetLabel
+    Inherits TDeclarative
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TExit Then
+            With CType(self, TExit)
+
+                If .TypeStmt = EToken.eExitDo OrElse .TypeStmt = EToken.eExitFor Then
+                    Dim for_do As TFor = Nothing
+
+                    Dim for_select As Object = (From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor OrElse TypeOf obj Is TSelect).First()
+                    Select Case .TypeStmt
+                        Case EToken.eExitDo
+                            If Not (TypeOf for_select Is TFor AndAlso CType(for_select, TFor).IsDo) Then
+                                ' 直近のSelectまたはループがDoでない場合
+
+                                ' 直近のDoを探す。
+                                for_do = CType((From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso CType(obj, TFor).IsDo).First(), TFor)
+                            End If
+
+                        Case EToken.eExitFor
+                            If Not (TypeOf for_select Is TFor AndAlso Not CType(for_select, TFor).IsDo) Then
+                                ' 直近のSelectまたはループがForでない場合
+
+                                ' 直近のForを探す。
+                                for_do = CType((From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso Not CType(obj, TFor).IsDo).First(), TFor)
+                            End If
+                    End Select
+
+                    If for_do IsNot Nothing Then
+                        ' 直近のSelectまたはループがこのExitに対応しない場合
+
+                        If for_do.LabelFor = 0 Then
+                            ' ForまたはDoにラベル番号をつけていない場合
+
+                            ' 関数ごとのラベル番号をカウントアップする。
+                            .FunctionStmt.LabelCount = .FunctionStmt.LabelCount + 1
+
+                            ' ForまたはDoにラベル番号をつける。
+                            for_do.LabelFor = .FunctionStmt.LabelCount
+                        End If
+
+                        ' Exit文にラベル番号を指定する。
+                        .LabelExit = for_do.LabelFor
+                    End If
+                End If
+            End With
+        End If
+    End Sub
+End Class

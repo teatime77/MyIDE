@@ -613,6 +613,7 @@ Public Class TFunction
     Public EqOvredFncAll As New TList(Of TFunction)
     Public Reachable As Boolean
     Public RefFnc As New TList(Of TReference)
+    Public LabelCount As Integer
 
     Public Sub CopyFncMem(fnc1 As TFunction)
         CopyVarMem(fnc1)

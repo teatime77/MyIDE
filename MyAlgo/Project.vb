@@ -976,7 +976,7 @@ Public Class TProject
 
         ' ForのLabelForをセットする。
         Dim navi_set_label = New TNaviSetLabel()
-        navi_set_label.NaviProject(Me, Nothing)
+        navi_set_label.NaviProject(Me)
 
         ' DefRefをセットする。
         Dim set_def_ref = New TNaviSetDefRef()
