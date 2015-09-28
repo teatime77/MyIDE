@@ -764,7 +764,7 @@ Public Class TBasicParser
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
         cla1.KndCla = EClass.eEnumCla
-        cla1.SuperCla.Add(PrjParse.ObjectType)
+        cla1.SuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 
         Do While CurStmt.TypeStmt <> EToken.eEndEnum
@@ -815,14 +815,14 @@ Public Class TBasicParser
                 Next
                 spr_cla = PrjParse.GetAddSpecializedClass(instmt.ClassNameInheritsStmt, vtp)
             End If
-            cla1.SuperCla.Add(spr_cla)
+            cla1.SuperClassList.Add(spr_cla)
 
         End If
 
         If CurStmt.TypeStmt = EToken.eImplements Then
             implstmt = CType(GetStatement(EToken.eImplements), TImplementsStatement)
 
-            cla1.InterfacesCls = implstmt.ClassImplementsStmt
+            cla1.InterfaceList = implstmt.ClassImplementsStmt
         End If
 
         If PrjParse.ObjectType Is Nothing Then
@@ -850,8 +850,8 @@ Public Class TBasicParser
                 PrjParse.WaitHandleType = cla1
         End Select
 
-        If PrjParse.ObjectType IsNot cla1 AndAlso cla1.SuperCla.Count = 0 Then
-            cla1.SuperCla.Add(PrjParse.ObjectType)
+        If PrjParse.ObjectType IsNot cla1 AndAlso cla1.SuperClassList.Count = 0 Then
+            cla1.SuperClassList.Add(PrjParse.ObjectType)
         End If
 
         Do While CurStmt.TypeStmt <> EToken.eEndClass AndAlso CurStmt.TypeStmt <> EToken.eEndStruct AndAlso CurStmt.TypeStmt <> EToken.eEndInterface

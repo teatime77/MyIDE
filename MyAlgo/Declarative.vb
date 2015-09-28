@@ -536,18 +536,7 @@ Public Class TSetRefDeclarative
                     IncRefCnt(dot1)
 
                     If .TrmDot Is Nothing Then
-                        Dim with1 As TWith = Nothing
-
-                        Dim up_obj As Object = TNaviUp.UpObj(dot1)
-                        Do While up_obj IsNot Nothing
-                            If TypeOf up_obj Is TWith Then
-                                with1 = CType(up_obj, TWith)
-                                Exit Do
-                            End If
-
-                            up_obj = TNaviUp.UpObj(up_obj)
-                        Loop
-                        Debug.Assert(with1 IsNot Nothing)
+                        Dim with1 As TWith = CType((From o In TNaviUp.AncestorList(self) Where TypeOf (o) Is TWith).First(), TWith)
 
                         .TypeDot = with1.TermWith.TypeTrm
                     Else
@@ -684,12 +673,12 @@ Public Class TSetRefDeclarative
                                     Return
 
                                 Case EToken.eBaseCall
-                                    .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.SuperCla(0), .NameRef, app1.ArgApp)
+                                    .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.SuperClassList(0), .NameRef, app1.ArgApp)
                                     Debug.Assert(.VarRef IsNot Nothing AndAlso TypeOf .VarRef Is TFunction)
                                     Return
 
                                 Case EToken.eBaseNew
-                                    .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.SuperCla(0), app1.ArgApp)
+                                    .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.SuperClassList(0), app1.ArgApp)
                                     If .VarRef Is Nothing Then
                                         If app1.ArgApp.Count <> 0 Then
 
@@ -707,6 +696,7 @@ Public Class TSetRefDeclarative
 
                             .VarRef = .ProjectTrm.FindVariable(ref1, .NameRef)
                             If .VarRef Is Nothing Then
+                                .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc, .NameRef, Nothing)
                                 Debug.WriteLine("変数未定義:{0}", .NameRef)
                             End If
                         End If

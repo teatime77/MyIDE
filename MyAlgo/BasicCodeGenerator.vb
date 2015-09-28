@@ -864,23 +864,23 @@ Public Class TBasicCodeGenerator
 
         GenericSrc(cla1)
 
-        If cla1.SuperCla.Count <> 0 AndAlso cla1.SuperCla(0) IsNot PrjMK.ObjectType Then
+        If cla1.SuperClassList.Count <> 0 AndAlso cla1.SuperClassList(0) IsNot PrjMK.ObjectType Then
             NL(cla1)
             Tab(1)
             WordAdd("Inherits", EFigType.eResFig, cla1)
-            TypeSrc(cla1.SuperCla(0))
+            TypeSrc(cla1.SuperClassList(0))
         End If
 
-        If cla1.InterfacesCls.Count <> 0 Then
-            If cla1.InterfacesCls(0) IsNot PrjMK.ObjectType Then
+        If cla1.InterfaceList.Count <> 0 Then
+            If cla1.InterfaceList(0) IsNot PrjMK.ObjectType Then
                 NL(cla1)
                 Tab(1)
                 WordAdd(EToken.eImplements, EFigType.eResFig, cla1)
-                For i1 = 0 To cla1.InterfacesCls.Count - 1
+                For i1 = 0 To cla1.InterfaceList.Count - 1
                     If i1 <> 0 Then
                         WordAdd(",", EFigType.eSymFig, cla1)
                     End If
-                    TypeSrc(cla1.InterfacesCls(i1))
+                    TypeSrc(cla1.InterfaceList(i1))
                 Next
             End If
         End If

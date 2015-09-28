@@ -391,8 +391,8 @@ Public Class TProject
             dic.Add(cla1.OrgCla.GenCla(i1).NameCla(), cla1.GenCla(i1))
         Next
 
-        cla1.SuperCla = New TList(Of TClass)(From spr1 In cla1.OrgCla.SuperCla Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
-        cla1.InterfacesCls = New TList(Of TClass)(From spr1 In cla1.OrgCla.InterfacesCls Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
+        cla1.SuperClassList = New TList(Of TClass)(From spr1 In cla1.OrgCla.SuperClassList Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
+        cla1.InterfaceList = New TList(Of TClass)(From spr1 In cla1.OrgCla.InterfaceList Select TProject.Prj.SubstituteArgumentClass(spr1, dic))
         cla1.FldCla = New TList(Of TField)(From fld1 In cla1.OrgCla.FldCla Select CopyField(cla1, fld1, dic))
         cla1.FncCla = New TList(Of TFunction)(From fnc1 In cla1.OrgCla.FncCla Select CopyFunctionDeclaration(cla1, fnc1, dic))
 
@@ -566,51 +566,38 @@ Public Class TProject
     End Function
 
     Public Shared Function FindFieldFunctionSub(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
-        Dim var1 As TVariable
+        Dim field_list = From fld2 In cla1.FldCla Where fld2.NameVar = name1
+        If field_list.Any() Then
+            Return field_list.First()
+        End If
 
-        ' for Find
-        For Each fld2 In cla1.FldCla
-            If fld2.NameVar = name1 Then
-                Return fld2
-            End If
-        Next
-
-        ' for Find
-        For Each fnc2 In cla1.FncCla
-            If Prj.MatchFunction(fnc2, name1, varg) Then
-                Return fnc2
-            End If
-        Next
-
-        ' for Find
-        For Each cla_f In cla1.SuperCla
-            var1 = FindFieldFunctionSub(cla_f, name1, varg)
-            If var1 IsNot Nothing Then
-                Return var1
-            End If
-        Next
-
-        ' for Find
-        For Each cla_f In cla1.InterfacesCls
-            var1 = FindFieldFunctionSub(cla_f, name1, varg)
-            If var1 IsNot Nothing Then
-                Return var1
-            End If
-        Next
+        Dim function_list = From fnc2 In cla1.FncCla Where Prj.MatchFunction(fnc2, name1, varg)
+        If function_list.Any() Then
+            Return function_list.First()
+        End If
 
         Return Nothing
     End Function
 
     Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
-        Dim var1 As TVariable
+        Dim variable_list = From var1 In (From cla2 In SystemClassCurrentClassAncestorSuperClassListAncestorInterfaceList(cla1) Select FindFieldFunctionSub(cla2, name1, varg)) Where var1 IsNot Nothing
 
-        var1 = FindFieldFunctionSub(cla1, name1, varg)
-        If var1 Is Nothing Then
-
-            var1 = FindFieldFunctionSub(Prj.SystemType, name1, varg)
+        If variable_list.Any() Then
+            Return variable_list.First()
+        Else
+            Return Nothing
         End If
+    End Function
 
-        Return var1
+    Public Shared Iterator Function SystemClassCurrentClassAncestorSuperClassListAncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
+        Yield Prj.SystemType
+        Yield cla1
+        For Each cla2 In TNaviUp.AncestorSuperClassList(cla1)
+            Yield cla2
+        Next
+        For Each cla2 In TNaviUp.AncestorInterfaceList(cla1)
+            Yield cla2
+        Next
     End Function
 
     Public Shared Function FindFieldByName(cla1 As TClass, name1 As String) As TField
@@ -624,7 +611,7 @@ Public Class TProject
         Next
 
         ' for Find
-        For Each cla_f In cla1.SuperCla
+        For Each cla_f In cla1.SuperClassList
             fld1 = FindFieldByName(cla_f, name1)
             If fld1 IsNot Nothing Then
                 Return fld1
@@ -669,7 +656,7 @@ Public Class TProject
         Next
 
         ' for Find
-        For Each cla_f In cla1.SuperCla
+        For Each cla_f In cla1.SuperClassList
             var1 = FindNew(cla_f, varg)
             If var1 IsNot Nothing Then
                 Return var1
@@ -695,12 +682,12 @@ Public Class TProject
         End If
         sw.WriteLine("")
 
-        If cla1.SuperCla.Count <> 0 Then
-            sw.WriteLine("  super:{0}", cla1.SuperCla(0).ToString())
+        If cla1.SuperClassList.Count <> 0 Then
+            sw.WriteLine("  super:{0}", cla1.SuperClassList(0).ToString())
         End If
-        If cla1.InterfacesCls.Count <> 0 Then
+        If cla1.InterfaceList.Count <> 0 Then
             sw.Write("  impl:")
-            For Each cla2 In cla1.InterfacesCls
+            For Each cla2 In cla1.InterfaceList
                 sw.Write(" {0}", cla2.ToString())
             Next
             sw.WriteLine("")
@@ -920,8 +907,8 @@ Public Class TProject
 
         For i1 = 0 To ArrayClassList.Count - 1
             cla2 = ArrayClassList(i1)
-            Debug.Assert(cla2.InterfacesCls.Count = 0)
-            cla2.InterfacesCls.Add(GetIEnumerableClass(cla2.GenCla(0)))
+            Debug.Assert(cla2.InterfaceList.Count = 0)
+            cla2.InterfaceList.Add(GetIEnumerableClass(cla2.GenCla(0)))
         Next
 
         For Each cls1 In SimpleParameterizedClassList
@@ -1006,7 +993,7 @@ Public Class TProject
 
         ' サブクラスをセットする
         For Each cls1 In SimpleParameterizedSpecializedClassList
-            For Each super_class In cls1.SuperCla
+            For Each super_class In cls1.SuperClassList
                 super_class.SubClasses.Add(cls1)
             Next
         Next
@@ -1117,7 +1104,7 @@ Public Class TProject
         Dim i1 As Integer, tp1 As TClass, tp2 As TClass, all_eq As Boolean
 
         ' すべてのスーパークラスに対し
-        For Each cla2 In cla1.SuperCla
+        For Each cla2 In cla1.SuperClassList
 
             ' すべてのメソッドに対し
             For Each fnc2 In cla2.FncCla
@@ -1657,8 +1644,8 @@ Public Class TProject
     Public Function WriteInheritanceHierarchy(class_sw As StringWriter, cls1 As TClass) As Integer
         Dim indent As Integer
 
-        If cls1.SuperCla.Count <> 0 Then
-            indent = WriteInheritanceHierarchy(class_sw, cls1.SuperCla(0))
+        If cls1.SuperClassList.Count <> 0 Then
+            indent = WriteInheritanceHierarchy(class_sw, cls1.SuperClassList(0))
         Else
             indent = 0
         End If
@@ -1698,9 +1685,9 @@ Public Class TProject
                     class_sw.WriteLine("<h1>{0} クラス</h1>", cls1.NameVar)
 
                     class_sw.WriteLine("<h2>継承階層</h2>")
-                    If cls1.SuperCla.Count <> 0 Then
+                    If cls1.SuperClassList.Count <> 0 Then
 
-                        indent = WriteInheritanceHierarchy(class_sw, cls1.SuperCla(0))
+                        indent = WriteInheritanceHierarchy(class_sw, cls1.SuperClassList(0))
                     End If
 
                     class_sw.WriteLine("<p style=""text-indent:{0}em"">{1}</p>", indent * 2, cls1.NameVar)

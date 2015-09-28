@@ -1175,20 +1175,20 @@ Public Class TJavaCodeGenerator
                     WordAdd(">", EFigType.eSymFig, cla1)
                 End If
 
-                If cla1.SuperCla.Count <> 0 AndAlso cla1.SuperCla(0) IsNot PrjMK.ObjectType Then
+                If cla1.SuperClassList.Count <> 0 AndAlso cla1.SuperClassList(0) IsNot PrjMK.ObjectType Then
                     WordAdd(" ", EFigType.eUnknownFig, cla1)
                     WordAdd(EToken.eExtends, EFigType.eResFig, cla1)
-                    Fmt(cla1.SuperCla(0))
+                    Fmt(cla1.SuperClassList(0))
                 End If
 
-                If cla1.InterfacesCls.Count <> 0 Then
+                If cla1.InterfaceList.Count <> 0 Then
                     WordAdd(" ", EFigType.eSymFig, cla1)
                     WordAdd(EToken.eImplements, EFigType.eResFig, cla1)
-                    For i1 = 0 To cla1.InterfacesCls.Count - 1
+                    For i1 = 0 To cla1.InterfaceList.Count - 1
                         If i1 <> 0 Then
                             WordAdd(",", EFigType.eSymFig, cla1)
                         End If
-                        Fmt(cla1.InterfacesCls(i1))
+                        Fmt(cla1.InterfaceList(i1))
                     Next
                 End If
                 Fmt(EToken.eLC)

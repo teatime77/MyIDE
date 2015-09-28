@@ -729,13 +729,13 @@ Public Class TInvariant
 
             tw.Fmt(EToken.eNL)
 
-            If .SuperCla.Count <> 0 AndAlso .SuperCla(0) IsNot PrjMK.ObjectType Then
-                tw.Fmt(EToken.eInherits, .SuperCla(0).TokenListCls, EToken.eNL)
+            If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0) IsNot PrjMK.ObjectType Then
+                tw.Fmt(EToken.eInherits, .SuperClassList(0).TokenListCls, EToken.eNL)
             End If
 
-            If .InterfacesCls.Count <> 0 AndAlso .InterfacesCls(0) IsNot PrjMK.ObjectType Then
+            If .InterfaceList.Count <> 0 AndAlso .InterfaceList(0) IsNot PrjMK.ObjectType Then
                 tw.Fmt(EToken.eImplements)
-                tw.Fmt(Laminate((From cls1 In .InterfacesCls Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eNL)
+                tw.Fmt(Laminate((From cls1 In .InterfaceList Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eNL)
             End If
 
             '  すべてのフィールドに対し

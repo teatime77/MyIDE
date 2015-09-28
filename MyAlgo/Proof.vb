@@ -1270,7 +1270,7 @@ Public Class TDataflow
             End If
         Next
 
-        For Each cla_f In cls1.SuperCla
+        For Each cla_f In cls1.SuperClassList
             fld1 = GetFieldBy相対位置(cla_f, rel_pos)
             If fld1 IsNot Nothing Then
                 Return fld1

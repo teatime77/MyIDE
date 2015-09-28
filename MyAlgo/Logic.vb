@@ -374,10 +374,10 @@ Public Class TClass
     Public KndCla As EClass = EClass.eClassCla
     Public OrgCla As TClass
     Public GenCla As TList(Of TClass)
-    Public SuperCla As New TList(Of TClass)
+    Public SuperClassList As New TList(Of TClass)
     Public SubClasses As New TList(Of TClass)
     Public AllSuperCla As TList(Of TClass)
-    Public InterfacesCls As New TList(Of TClass)
+    Public InterfaceList As New TList(Of TClass)
     Public FldCla As New TList(Of TField)
     Public FncCla As New TList(Of TFunction)
     Public DimCla As Integer = 0
@@ -437,15 +437,15 @@ Public Class TClass
     End Function
 
     Public Sub AllSuperCla2(vcla As TList(Of TClass))
-        vcla.AddRange(SuperCla)
-        vcla.AddRange(InterfacesCls)
-        ' for Each cla1 In SuperCla Call cla1
-        For Each cla1 In SuperCla
+        vcla.AddRange(SuperClassList)
+        vcla.AddRange(InterfaceList)
+        ' for Each cla1 In SuperClassList Call cla1
+        For Each cla1 In SuperClassList
             cla1.AllSuperCla2(vcla)
         Next
 
-        ' for Each cla1 In InterfacesCls Call cla1
-        For Each cla1 In InterfacesCls
+        ' for Each cla1 In InterfaceList Call cla1
+        For Each cla1 In InterfaceList
             cla1.AllSuperCla2(vcla)
         Next
     End Sub

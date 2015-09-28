@@ -706,6 +706,32 @@ Public Class TNaviUp
             up_obj = UpObj(up_obj)
         Loop
     End Function
+
+    Public Shared Function AncestorSuperClassList2(cla1 As TClass) As IEnumerable(Of TClass)
+        Return From x In (From y In cla1.SuperClassList Select AncestorSuperClassList2(y))
+    End Function
+
+    Public Shared Function AncestorInterfaceList2(cla1 As TClass) As IEnumerable(Of TClass)
+        Return From x In (From y In cla1.InterfaceList Select AncestorInterfaceList2(y))
+    End Function
+
+    Public Shared Iterator Function AncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.SuperClassList
+            Yield cla2
+            For Each cla3 In AncestorSuperClassList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
+
+    Public Shared Iterator Function AncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.InterfaceList
+            Yield cla2
+            For Each cla3 In AncestorInterfaceList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviClearUsedStmt
