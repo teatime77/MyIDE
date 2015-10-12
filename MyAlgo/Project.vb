@@ -105,7 +105,7 @@ Public Class TProject
     End Function
 
     Public Function GetSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
-        Dim i1 As Integer, cla1 As TClass, v As TList(Of TClass) = Nothing, ok As Boolean
+        Dim cla1 As TClass, v As TList(Of TClass) = Nothing
 
         cla1 = GetCla(name1)
         Debug.Assert(cla1 IsNot Nothing AndAlso cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = vtp.Count AndAlso cla1.GenericType = EGeneric.ParameterizedClass)
@@ -115,19 +115,11 @@ Public Class TProject
             ' for Find
             For Each cla2 In v
                 Debug.Assert(cla2.GenericType = EGeneric.SpecializedClass)
-                ok = True
-                ' for Find
-                For i1 = 0 To cla2.GenCla.Count - 1
-                    If cla2.GenCla(i1) IsNot vtp(i1) Then
-                        ' 型が違う場合
 
-                        ok = False
-                        Exit For
-                    End If
-                Next
-
-                If ok Then
-                    ' すべての型が一致した場合
+                ' 一致しない引数があるか調べる。
+                Dim vidx = From idx In TNaviUp.IndexList(cla2.GenCla) Where cla2.GenCla(idx) IsNot vtp(idx)
+                If Not vidx.Any() Then
+                    ' すべて一致する場合
 
                     Return cla2
                 End If
@@ -408,17 +400,13 @@ Public Class TProject
     Public Function FindVariable(term As TTerm, name1 As String) As TVariable
         Dim cla1 As TClass = Nothing, var1 As TVariable
 
-        Dim vfld = (From fld In SystemType.FldCla Where fld.NameVar = name1).ToList()
-        If vfld.Count = 1 Then
+        Dim vfld = From fld In SystemType.FldCla Where fld.NameVar = name1
+        If vfld.Any() Then
 
-            Return vfld(0)
+            Return vfld.First()
         End If
 
-        Dim obj As Object
-
-        obj = TNaviUp.UpObj(term)
-        Do While obj IsNot Nothing
-
+        For Each obj In TNaviUp.AncestorList(term)
             If TypeOf obj Is TFrom Then
                 With CType(obj, TFrom)
                     If .VarFrom.NameVar = name1 Then
@@ -472,9 +460,7 @@ Public Class TProject
                     End If
                 End With
             End If
-
-            obj = TNaviUp.UpObj(obj)
-        Loop
+        Next
 
         If dicGenCla.ContainsKey(name1) Then
             cla1 = dicGenCla(name1)
@@ -580,7 +566,7 @@ Public Class TProject
     End Function
 
     Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
-        Dim variable_list = From var1 In (From cla2 In SystemClassCurrentClassAncestorSuperClassListAncestorInterfaceList(cla1) Select FindFieldFunctionSub(cla2, name1, varg)) Where var1 IsNot Nothing
+        Dim variable_list = From var1 In (From cla2 In Concatenate(Prj.SystemType, cla1, TNaviUp.AncestorSuperClassList(cla1), TNaviUp.AncestorInterfaceList(cla1)) Select FindFieldFunctionSub(CType(cla2, TClass), name1, varg)) Where var1 IsNot Nothing
 
         If variable_list.Any() Then
             Return variable_list.First()
@@ -589,14 +575,15 @@ Public Class TProject
         End If
     End Function
 
-    Public Shared Iterator Function SystemClassCurrentClassAncestorSuperClassListAncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
-        Yield Prj.SystemType
-        Yield cla1
-        For Each cla2 In TNaviUp.AncestorSuperClassList(cla1)
-            Yield cla2
-        Next
-        For Each cla2 In TNaviUp.AncestorInterfaceList(cla1)
-            Yield cla2
+    Public Shared Iterator Function Concatenate(ParamArray args As Object()) As IEnumerable(Of Object)
+        For Each arg In args
+            If TypeOf arg Is IEnumerable Then
+                For Each o In CType(arg, IEnumerable)
+                    Yield o
+                Next
+            Else
+                Yield arg
+            End If
         Next
     End Function
 
@@ -646,20 +633,10 @@ Public Class TProject
     End Function
 
     Public Shared Function FindNew(cla1 As TClass, varg As TList(Of TTerm)) As TVariable
-        Dim var1 As TVariable
-
-        ' for Find
-        For Each fnc2 In cla1.FncCla
-            If fnc2.IsNew AndAlso Prj.MatchFncArg(fnc2, varg) Then
-                Return fnc2
-            End If
-        Next
-
-        ' for Find
-        For Each cla_f In cla1.SuperClassList
-            var1 = FindNew(cla_f, varg)
-            If var1 IsNot Nothing Then
-                Return var1
+        For Each cla2 In Concatenate(cla1, TNaviUp.AncestorSuperClassList(cla1))
+            Dim vfnc = From fnc In CType(cla2, TClass).FncCla Where fnc.IsNew AndAlso Prj.MatchFncArg(fnc, varg)
+            If vfnc.Any() Then
+                Return vfnc.First()
             End If
         Next
 
@@ -1081,16 +1058,11 @@ Public Class TProject
         tp1 = trm1.TypeTrm
         Debug.Assert(tp1 IsNot Nothing)
 
-        ' すべてのメソッドに対し
-        ' for Find
-        For Each fnc In tp1.FncCla
-
-            If fnc.TypeFnc = EToken.eOperator AndAlso fnc.NameFnc() = name1 Then
-                ' 演算子オーバーロード関数で名前が同じ場合
-
-                Return fnc
-            End If
-        Next
+        ' 名前が同じの演算子オーバーロード関数を探す
+        Dim vfnc = From fnc In tp1.FncCla Where fnc.TypeFnc = EToken.eOperator AndAlso fnc.NameFnc() = name1
+        If vfnc.Any() Then
+            Return vfnc.First()
+        End If
 
         Return Nothing
     End Function

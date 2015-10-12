@@ -457,7 +457,27 @@ Public Class TClass
 
     ' このクラスが引数のクラスのサブクラスならTrueを返す
     Public Function IsSubcla(cla1 As TClass) As Boolean
-        Return AllSuperCla.Contains(cla1)
+        If AllSuperCla.Contains(cla1) Then
+            Return True
+        End If
+
+        If cla1.GenericType = EGeneric.SpecializedClass Then
+            Dim vcla = From cla2 In AllSuperCla Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
+            If vcla.Any() Then
+                Return True
+            End If
+
+            For Each cla2 In AllSuperCla
+                If cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla Then
+
+                    If Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any() Then
+                        Return True
+                    End If
+                End If
+            Next
+        End If
+
+        Return False
     End Function
 
     ' このクラスが引数のクラスと同じかサブクラスならTrueを返す

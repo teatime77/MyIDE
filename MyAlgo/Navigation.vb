@@ -732,6 +732,14 @@ Public Class TNaviUp
             Next
         Next
     End Function
+
+    Public Shared Iterator Function IndexList(v As IEnumerable(Of Object)) As IEnumerable(Of Integer)
+        Dim idx As Integer = 0
+        For Each x In v
+            Yield idx
+            idx = idx + 1
+        Next
+    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviClearUsedStmt
