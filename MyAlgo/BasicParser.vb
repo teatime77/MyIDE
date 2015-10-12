@@ -39,7 +39,16 @@ Public Class TBasicParser
         If type1 = CurTkn.TypeTkn OrElse type1 = EToken.eUnknown Then
             tkn1 = CurTkn
             CurPos = CurPos + 1
-            If CurPos < CurVTkn.Count Then
+            If CurPos < CurVTkn.Count _
+                Then
+                If CurVTkn(CurPos).TypeTkn = EToken.eLowLine Then
+
+                    CurLineIdx += 1
+                    CurLineStr = PrjParse.CurSrc.vTextSrc(CurLineIdx)
+                    CurVTkn = PrjParse.CurSrc.LineTkn(CurLineIdx)
+
+                    CurPos = 0
+                End If
                 CurTkn = CurVTkn(CurPos)
                 If CurPos + 1 < CurVTkn.Count Then
                     NxtTkn = CurVTkn(CurPos + 1)
@@ -1089,7 +1098,10 @@ Public Class TBasicParser
 
         com1 = New TComment()
         ' for ???
-        For i1 = 0 To src1.vTextSrc.Length - 1
+        i1 = 0
+        Do While i1 < src1.vTextSrc.Length
+            CurLineIdx = i1
+
             CurLineStr = src1.vTextSrc(i1)
             CurVTkn = src1.LineTkn(i1)
 
@@ -1118,6 +1130,13 @@ Public Class TBasicParser
 
                     src1.StmtSrc(i1) = stmt1
 
+                    ' 継続行の場合
+                    Dim i2 As Integer = i1
+                    Do While i2 < CurLineIdx
+                        i2 = i2 + 1
+                        src1.StmtSrc(i2) = Nothing
+                    Loop
+
                     If TypeOf stmt1 Is TClassStatement Then
                         ' クラス定義の始まりの場合
 
@@ -1141,7 +1160,9 @@ Public Class TBasicParser
                     is_err = True
                 End Try
             End If
-        Next
+
+            i1 = CurLineIdx + 1
+        Loop
 
         Debug.Assert(Not is_err)
     End Sub
@@ -1494,6 +1515,7 @@ Public Class TBasicParser
         dic1.Add("?", EToken.eQUE)
         dic1.Add("[", EToken.eLB)
         dic1.Add("]", EToken.eRB)
+        dic1.Add("_", EToken.eLowLine)
         dic1.Add("^", EToken.eHAT)
         dic1.Add("{", EToken.eLC)
         dic1.Add("|", EToken.eVLine)

@@ -136,6 +136,7 @@ Public Enum EToken
     eIsNot
     eIterator
     eLoop
+    eLowLine
     eMustOverride
     eModule
     eNew
