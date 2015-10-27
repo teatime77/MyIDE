@@ -280,6 +280,7 @@ Public Class TNavi
 
     Public Overridable Sub NaviTry(try1 As TTry, arg1 As Object)
         NaviStatement(try1.BlcTry, arg1)
+        NaviLocalVariableList(try1.VarCatch, arg1)
         NaviStatement(try1.BlcCatch, arg1)
     End Sub
 

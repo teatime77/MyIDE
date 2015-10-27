@@ -2100,13 +2100,11 @@ Public Class TBasicParser
     Function NotExpression() As TTerm
         Dim trm1 As TTerm
         Dim type1 As EToken
-        Dim opr1 As TApply
         Dim app1 As TApply
 
         If CurTkn.TypeTkn = EToken.eNot Then
             type1 = CurTkn.TypeTkn
             GetTkn(type1)
-            opr1 = TApply.NewOpr(type1)
             trm1 = NotExpression()
             Debug.Assert(TypeOf trm1 Is TApply OrElse TypeOf trm1 Is TReference OrElse TypeOf trm1 Is TParenthesis)
             If TypeOf trm1 Is TApply Then
@@ -2114,6 +2112,8 @@ Public Class TBasicParser
                 app1.Negation = Not app1.Negation
                 Return app1
             Else
+                Dim opr1 As TApply = TApply.NewOpr(type1)
+
                 opr1.AddInArg(trm1)
                 Return opr1
             End If

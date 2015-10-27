@@ -42,6 +42,10 @@ Public Class TDeclarative
         End If
     End Sub
 
+    Public Overridable Sub NaviModifier(mod1 As TModifier)
+        EndCondition(mod1)
+    End Sub
+
     Public Overridable Sub NaviConstant(cns1 As TConstant)
         EndCondition(cns1)
     End Sub
@@ -155,6 +159,7 @@ Public Class TDeclarative
     Public Overridable Sub NaviArray(arr1 As TArray)
         If arr1 IsNot Nothing Then
             NaviTermList(arr1.TrmArr)
+            EndCondition(arr1)
         End If
     End Sub
 
@@ -248,6 +253,7 @@ Public Class TDeclarative
 
     Public Overridable Sub NaviTry(try1 As TTry)
         NaviStatement(try1.BlcTry)
+        NaviLocalVariableList(try1.VarCatch)
         NaviStatement(try1.BlcCatch)
     End Sub
 
@@ -257,6 +263,7 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviVariableDeclaration(dcl1 As TVariableDeclaration)
+        NaviModifier(dcl1.ModDecl)
         NaviLocalVariableList(dcl1.VarDecl)
     End Sub
 

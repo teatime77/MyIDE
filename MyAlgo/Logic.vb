@@ -83,6 +83,7 @@ Public Enum EToken
     eSM
     eShared
     eSub
+    eTab
     eTilde
     eTo
     eTypeof
@@ -191,6 +192,7 @@ Public Class TToken
     Public TypeTkn As EToken
     Public StrTkn As String
     Public PosTkn As Integer
+    Public TabTkn As Integer
 
     Public tknSym As Integer
     Public ObjTkn As Object
@@ -388,6 +390,7 @@ Public Class TClass
     Public Parsed As Boolean = False
 
     Public TokenListCls As List(Of TToken)
+    Public ClassNameTokenList As List(Of TToken)
 
     Public Sub New()
         Debug.WriteLine("@a")
@@ -1019,7 +1022,7 @@ Public Class TStatement
     Public BeforeSrc As String
     Public AfterSrc As String = ""
 
-    Public TokenList As List(Of TTokenLine)
+    Public TokenListStmt As List(Of TToken)
     Public TabStmt As Integer
     Public FunctionStmt As TFunction
 
@@ -1163,8 +1166,8 @@ End Class
 Public Class TTry
     Inherits TStatement
     Public BlcTry As TBlock
-    Public BlcCatch As TBlock
     Public VarCatch As TList(Of TVariable)
+    Public BlcCatch As TBlock
 End Class
 
 ' -------------------------------------------------------------------------------- TFor
