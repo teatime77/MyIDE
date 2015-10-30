@@ -130,6 +130,21 @@ Public Class TNaviMakeBasicSource
         End With
     End Sub
 
+
+    ' コメントのソースを作る
+    Public Sub ComSrc(com1 As TComment, tab1 As Integer, tw As TTokenWriter)
+        If com1 IsNot Nothing Then
+            For Each s In com1.LineCom
+                If s <> "" Then
+                    tw.TAB(tab1)
+                    tw.Fmt(New TToken(EToken.eComment, s))
+                End If
+                tw.Fmt(EToken.eNL)
+            Next
+        End If
+    End Sub
+
+
     Public Overrides Sub EndCondition(self As Object)
         Dim tw As New TTokenWriter(self)
 
@@ -144,7 +159,7 @@ Public Class TNaviMakeBasicSource
                 If TypeOf self Is TClass Then
                     With CType(self, TClass)
 
-                        '!!!!!            ComSrc(CType(.ComCla(), TComment), 0, cla1)
+                        ComSrc(CType(.ComCla(), TComment), 0, tw)
                         Select Case .KndCla
                             Case EClass.eEnumCla
                                 '  列挙型の場合
@@ -385,6 +400,10 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TDot Then
                     With CType(self, TDot)
+                        If .IsAddressOf Then
+                            tw.Fmt(EToken.eAddressOf)
+                        End If
+
                         If .TrmDot IsNot Nothing Then
                             tw.Fmt(.TrmDot.TokenList)
                         End If
@@ -393,6 +412,10 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TReference Then
                     With CType(self, TReference)
+                        If .IsAddressOf Then
+                            tw.Fmt(EToken.eAddressOf)
+                        End If
+
                         tw.Fmt(self)
                     End With
 
@@ -467,7 +490,7 @@ Public Class TNaviMakeBasicSource
                                 tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
                             Case EToken.eTypeof
-                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
+                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
 
                             '--------------------------------------------------------------------------------------
                             Case EToken.eEq, EToken.eNE
@@ -520,7 +543,7 @@ Public Class TNaviMakeBasicSource
                     End With
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
-                        tw.Fmt(EToken.eFrom, .VarFrom.TokenListVar, EToken.eIn, .SeqFrom.TokenList)
+                        tw.Fmt(EToken.eFrom, .VarFrom.NameVar, EToken.eIn, .SeqFrom.TokenList)
 
                         If .CndFrom IsNot Nothing Then
 
@@ -541,7 +564,7 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TAggregate Then
                     With CType(self, TAggregate)
-                        tw.Fmt(EToken.eAggregate, .VarAggr.TokenListVar, EToken.eIn, .SeqAggr.TokenList, EToken.eInto)
+                        tw.Fmt(EToken.eAggregate, .VarAggr.NameVar, EToken.eIn, .SeqAggr.TokenList, EToken.eInto)
 
                         Select Case .FunctionAggr
                             Case EAggregateFunction.eSum
@@ -576,7 +599,7 @@ Public Class TNaviMakeBasicSource
                 If .ComStmt IsNot Nothing Then
                     For Each tkn_f In .ComStmt
                         tw.TAB(.TabStmt)
-                        tw.Fmt(tkn_f, EToken.eNL)
+                        tw.Fmt(tkn_f.StrTkn, EToken.eNL)
                     Next
                 End If
                 If .IsGenerated Then
@@ -687,7 +710,7 @@ Public Class TNaviMakeBasicSource
                             tw.Fmt(EToken.eLoop, EToken.eNL)
 
                         ElseIf .InVarFor IsNot Nothing Then
-                            tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.TokenListVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
+                            tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
                             tw.Fmt(.BlcFor.TokenListStmt)
                             tw.Fmt(EToken.eNext, EToken.eNL)
 
@@ -720,7 +743,11 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TReturn Then
                     With CType(self, TReturn)
-                        tw.Fmt(EToken.eReturn)
+                        If .YieldRet Then
+                            tw.Fmt(EToken.eYield)
+                        Else
+                            tw.Fmt(EToken.eReturn)
+                        End If
                         If .TrmRet IsNot Nothing Then
                             tw.Fmt(.TrmRet.TokenList)
                         End If
@@ -735,9 +762,7 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TComment Then
                     With CType(self, TComment)
-                        For Each s In .LineCom
-                            tw.Fmt(New TToken(EToken.eComment, s), EToken.eNL)
-                        Next
+                        ComSrc(CType(self, TComment), 0, tw)
                     End With
 
                 Else

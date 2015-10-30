@@ -1015,6 +1015,9 @@ Public Class TBasicCodeGenerator
                 Case EToken.eNL
                     sw.WriteLine("")
 
+                Case EToken.eComment
+                    sw.Write("'" + tkn.StrTkn)
+
                 Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
                     sw.Write(" " + txt + " ")
 

@@ -1430,7 +1430,7 @@ Public Class TBasicParser
         dic1.Add("Do", EToken.eDo)
         dic1.Add("Each", EToken.eEach)
         dic1.Add("Else", EToken.eElse)
-        dic1.Add("Elseif", EToken.eElseIf)
+        dic1.Add("ElseIf", EToken.eElseIf)
         dic1.Add("End", EToken.eEnd)
         dic1.Add("Enum", EToken.eEnum)
         dic1.Add("Exit", EToken.eExit)
