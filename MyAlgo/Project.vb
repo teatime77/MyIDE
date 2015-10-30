@@ -844,7 +844,6 @@ Public Class TProject
     End Sub
 
     Public Sub Compile()
-        Dim set_var_ref As TNaviSetVarRef
         Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
@@ -946,7 +945,7 @@ Public Class TProject
         Dim set_def_ref = New TNaviSetDefRef()
         set_def_ref.NaviProject(Me, Nothing)
 
-        set_var_ref = New TNaviSetVarRef()
+        Dim set_var_ref As New TNaviSetVarRef
         set_var_ref.NaviProject(Me, Nothing)
         Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)
 
@@ -1601,61 +1600,6 @@ Public Class TProject
         '        dicClassMemName.Add("", "")
     End Sub
 
-    Public Sub SetTokenListCls(cla1 As TClass)
-        Dim tw As New TTokenWriter(cla1)
-
-        With cla1
-            Dim i1 As Integer
-
-            If .TokenListCls IsNot Nothing Then
-                Exit Sub
-            End If
-
-            If cla1 Is Nothing Then
-
-                tw.Fmt("型不明")
-                Return
-            End If
-
-            If .DimCla <> 0 Then
-                ' 配列の場合
-
-                Debug.Assert(.GenCla IsNot Nothing AndAlso .GenCla.Count = 1)
-                SetTokenListCls(.GenCla(0))
-                tw.Fmt(.GenCla(0).TokenListCls)
-
-                tw.Fmt(EToken.eLP)
-                For i1 = 0 To .DimCla - 1
-                    If i1 <> 0 Then
-                        tw.Fmt(EToken.eComma)
-                    End If
-                Next
-                tw.Fmt(EToken.eRP)
-            Else
-                ' 配列でない場合
-                tw.Fmt(TypeName(.NameType()))
-                If .GenCla IsNot Nothing Then
-                    ' 総称型の場合
-
-                    tw.Fmt(EToken.eLP, EToken.eOf)
-
-                    For i1 = 0 To .GenCla.Count - 1
-                        If i1 <> 0 Then
-                            tw.Fmt(EToken.eComma)
-                        End If
-
-                        SetTokenListCls(.GenCla(i1))
-                        tw.Fmt(.GenCla(i1).TokenListCls)
-
-                    Next
-                    tw.Fmt(EToken.eRP)
-                End If
-            End If
-
-            .TokenListCls = tw.GetTokenList()
-        End With
-    End Sub
-
     Public Function TypeName(name1 As String) As String
         If name1 = "int" Then
             Return "Integer"
@@ -1670,28 +1614,27 @@ Public Class TProject
         Return name1
     End Function
 
-    Public Sub SetClassNameList(self As Object)
-        Dim tw As New TTokenWriter(self)
+    Public Sub SetClassNameList(cla1 As TClass)
+        Dim tw As New TTokenWriter(cla1)
 
-        If TypeOf self Is TClass Then
-            With CType(self, TClass)
-                If .ClassNameTokenList IsNot Nothing Then
-                    Exit Sub
-                End If
+        With CType(cla1, TClass)
+            Dim i1 As Integer
 
-                Dim i1 As Integer, cla1 As TClass
+            If .TokenListVar IsNot Nothing Then
+                Exit Sub
+            End If
 
-                If self Is Nothing Then
-                    tw.Fmt("型不明")
-                    Return
-                End If
+            If cla1 Is Nothing Then
+                tw.Fmt("型不明")
+            Else
 
                 If .DimCla <> 0 Then
                     ' 配列の場合
 
                     Debug.Assert(.GenCla IsNot Nothing AndAlso .GenCla.Count = 1)
                     SetClassNameList(.GenCla(0))
-                    tw.Fmt(.GenCla(0).ClassNameTokenList, EToken.eLP)
+                    tw.Fmt(.GenCla(0).TokenListVar, EToken.eLP)
+
                     For i1 = 0 To .DimCla - 1
                         If i1 <> 0 Then
                             tw.Fmt(EToken.eComma)
@@ -1709,17 +1652,17 @@ Public Class TProject
                             If i1 <> 0 Then
                                 tw.Fmt(EToken.eComma)
                             End If
-                            cla1 = .GenCla(i1)
-                            SetClassNameList(cla1)
-                            tw.Fmt(cla1.ClassNameTokenList)
+
+                            SetClassNameList(.GenCla(i1))
+                            tw.Fmt(.GenCla(i1).TokenListVar)
                         Next
                         tw.Fmt(EToken.eRP)
                     End If
                 End If
+            End If
 
-                .ClassNameTokenList = tw.GetTokenList()
-            End With
-        End If
+            .TokenListVar = tw.GetTokenList()
+        End With
 
     End Sub
 
@@ -1728,8 +1671,8 @@ Public Class TProject
             SetClassNameList(cla1)
         Next
 
-        For Each cla1 In SimpleParameterizedSpecializedClassList
-            SetTokenListCls(cla1)
+        For Each cla1 In ArrayClassList
+            SetClassNameList(cla1)
         Next
     End Sub
 
@@ -1743,10 +1686,11 @@ Public Class TProject
             CurSrc = src_f
 
             src_f.FigSrc.MakeBasicSrc(src_f)
-            src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
 
             Dim navi_make_basic_source As New TNaviMakeBasicSource(Me)
-            navi_make_basic_source.NaviProject(Me)
+            navi_make_basic_source.NaviSourceFile(src_f)
+
+            src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
 
             CurSrc = Nothing
         Next

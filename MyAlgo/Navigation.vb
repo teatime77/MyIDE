@@ -361,6 +361,7 @@ Public Class TNavi
         With fnc1
             arg1 = StartFunction(fnc1, arg1)
 
+            NaviLocalVariableList(fnc1.ArgFnc, arg1)
             If fnc1.BlcFnc IsNot Nothing Then
                 NaviStatement(.BlcFnc, arg1)
             End If

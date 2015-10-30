@@ -335,28 +335,60 @@ Public Class TDeclarative
         With fnc1
             StartCondition(fnc1)
 
+            NaviStatement(fnc1.ComVar)
+            NaviModifier(fnc1.ModFnc)
+            NaviLocalVariableList(fnc1.ArgFnc)
+
             If fnc1.BlcFnc IsNot Nothing Then
                 NaviStatement(.BlcFnc)
             End If
 
+            EndCondition(fnc1)
         End With
+    End Sub
+
+    Public Overridable Sub NaviField(fld1 As TField)
+        NaviStatement(fld1.ComVar)
+        NaviModifier(fld1.ModVar)
+        'NaviTerm(fld1.InitVar)
+
+        EndCondition(fld1)
     End Sub
 
     Public Overridable Sub NaviClass(cla1 As TClass)
         If (cla1.FldCla.Count <> 0 OrElse cla1.FncCla.Count <> 0) AndAlso Not (cla1.GenCla IsNot Nothing AndAlso cla1.OrgCla Is Nothing) Then
 
+            For Each fld1 In cla1.FldCla
+                NaviField(fld1)
+            Next
+
             '  すべてのメソッドに対し
             For Each fnc1 In cla1.FncCla
                 NaviFunction(fnc1)
             Next
+
+            EndCondition(cla1)
         End If
     End Sub
 
-    Public Overridable Sub NaviProject(prj As TProject)
-        '  すべてのクラスに対し
-        For Each cla1 In prj.SimpleParameterizedClassList
+    Public Overridable Sub NaviSourceFile(src As TSourceFile)
+        For Each cla1 In src.ClaSrc
             NaviClass(cla1)
         Next
+
+        EndCondition(src)
+    End Sub
+
+    Public Overridable Sub NaviProject(prj As TProject)
+        For Each src In prj.SrcPrj
+            NaviSourceFile(src)
+        Next
+        '  すべてのクラスに対し
+        'For Each cla1 In prj.SimpleParameterizedClassList
+        '    NaviClass(cla1)
+        'Next
+
+        EndCondition(prj)
     End Sub
 End Class
 
@@ -772,6 +804,10 @@ Public Class TSetRefDeclarative
 
             End If
 
+        ElseIf TypeOf self Is TClass Then
+
+        ElseIf TypeOf self Is TFunction Then
+
         ElseIf TypeOf self Is TVariable Then
             With CType(self, TVariable)
                 Dim obj As Object = TNaviUp.UpObj(self)
@@ -802,8 +838,9 @@ Public Class TSetRefDeclarative
 
                 Else
 
-                    Dim stmt As TStatement = TNaviUp.UpToStmt(self)
-                    If TypeOf stmt Is TVariableDeclaration Then
+                    Dim vstmt = From up_self In TNaviUp.AncestorList(self) Where TypeOf up_self Is TVariableDeclaration
+
+                    If vstmt.Any() Then
                         If .InitVar IsNot Nothing Then
                             If .TypeVar Is Nothing Then
                                 .NoType = True
@@ -851,6 +888,31 @@ Public Class TNaviSetDefRef2
                         End If
                     End If
                 End If
+            End With
+        End If
+    End Sub
+End Class
+
+
+' -------------------------------------------------------------------------------- TNaviSetVarRef
+Public Class TNaviSetVarRefNEW
+    Inherits TDeclarative
+
+    Public Overrides Sub EndCondition(self As Object)
+        If TypeOf self Is TDot Then
+            With CType(self, TReference)
+                Debug.Assert(.VarRef IsNot Nothing)
+                Debug.Assert(Not .VarRef.RefVar.Contains(CType(self, TReference)))
+
+                .VarRef.RefVar.Add(CType(self, TReference))
+            End With
+
+        ElseIf TypeOf self Is TReference Then
+            With CType(self, TReference)
+                Debug.Assert(.VarRef IsNot Nothing)
+                Debug.Assert(Not .VarRef.RefVar.Contains(CType(self, TReference)))
+
+                .VarRef.RefVar.Add(CType(self, TReference))
             End With
         End If
     End Sub

@@ -1432,7 +1432,6 @@ Public Class TBasicParser
         dic1.Add("Else", EToken.eElse)
         dic1.Add("Elseif", EToken.eElseIf)
         dic1.Add("End", EToken.eEnd)
-        dic1.Add("Endif", EToken.eEndIf)
         dic1.Add("Enum", EToken.eEnum)
         dic1.Add("Exit", EToken.eExit)
         dic1.Add("Extends", EToken.eExtends)
@@ -1540,6 +1539,20 @@ Public Class TBasicParser
             vTknName.Add(EToken.eASN, "=")
             vTknName.Add(EToken.eExitFor, "Exit For")
             vTknName.Add(EToken.eExitDo, "Exit Do")
+            vTknName.Add(EToken.eExitSub, "Exit Sub")
+
+            vTknName.Add(EToken.eEndIf, "End If")
+            vTknName.Add(EToken.eEndSub, "End Sub")
+            vTknName.Add(EToken.eEndFunction, "End Function")
+            vTknName.Add(EToken.eEndOperator, "End Operator")
+            vTknName.Add(EToken.eEndClass, "End Class")
+            vTknName.Add(EToken.eEndStruct, "End Structure")
+            vTknName.Add(EToken.eEndInterface, "End Interface")
+            vTknName.Add(EToken.eEndEnum, "End Enum")
+            vTknName.Add(EToken.eEndModule, "End Module")
+            vTknName.Add(EToken.eEndSelect, "End Select")
+            vTknName.Add(EToken.eEndTry, "End Try")
+            vTknName.Add(EToken.eEndWith, "End With")
         End If
         PrjParse.vTknNamePrj = vTknName
     End Sub

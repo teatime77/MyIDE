@@ -189,7 +189,7 @@ End Enum
 
 Public Class TToken
     Public SpcTkn As Integer
-    Public TypeTkn As EToken
+    Public TypeTkn As EToken = EToken.eUnknown
     Public StrTkn As String
     Public PosTkn As Integer
     Public TabTkn As Integer
@@ -390,7 +390,6 @@ Public Class TClass
     Public Parsed As Boolean = False
 
     Public TokenListCls As List(Of TToken)
-    Public ClassNameTokenList As List(Of TToken)
 
     Public Sub New()
         Debug.WriteLine("@a")
@@ -1270,6 +1269,7 @@ Public Class TSourceFile
     Public LineTkn As TList(Of TList(Of TToken))
     Public StmtSrc As TList(Of TStatement)
     Public FigSrc As TBasicCodeGenerator
+    Public TokenListSrc As List(Of TToken)
 
     Public Sub New(path1 As String)
         FileSrc = path1

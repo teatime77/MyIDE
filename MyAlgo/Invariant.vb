@@ -87,6 +87,49 @@ Public Class TNaviMakeBasicSource
         End If
     End Sub
 
+    Public Sub VariableTypeInitializer(self As Object, tw As TTokenWriter)
+        With CType(self, TVariable)
+            Dim as_new As Boolean = False, app1 As TApply
+
+            If .InitVar IsNot Nothing AndAlso .InitVar.TokenList Is Nothing Then
+                ' 生成された初期化関数が、まだ呼ばれていない場合
+
+                NaviTerm(.InitVar)
+            End If
+
+            If .TypeVar IsNot Nothing AndAlso Not .NoType Then
+                tw.Fmt(EToken.eAs)
+                If .InitVar IsNot Nothing AndAlso .InitVar.IsApp() AndAlso CType(.InitVar, TApply).TypeApp = EToken.eNew Then
+                    as_new = True
+
+                    app1 = CType(.InitVar, TApply)
+                    If app1.ArgApp.Count = 0 Then
+                        ' 引数がない場合
+
+                        tw.Fmt(EToken.eNew)
+                        tw.Fmt(app1.NewApp.TokenListVar)
+                    Else
+                        ' 引数がある場合
+                        tw.Fmt(app1.TokenList)
+                    End If
+
+                    If app1.IniApp IsNot Nothing Then
+
+                        tw.Fmt(EToken.eFrom, app1.IniApp.TokenList)
+                    End If
+                Else
+                    PrjMK.SetClassNameList(.TypeVar)
+                    tw.Fmt(.TypeVar.TokenListVar)
+                End If
+            End If
+
+            If Not as_new AndAlso .InitVar IsNot Nothing Then
+                tw.Fmt(EToken.eASN, .InitVar.TokenList)
+            End If
+
+        End With
+    End Sub
+
     Public Overrides Sub EndCondition(self As Object)
         Dim tw As New TTokenWriter(self)
 
@@ -120,24 +163,25 @@ Public Class TNaviMakeBasicSource
                             Case EClass.eDelegateCla
                                 ' デリゲートの場合
 
-                                Dim dlg1 As TDelegate = CType(self, TDelegate)
+                                With CType(self, TDelegate)
+                                    tw.Fmt(EToken.ePublic, EToken.eDelegate)
+                                    If .RetDlg Is Nothing Then
+                                        tw.Fmt(EToken.eSub, .NameVar)
+                                    Else
+                                        tw.Fmt(EToken.eFunction, .NameVar)
+                                    End If
 
-                                tw.Fmt(EToken.ePublic, EToken.eDelegate)
-                                If dlg1.RetDlg Is Nothing Then
-                                    tw.Fmt(EToken.eSub, EToken.eNL)
-                                Else
-                                    tw.Fmt(EToken.eFunction, EToken.eNL)
-                                End If
+                                    tw.Fmt(EToken.eLP)
+                                    tw.Fmt(Laminate((From var1 In .ArgDlg Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+                                    tw.Fmt(EToken.eRP)
 
-                                GenericSrc(self)
+                                    If .RetDlg IsNot Nothing Then
+                                        PrjMK.SetClassNameList(.RetDlg)
+                                        tw.Fmt(EToken.eAs, .RetDlg.TokenListVar)
+                                    End If
 
-                            '''''''''VarListSrc(dlg1.ArgDlg, dlg1)
-                            '''''''''If dlg1.RetDlg IsNot Nothing Then
-                            '''''''''    Fmt(EToken.eAs)
-                            '''''''''    TypeSrc(dlg1.RetDlg)
-                            '''''''''End If
-                            '''''''''NL(dlg1)
-
+                                    tw.Fmt(EToken.eNL)
+                                End With
                             Case Else
 
                                 '  クラスの場合
@@ -158,35 +202,34 @@ Public Class TNaviMakeBasicSource
                                         tw.Fmt(EToken.eStruct)
                                     Case EClass.eInterfaceCla
                                         tw.Fmt(EToken.eInterface)
+                                    Case Else
+                                        Debug.Assert(False)
                                 End Select
-                                tw.Fmt(self)
 
-                                GenericSrc(self)
+
+                                tw.Fmt(.TokenListVar)
 
                                 tw.Fmt(EToken.eNL)
 
                                 If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0) IsNot PrjMK.ObjectType Then
-                                    tw.Fmt(EToken.eInherits, .SuperClassList(0).TokenListCls, EToken.eNL)
+                                    tw.Fmt(EToken.eInherits, .SuperClassList(0).TokenListVar, EToken.eNL)
                                 End If
 
                                 If .InterfaceList.Count <> 0 AndAlso .InterfaceList(0) IsNot PrjMK.ObjectType Then
                                     tw.Fmt(EToken.eImplements)
-                                    tw.Fmt(Laminate((From cls1 In .InterfaceList Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eNL)
+                                    tw.Fmt(Laminate((From cls1 In .InterfaceList Select cls1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eNL)
                                 End If
 
                                 '  すべてのフィールドに対し
                                 For Each fld1 In .FldCla
-                                    If PrjMK.OutputNotUsed OrElse fld1.UsedVar Then
-                                        tw.Fmt(fld1.TokenListVar)
-                                    End If
+                                    tw.Fmt(fld1.TokenListVar)
                                 Next
 
                                 '  すべてのメソッドに対し
                                 For Each fnc1 In .FncCla
-                                    If Not fnc1.IsGenerated() AndAlso (PrjMK.OutputNotUsed OrElse (fnc1.Reachable OrElse fnc1.ModFnc().isMustOverride) OrElse fnc1.NameVar = "New@TList") Then
-
-                                        tw.Fmt(fnc1.TokenListVar)
-                                    End If
+                                    'If Not fnc1.IsGenerated() AndAlso (fnc1.ModFnc().isMustOverride OrElse fnc1.NameVar = "New@TList") Then
+                                    'End If
+                                    tw.Fmt(fnc1.TokenListVar)
                                 Next
 
                                 Select Case .KndCla
@@ -198,70 +241,99 @@ Public Class TNaviMakeBasicSource
                                         tw.Fmt(EToken.eEndInterface, EToken.eNL)
                                 End Select
                         End Select
-                    End With
 
-                ElseIf TypeOf self Is TField Then
-                    With CType(self, TField)
-
-                        tw.Fmt(.ComVar.TokenListStmt)
-                        tw.Fmt(.ModVar.TokenListMod)
-                        If .ModVar Is Nothing OrElse Not .ModVar.isPublic AndAlso Not .ModVar.isShared Then
-                            tw.Fmt(EToken.eDim)
-                        End If
-                        tw.Fmt(self)
-
-                        If .TailCom <> "" Then
-                            tw.Fmt(New TToken(EToken.eComment, .TailCom))
-                        End If
-                        tw.Fmt(EToken.eNL)
+                        .TokenListCls = tw.GetTokenList()
                     End With
 
                 ElseIf TypeOf self Is TFunction Then
                     With CType(self, TFunction)
 
-                        tw.Fmt(.ComVar.TokenListStmt)
+                        If Not .IsGenerated() Then
+                            If .ComVar IsNot Nothing Then
 
-                        tw.Fmt(.ModVar.TokenListMod)
+                                tw.Fmt(.ComVar.TokenListStmt)
+                            End If
 
-                        Select Case .TypeFnc
-                            Case EToken.eFunction
-                                tw.Fmt(EToken.eFunction, self)
-                            Case EToken.eSub
-                                tw.Fmt(EToken.eSub, self)
-                            Case EToken.eNew
-                                tw.Fmt(EToken.eSub, EToken.eNew)
+                            tw.Fmt(.ModVar.TokenListMod)
 
-                            Case EToken.eOperator
-                                tw.Fmt(EToken.eOperator, self)
+                            Select Case .TypeFnc
+                                Case EToken.eFunction
+                                    tw.Fmt(EToken.eFunction, self)
+                                Case EToken.eSub
+                                    tw.Fmt(EToken.eSub, self)
+                                Case EToken.eNew
+                                    tw.Fmt(EToken.eSub, EToken.eNew)
 
-                            Case Else
-                                Debug.WriteLine("")
-                        End Select
+                                Case EToken.eOperator
+                                    tw.Fmt(EToken.eOperator, self)
 
-                        tw.Fmt(Laminate((From var1 In .ArgFnc Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+                                Case Else
+                                    Debug.WriteLine("")
+                            End Select
 
-                        If .RetType IsNot Nothing Then
-                            tw.Fmt(EToken.eAs, .RetType.TokenListCls)
+                            tw.Fmt(EToken.eLP)
+                            tw.Fmt(Laminate((From var1 In .ArgFnc Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+                            tw.Fmt(EToken.eRP)
 
+                            If .RetType IsNot Nothing Then
+                                PrjMK.SetClassNameList(.RetType)
+                                tw.Fmt(EToken.eAs, .RetType.TokenListVar)
+
+                            End If
+
+                            If .InterfaceFnc IsNot Nothing Then
+                                PrjMK.SetClassNameList(.InterfaceFnc)
+                                tw.Fmt(EToken.eImplements, .InterfaceFnc.TokenListVar, EToken.eDot, .ImplFnc)
+                            End If
+                            tw.Fmt(EToken.eNL)
+
+
+                            If .BlcFnc IsNot Nothing Then
+                                tw.Fmt(.BlcFnc.TokenListStmt)
+
+                                Select Case .TypeFnc
+                                    Case EToken.eOperator
+                                        tw.Fmt(EToken.eEndOperator)
+                                    Case EToken.eSub, EToken.eNew
+                                        tw.Fmt(EToken.eEndSub)
+                                    Case EToken.eFunction
+                                        tw.Fmt(EToken.eEndFunction)
+                                End Select
+
+                                tw.Fmt(EToken.eNL)
+                            End If
                         End If
 
-                        If .InterfaceFnc IsNot Nothing Then
-                            tw.Fmt(EToken.eImplements, .InterfaceFnc.TokenListCls, EToken.eDot, .ImplFnc)
+                        .TokenListVar = tw.GetTokenList()
+                    End With
+
+                ElseIf TypeOf self Is TField Then
+                    With CType(self, TField)
+
+                        If .ComVar IsNot Nothing Then
+                            tw.Fmt(.ComVar.TokenListStmt)
+                        End If
+
+                        If .ModVar IsNot Nothing Then
+
+                            tw.Fmt(.ModVar.TokenListMod)
+                        End If
+                        If .ModVar Is Nothing OrElse Not .ModVar.isPublic AndAlso Not .ModVar.isShared Then
+                            tw.Fmt(EToken.eDim)
+                        End If
+                        tw.Fmt(self)
+                        VariableTypeInitializer(self, tw)
+
+                        If .TailCom <> "" Then
+                            tw.Fmt(New TToken(EToken.eComment, .TailCom))
                         End If
                         tw.Fmt(EToken.eNL)
 
-
-                        If .BlcFnc IsNot Nothing Then
-                            tw.Fmt(.BlcFnc.TokenListStmt)
-                            tw.Fmt(EToken.eEndFunction)
-                        End If
+                        .TokenListVar = tw.GetTokenList()
                     End With
 
                 Else
 
-                    Dim as_new As Boolean, app1 As TApply
-
-                    as_new = False
                     If .ByRefVar Then
                         tw.Fmt(EToken.eRef)
                     End If
@@ -270,34 +342,7 @@ Public Class TNaviMakeBasicSource
                     End If
 
                     tw.Fmt(self)
-                    If .TypeVar IsNot Nothing AndAlso Not .NoType Then
-                        tw.Fmt(EToken.eAs)
-                        If .InitVar IsNot Nothing AndAlso .InitVar.IsApp() AndAlso CType(.InitVar, TApply).TypeApp = EToken.eNew Then
-                            as_new = True
-                            app1 = CType(.InitVar, TApply)
-                            If app1.ArgApp.Count = 0 Then
-                                ' 引数がない場合
-
-                                tw.Fmt(EToken.eNew)
-                                tw.Fmt(app1.NewApp.ClassNameTokenList)
-                            Else
-                                ' 引数がある場合
-                                tw.Fmt(app1.TokenList)
-                            End If
-
-                            If app1.IniApp IsNot Nothing Then
-
-                                tw.Fmt(EToken.eFrom, app1.IniApp.TokenList)
-                            End If
-                        Else
-                            PrjMK.SetClassNameList(.TypeVar)
-                            tw.Fmt(.TypeVar.ClassNameTokenList)
-                        End If
-                    End If
-
-                    If Not as_new AndAlso .InitVar IsNot Nothing Then
-                        tw.Fmt(EToken.eASN, .InitVar.TokenList)
-                    End If
+                    VariableTypeInitializer(self, tw)
 
                     .TokenListVar = tw.GetTokenList()
                 End If
@@ -394,18 +439,18 @@ Public Class TNaviMakeBasicSource
                                 If .IniApp Is Nothing Then
                                     ' 初期値がない場合
 
-                                    tw.Fmt(.NewApp.TokenListCls, AppArgTokenList(self))
+                                    tw.Fmt(.NewApp.TokenListVar, AppArgTokenList(self))
                                 Else
                                     ' 初期値がある場合
 
                                     If .NewApp.IsArray() Then
                                         ' 配列の場合
 
-                                        tw.Fmt(.NewApp.GenCla(0).TokenListCls, AppArgTokenList(self))
+                                        tw.Fmt(.NewApp.GenCla(0).TokenListVar, AppArgTokenList(self))
                                     Else
                                         ' 配列でない場合
 
-                                        tw.Fmt(.NewApp.TokenListCls, AppArgTokenList(self), EToken.eFrom)
+                                        tw.Fmt(.NewApp.TokenListVar, AppArgTokenList(self), EToken.eFrom)
                                     End If
 
                                     tw.Fmt(.IniApp.TokenList)
@@ -413,16 +458,16 @@ Public Class TNaviMakeBasicSource
 
                             Case EToken.eAs, EToken.eCast
 
-                                tw.Fmt(EToken.eCType, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ClassApp.TokenListCls, EToken.eRP)
+                                tw.Fmt(EToken.eCType, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ClassApp.TokenListVar, EToken.eRP)
 
                             Case EToken.eGetType
-                                tw.Fmt(EToken.eGetType, EToken.eLP, .ClassApp.TokenListCls, EToken.eRP)
+                                tw.Fmt(EToken.eGetType, EToken.eLP, .ClassApp.TokenListVar, EToken.eRP)
 
                             Case EToken.eQUE
                                 tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
                             Case EToken.eTypeof
-                                tw.Fmt(EToken.eTypeof, EToken.eLP, .ArgApp(0).TokenList, EToken.eRP)
+                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
 
                             '--------------------------------------------------------------------------------------
                             Case EToken.eEq, EToken.eNE
@@ -534,7 +579,9 @@ Public Class TNaviMakeBasicSource
                         tw.Fmt(tkn_f, EToken.eNL)
                     Next
                 End If
-                If TypeOf self Is TAssignment OrElse TypeOf self Is TCall OrElse TypeOf self Is TVariableDeclaration Then
+                If .IsGenerated Then
+
+                ElseIf TypeOf self Is TAssignment OrElse TypeOf self Is TCall OrElse TypeOf self Is TVariableDeclaration Then
                     tw.TAB(.TabStmt)
                     If TypeOf self Is TAssignment Then
                         With CType(self, TAssignment)
@@ -620,7 +667,7 @@ Public Class TNaviMakeBasicSource
                     With CType(self, TTry)
                         tw.Fmt(EToken.eTry, EToken.eNL)
                         tw.Fmt(.BlcTry.TokenListStmt)
-                        tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+                        tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eNL)
                         tw.Fmt(.BlcCatch.TokenListStmt)
                         tw.Fmt(EToken.eEndTry, EToken.eNL)
                     End With
@@ -661,7 +708,7 @@ Public Class TNaviMakeBasicSource
 
                 ElseIf TypeOf self Is TReDim Then
                     With CType(self, TReDim)
-                        tw.Fmt(EToken.eReDim, .TrmReDim.TokenList, EToken.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eNL)
+                        tw.Fmt(EToken.eReDim, .TrmReDim.TokenList, EToken.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TBlock Then
@@ -761,7 +808,14 @@ Public Class TNaviMakeBasicSource
                     'If PrjMK.OutputNotUsed OrElse cla1.UsedVar OrElse cla1.KndCla = EClass.eDelegateCla Then
 
                     'End If
+                    If cla1.TokenListCls Is Nothing Then
+                        tw.Fmt(cla1.TokenListVar)
+                    Else
+                        tw.Fmt(cla1.TokenListCls)
+                    End If
                 Next
+
+                .TokenListSrc = tw.GetTokenList()
             End With
 
         End If
@@ -793,6 +847,7 @@ Public Class TNaviMakeBasicSource
             End If
 
             vtkn.AddRange(tkns)
+            i += 1
         Next
 
         Return vtkn
@@ -836,18 +891,4 @@ Public Class TNaviMakeBasicSource
             mod1.TokenListMod = tw.GetTokenList()
         End If
     End Sub
-
-    Public Sub GenericSrc(self As Object)
-        With CType(self, TClass)
-            Dim tw As New TTokenWriter(self)
-
-            If .GenCla IsNot Nothing Then
-                ' ジェネリック型の場合
-
-                tw.Fmt(EToken.eLP, EToken.eOf, Laminate((From cls1 In .GenCla Select cls1.TokenListCls), New TToken(EToken.eComma, self)), EToken.eRP)
-            End If
-
-        End With
-    End Sub
-
 End Class
