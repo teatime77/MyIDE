@@ -107,6 +107,9 @@
     <Compile Include="..\MyAlgo\Proof.vb">
       <Link>Proof.vb</Link>
     </Compile>
+    <Compile Include="..\MyAlgo\ScriptParser.vb">
+      <Link>ScriptParser.vb</Link>
+    </Compile>
     <Compile Include="..\MyAlgo\System.vb">
       <Link>System.vb</Link>
     </Compile>

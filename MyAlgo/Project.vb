@@ -16,6 +16,7 @@ End Class
 Public Class TProject
     <XmlIgnoreAttribute()> Public Shared Prj As TProject
 
+    Public Language As ELanguage = ELanguage.Basic
     Public SourceDirectory As String
     Public OutputDirectory As String
     Public SourceFileNameList As String()
@@ -53,7 +54,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public dicClassMemName As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public SrcPrj As New TList(Of TSourceFile)
     <XmlIgnoreAttribute()> Public vTknNamePrj As Dictionary(Of EToken, String)
-    <XmlIgnoreAttribute()> Public ParsePrj As TBasicParser
+    <XmlIgnoreAttribute()> Public ParsePrj As TSourceParser
     <XmlIgnoreAttribute()> Public theMain As TFunction
     <XmlIgnoreAttribute()> Public ArrayMaker As TFunction
 
@@ -849,15 +850,32 @@ Public Class TProject
 
         SrcPrj = New TList(Of TSourceFile)(From fname In SourceFileNameList Select New TSourceFile(fname))
 
-        ParsePrj = New TBasicParser(Me)
+        Select Case Language
+            Case ELanguage.Basic
+                ParsePrj = New TBasicParser(Me)
+            Case ELanguage.CSharp
+                ParsePrj = New TScriptParser(Me)
+            Case Else
+                Debug.Assert(False)
+        End Select
+
         ' for ???
         For Each src_f In SrcPrj
             Debug.Assert(src_f.vTextSrc Is Nothing)
-            src_f.vTextSrc = TFile.ReadAllLines(SourceDirectory + "\" + src_f.FileSrc)
-            src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
+            If Language = ELanguage.Basic Then
+                src_f.vTextSrc = TFile.ReadAllLines(SourceDirectory + "\" + src_f.FileSrc)
+                src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
 
-            RegAllClass(src_f)
+                RegAllClass(src_f)
+            Else
+                Dim src_text As String = TFile.ReadAllText(SourceDirectory + "\" + src_f.FileSrc)
+                src_f.InputTokenList = ParsePrj.Lex(src_text)
+            End If
         Next
+
+        If Language <> ELanguage.Basic Then
+            Exit Sub
+        End If
 
         For Each src_f In SrcPrj
             Debug.WriteLine("ソース:{0}", src_f.FileSrc)

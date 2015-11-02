@@ -1,17 +1,9 @@
 ﻿Imports System.Diagnostics
+Imports InvariantBasicOrigin
 
-Public MustInherit Class TSourceParser
-    Public vTknName As Dictionary(Of EToken, String)
-
-    Public MustOverride Function Lex(src_text As String) As TList(Of TToken)
-    Public MustOverride Sub ReadAllStatement(src1 As TSourceFile)
-    Public MustOverride Sub Parse(src1 As TSourceFile)
-    Public MustOverride Sub ClearParse()
-End Class
-
-'-------------------------------------------------------------------------------- TBasicParser
-' Basicの構文解析
-Public Class TBasicParser
+'-------------------------------------------------------------------------------- TScriptParser
+' C#の構文解析
+Public Class TScriptParser
     Inherits TSourceParser
 
     Public PrjParse As TProject
@@ -1413,106 +1405,120 @@ Public Class TBasicParser
 
         EOTTkn = NewToken(EToken.eEOT, "", 0)
 
-        dic1.Add("Imports", EToken.eImports)
-        dic1.Add("Module", EToken.eModule)
-        dic1.Add("OrElse", EToken.eOR)
-        dic1.Add("AndAlso", EToken.eAnd)
-        dic1.Add("Not", EToken.eNot)
-        dic1.Add("<>", EToken.eNE)
-        dic1.Add("MustInherit", EToken.eAbstract)
-        dic1.Add("MustOverride", EToken.eMustOverride)
-        dic1.Add("AddressOf", EToken.eAddressOf)
-        dic1.Add("Aggregate", EToken.eAggregate)
-        dic1.Add("As", EToken.eAs)
-        dic1.Add("At", EToken.eAt)
-        dic1.Add("MyBase", EToken.eBase)
-        dic1.Add("Break", EToken.eBreak)
-        dic1.Add("Byval", EToken.eByVal)
-        dic1.Add("Call", EToken.eCall)
-        dic1.Add("Case", EToken.eCase)
-        dic1.Add("Catch", EToken.eCatch)
-        dic1.Add("Class", EToken.eClass)
-        dic1.Add("Const", EToken.eConst)
-        dic1.Add("CType", EToken.eCType)
-        dic1.Add("Default", EToken.eDefault)
-        dic1.Add("Delegate", EToken.eDelegate)
-        dic1.Add("Dim", EToken.eDim)
-        dic1.Add("Do", EToken.eDo)
-        dic1.Add("Each", EToken.eEach)
-        dic1.Add("Else", EToken.eElse)
-        dic1.Add("ElseIf", EToken.eElseIf)
-        dic1.Add("End", EToken.eEnd)
-        dic1.Add("Enum", EToken.eEnum)
-        dic1.Add("Exit", EToken.eExit)
-        dic1.Add("Extends", EToken.eExtends)
-        dic1.Add("For", EToken.eFor)
-        dic1.Add("Foreach", EToken.eForeach)
-        dic1.Add("From", EToken.eFrom)
-        dic1.Add("Function", EToken.eFunction)
-        dic1.Add("Get", EToken.eGet)
-        dic1.Add("GetType", EToken.eGetType)
-        dic1.Add("GoTo", EToken.eGoto)
-        dic1.Add("Handles", EToken.eHandles)
-        dic1.Add("If", EToken.eIf)
-        '		dic1.Add("IIf", EToken.eIIF)
-        dic1.Add("Implements", EToken.eImplements)
-        dic1.Add("In", EToken.eIn)
-        dic1.Add("Inherits", EToken.eInherits)
-        dic1.Add("Interface", EToken.eInterface)
-        dic1.Add("Into", EToken.eInto)
-        dic1.Add("Is", EToken.eIs)
-        dic1.Add("IsNot", EToken.eIsNot)
-        dic1.Add("Iterator", EToken.eIterator)
-        dic1.Add("Loop", EToken.eLoop)
-        dic1.Add("Namespace", EToken.eNamespace)
-        dic1.Add("New", EToken.eNew)
-        dic1.Add("Next", EToken.eNext)
-        dic1.Add("Of", EToken.eOf)
-        dic1.Add("Operator", EToken.eOperator)
-        dic1.Add("Out", EToken.eOut)
-        dic1.Add("Overrides", EToken.eOverride)
-        dic1.Add("ParamArray", EToken.eParamArray)
-        dic1.Add("Partial", EToken.ePartial)
-        dic1.Add("Public", EToken.ePublic)
-        dic1.Add("Protected", EToken.eProtected)
-        dic1.Add("Friend", EToken.eFriend)
-        dic1.Add("Private", EToken.ePrivate)
-        dic1.Add("ByRef", EToken.eRef)
-        dic1.Add("ReDim", EToken.eReDim)
-        dic1.Add("Return", EToken.eReturn)
-        dic1.Add("Set", EToken.eSet)
-        dic1.Add("Select", EToken.eSelect)
-        dic1.Add("Shared", EToken.eShared)
-        dic1.Add("Step", EToken.eStep)
-        dic1.Add("Structure", EToken.eStruct)
-        dic1.Add("Sub", EToken.eSub)
-        dic1.Add("Take", EToken.eTake)
-        dic1.Add("Then", EToken.eThen)
-        dic1.Add("Throw", EToken.eThrow)
-        dic1.Add("To", EToken.eTo)
-        dic1.Add("Try", EToken.eTry)
-        dic1.Add("TypeOf", EToken.eTypeof)
-        dic1.Add("Var", EToken.eVar)
-        dic1.Add("Overridable", EToken.eVirtual)
-        dic1.Add("Where", EToken.eWhere)
-        dic1.Add("While", EToken.eWhile)
-        dic1.Add("With", EToken.eWith)
-        dic1.Add("Yield", EToken.eYield)
-        dic1.Add("@id", EToken.eId)
-        dic1.Add("@int", EToken.eInt)
-        dic1.Add("@hex", EToken.eHex)
+        vTkn.Add("abstract", EToken.eAbstract)
+
+        If PrjParse.Language = ELanguage.CSharp Then
+
+            dic1.Add("as", EToken.eAs)
+        End If
+
+        dic1.Add("base", EToken.eBase)
+        dic1.Add("break", EToken.eBreak)
+        dic1.Add("byval", EToken.eByVal)
+        dic1.Add("call", EToken.eCall)
+        dic1.Add("case", EToken.eCase)
+        dic1.Add("catch", EToken.eCatch)
+        dic1.Add("class", EToken.eClass)
+
+        dic1.Add("const", EToken.eConst)
+
+        dic1.Add("default", EToken.eDefault)
+        dic1.Add("dim", EToken.eDim)
+        dic1.Add("do", EToken.eDo)
+        dic1.Add("each", EToken.eEach)
+        dic1.Add("else", EToken.eElse)
+        dic1.Add("elseif", EToken.eElseIf)
+        'dic1.Add("end", EToken.eEnd)
+        dic1.Add("endif", EToken.eEndIf)
+        dic1.Add("enum", EToken.eEnum)
+        dic1.Add("exit", EToken.eExit)
+
+        dic1.Add("extends", EToken.eExtends)
+
+        dic1.Add("for", EToken.eFor)
+        dic1.Add("foreach", EToken.eForeach)
+        dic1.Add("from", EToken.eFrom)
+        dic1.Add("function", EToken.eFunction)
+        dic1.Add("get", EToken.eGet)
+        dic1.Add("goto", EToken.eGoto)
+        dic1.Add("handles", EToken.eHandles)
+        dic1.Add("if", EToken.eIf)
+        dic1.Add("iif", EToken.eIIF)
+        dic1.Add("implements", EToken.eImplements)
+
+        Select Case PrjParse.Language
+            Case ELanguage.CSharp
+                dic1.Add("imports", EToken.eImports)
+            Case ELanguage.JavaScript
+                dic1.Add("import", EToken.eImports)
+
+        End Select
+
+        dic1.Add("in", EToken.eIn)
+        dic1.Add("inherits", EToken.eInherits)
+        dic1.Add("instanceof", EToken.eInstanceof)
+        dic1.Add("interface", EToken.eInterface)
+        dic1.Add("is", EToken.eIs)
+        dic1.Add("loop", EToken.eLoop)
+        dic1.Add("namespace", EToken.eNamespace)
+        dic1.Add("new", EToken.eNew)
+        dic1.Add("of", EToken.eOf)
+        dic1.Add("out", EToken.eOut)
+
+        dic1.Add("package", EToken.ePackage)
+
+        dic1.Add("override", EToken.eOverride)
+        dic1.Add("partial", EToken.ePartial)
+        dic1.Add("private", EToken.ePrivate)
+        dic1.Add("public", EToken.ePublic)
+        dic1.Add("ref", EToken.eRef)
+        dic1.Add("return", EToken.eReturn)
+        If PrjParse.Language = ELanguage.CSharp Then
+
+            dic1.Add("set", EToken.eSet)
+        End If
+
+        dic1.Add("static", EToken.eStatic)
+        dic1.Add("struct", EToken.eStruct)
+
+        '        dic1.Add("sub", EToken.eSub)
+        dic1.Add("switch", EToken.eSelect)
+        dic1.Add("then", EToken.eThen)
+        dic1.Add("throw", EToken.eThrow)
+        dic1.Add("try", EToken.eTry)
+        dic1.Add("typeof", EToken.eTypeof)
+        dic1.Add("using", EToken.eUsing)
+        dic1.Add("var", EToken.eVar)
+        dic1.Add("virtual", EToken.eVirtual)
+        dic1.Add("where", EToken.eWhere)
+        dic1.Add("while", EToken.eWhile)
+
+        'dic1.Add("@else", EToken.ePElse)
+        'dic1.Add("@end", EToken.ePEnd)
+        'dic1.Add("@id", EToken.eId)
+        'dic1.Add("@if", EToken.ePIf)
+        'dic1.Add("@int", EToken.eInt)
+        'dic1.Add("@hex", EToken.eHex)
+        'dic1.Add("@set", EToken.ePSet)
+
         dic1.Add("/*", EToken.eBlockComment)
-        dic1.Add("'", EToken.eLineComment)
-        dic1.Add("=", EToken.eEq)
+        dic1.Add("//", EToken.eLineComment)
+
+        'dic1.Add("<?", EToken.eXMLST)
+        'dic1.Add("<!", EToken.eMATHST)
+        'dic1.Add("]@", EToken.eMATHED)
+
+        dic1.Add("=", EToken.eASN)
         dic1.Add("+=", EToken.eADDEQ)
         dic1.Add("-=", EToken.eSUBEQ)
         dic1.Add("*=", EToken.eMULEQ)
         dic1.Add("/=", EToken.eDIVEQ)
         dic1.Add("%=", EToken.eMODEQ)
+
         dic1.Add("+", EToken.eADD)
         dic1.Add("-", EToken.eMns)
-        dic1.Add("Mod", EToken.eMOD)
-        dic1.Add("And", EToken.eAnp)
+        dic1.Add("%", EToken.eMOD)
+        dic1.Add("&", EToken.eAnp)
         dic1.Add("(", EToken.eLP)
         dic1.Add(")", EToken.eRP)
         dic1.Add("*", EToken.eMUL)
@@ -1520,20 +1526,40 @@ Public Class TBasicParser
         dic1.Add(".", EToken.eDot)
         dic1.Add("/", EToken.eDIV)
         dic1.Add(":", EToken.eMMB)
-        dic1.Add("", EToken.eSM)
+        dic1.Add(";", EToken.eSM)
         dic1.Add("?", EToken.eQUE)
         dic1.Add("[", EToken.eLB)
         dic1.Add("]", EToken.eRB)
-        dic1.Add("_", EToken.eLowLine)
         dic1.Add("^", EToken.eHAT)
         dic1.Add("{", EToken.eLC)
         dic1.Add("|", EToken.eVLine)
         dic1.Add("}", EToken.eRC)
         dic1.Add("~", EToken.eTilde)
+
+        dic1.Add("++", EToken.eINC)
+        dic1.Add("--", EToken.eDEC)
+
+        dic1.Add("==", EToken.eEq)
+        dic1.Add("!=", EToken.eNE)
         dic1.Add("<", EToken.eLT)
         dic1.Add(">", EToken.eGT)
         dic1.Add("<=", EToken.eLE)
         dic1.Add(">=", EToken.eGE)
+
+        dic1.Add("||", EToken.eOR)
+        dic1.Add("&&", EToken.eAnd)
+        dic1.Add("!", EToken.eNot)
+
+        'dic1.Add("->", EToken.eRARROW)
+
+        'dic1.Add("∀", EToken.eALL)
+        'dic1.Add("∃", EToken.eEXIST)
+        'dic1.Add("∈", EToken.eElement)
+        'dic1.Add("∧", EToken.eLAnd)
+        'dic1.Add("∨", EToken.eLOr)
+        'dic1.Add("∩", EToken.eINTERSECTION)
+        'dic1.Add("∪", EToken.eUNION)
+        'dic1.Add("⊆", EToken.eSUBSET)
 
         ' for Add
         For Each key1 In dic1.Keys
@@ -1546,23 +1572,6 @@ Public Class TBasicParser
             For Each key1 In dic1.Keys
                 vTknName.Add(dic1(key1), key1)
             Next
-            vTknName.Add(EToken.eASN, "=")
-            vTknName.Add(EToken.eExitFor, "Exit For")
-            vTknName.Add(EToken.eExitDo, "Exit Do")
-            vTknName.Add(EToken.eExitSub, "Exit Sub")
-
-            vTknName.Add(EToken.eEndIf, "End If")
-            vTknName.Add(EToken.eEndSub, "End Sub")
-            vTknName.Add(EToken.eEndFunction, "End Function")
-            vTknName.Add(EToken.eEndOperator, "End Operator")
-            vTknName.Add(EToken.eEndClass, "End Class")
-            vTknName.Add(EToken.eEndStruct, "End Structure")
-            vTknName.Add(EToken.eEndInterface, "End Interface")
-            vTknName.Add(EToken.eEndEnum, "End Enum")
-            vTknName.Add(EToken.eEndModule, "End Module")
-            vTknName.Add(EToken.eEndSelect, "End Select")
-            vTknName.Add(EToken.eEndTry, "End Try")
-            vTknName.Add(EToken.eEndWith, "End With")
         End If
         PrjParse.vTknNamePrj = vTknName
     End Sub
@@ -1578,7 +1587,7 @@ Public Class TBasicParser
     End Function
 
     Public Overrides Function Lex(src_text As String) As TList(Of TToken)
-        Dim v1 As TList(Of TToken)
+        Dim v1 As New TList(Of TToken)
         Dim cur1 As Integer, spc As Integer
         Dim src_len As Integer
         Dim k1 As Integer
@@ -1588,8 +1597,8 @@ Public Class TBasicParser
         Dim type1 As EToken
         Dim prv_type As EToken
         Dim tkn1 As TToken
-        Dim sb1 As TStringWriter
         Dim ok As Boolean
+        Dim dmp As New TStringWriter
 
         src_len = src_text.Length
         v1 = New TList(Of TToken)()
@@ -1601,16 +1610,10 @@ Public Class TBasicParser
             tkn1 = Nothing
 
             spc = 0
-            Do While cur1 < src_len
-                ch1 = src_text(cur1)
-                Select Case ch1
-                    Case " "c
-                        spc += 1
-                    Case vbTab
-                        spc += 4
-                    Case Else
-                        Exit Do
-                End Select
+            Do While cur1 < src_len AndAlso Char.IsWhiteSpace(src_text(cur1))
+                If src_text(cur1) = vbLf Then
+                    dmp.WriteLine("")
+                End If
                 cur1 += 1
             Loop
             If src_len <= cur1 Then
@@ -1624,148 +1627,182 @@ Public Class TBasicParser
                 ch2 = ChrW(0)
             End If
 
-            Select Case ch1
-                Case """"c
-                    '  引用符の場合
+            If Char.IsDigit(ch1) Then
+                ' 数字の場合
 
-                    sb1 = New TStringWriter()
-                    k1 = cur1 + 1
-                    Do While k1 < src_text.Length
+                If ch1 = "0"c AndAlso ch2 = "x"c Then
+                    ' 16進数の場合
+
+                    ' for Find
+                    For k1 = cur1 + 2 To src_text.Length - 1
                         ch2 = src_text(k1)
-                        If ch2 = """"c Then
-                            If k1 + 1 < src_text.Length AndAlso src_text(k1 + 1) = """"c Then
-                                '  引用符のエスケープの場合
-
-                                sb1.Append(""""c)
-                                k1 = k1 + 2
-                            Else
-                                If k1 + 1 < src_text.Length AndAlso src_text(k1 + 1) = "c"c Then
-                                    '  文字の場合
-
-                                    tkn1 = New TToken(EToken.eChar, sb1.ToString(), cur1)
-                                    cur1 = k1 + 2
-                                Else
-                                    '  文字列の場合
-
-                                    tkn1 = NewToken(EToken.eString, sb1.ToString(), cur1)
-                                    cur1 = k1 + 1
-                                End If
-                                Exit Do
-                            End If
-                        Else
-                            sb1.Append(ch2)
-                            k1 = k1 + 1
+                        If Not (Char.IsDigit(ch2) OrElse "A"c <= ch2 AndAlso ch2 <= "F"c) Then
+                            Exit For
                         End If
-                    Loop
+                    Next
 
-                Case "'"c
-                    '  コメントの場合
-                    tkn1 = NewToken(EToken.eLineComment, src_text.Substring(cur1 + 1), cur1)
-                    cur1 = src_text.Length
+                    str1 = TSys.Substring(src_text, cur1, k1)
+                    tkn1 = NewToken(EToken.eHex, str1, cur1)
 
-                Case Else
-                    If Char.IsDigit(ch1) Then
-                        '  数字の場合
+                    cur1 = k1
+                Else
+                    ' 10進数の場合
 
-                        ' for Find
-                        For k1 = cur1 + 1 To src_text.Length - 1
-                            ch2 = src_text(k1)
-                            If Not Char.IsDigit(ch2) AndAlso ch2 <> "."c Then
-                                Exit For
-                            End If
-                        Next
-                        If k1 < src_text.Length AndAlso src_text(k1) = "F"c Then
-                            k1 = k1 + 1
+                    For k1 = cur1 + 1 To src_text.Length - 1
+                        ch2 = src_text(k1)
+                        If Not Char.IsDigit(ch2) AndAlso ch2 <> "."c Then
+                            Exit For
                         End If
-
-                        str1 = TSys.Substring(src_text, cur1, k1)
-                        tkn1 = NewToken(EToken.eInt, str1, cur1)
-
-                        cur1 = k1
-                    ElseIf ch1 = "&"c AndAlso ch2 = "H"c Then
-                        ' 16進数の場合
-
-                        ' for Find
-                        For k1 = cur1 + 2 To src_text.Length - 1
-                            ch2 = src_text(k1)
-                            If Not (Char.IsDigit(ch2) OrElse "A"c <= ch2 AndAlso ch2 <= "F"c) Then
-                                Exit For
-                            End If
-                        Next
-
-                        str1 = TSys.Substring(src_text, cur1, k1)
-                        tkn1 = NewToken(EToken.eHex, str1, cur1)
-
-                        cur1 = k1
-                    ElseIf 256 <= AscW(ch1) OrElse Char.IsLetter(ch1) OrElse ch1 = "_"c Then
-                        '  英字の場合
-
-                        ' for Find
-                        For k1 = cur1 + 1 To src_text.Length - 1
-
-                            ch2 = src_text(k1)
-                            If AscW(ch2) < 256 AndAlso Not Char.IsLetterOrDigit(ch2) AndAlso ch2 <> "_"c Then
-                                '  半角で英数字や"_"でない場合
-
-                                Exit For
-                            End If
-                        Next
-                        str1 = TSys.Substring(src_text, cur1, k1)
-                        If vTkn.ContainsKey(str1.ToLower()) Then
-                            '  予約語の場合
-
-                            type1 = vTkn(str1.ToLower())
-                            If type1 = EToken.eGetType AndAlso (prv_type = EToken.eDot OrElse prv_type = EToken.eFunction) Then
-                                type1 = EToken.eId
-                            ElseIf type1 = EToken.eSelect AndAlso prv_type = EToken.eDot Then
-                                type1 = EToken.eId
-                            End If
-                        Else
-                            '  識別子の場合
-
-                            type1 = EToken.eId
-                        End If
-                        tkn1 = NewToken(type1, str1, cur1)
-
-                        cur1 = k1
-                    Else
-                        '  記号の場合
-
-                        ok = False
-                        type1 = EToken.eUnknown
-                        If cur1 + 1 < src_len Then
-                            '  2文字の記号を調べる
-
-                            str1 = TSys.Substring(src_text, cur1, cur1 + 2)
-                            ok = vTkn.ContainsKey(str1)
-                            If ok Then
-                                type1 = vTkn(str1)
-                            End If
-                        End If
-                        If Not ok Then
-                            '  1文字の記号を調べる
-
-                            str1 = TSys.Substring(src_text, cur1, cur1 + 1)
-                            If vTkn.ContainsKey(str1) Then
-                                type1 = vTkn(str1)
-                            Else
-                                '  ない場合
-
-                                Debug.WriteLine("lex str err")
-                                Chk(False)
-                            End If
-                        End If
-
-                        tkn1 = NewToken(type1, str1, cur1)
-                        cur1 = cur1 + str1.Length
+                    Next
+                    If k1 < src_text.Length AndAlso src_text(k1) = "f"c Then
+                        k1 = k1 + 1
                     End If
-            End Select
+
+                    str1 = TSys.Substring(src_text, cur1, k1)
+                    tkn1 = NewToken(EToken.eInt, str1, cur1)
+
+                    cur1 = k1
+                End If
+
+            ElseIf 256 <= AscW(ch1) OrElse Char.IsLetter(ch1) OrElse ch1 = "_"c Then
+                '  英字の場合
+
+                ' for Find
+                For k1 = cur1 + 1 To src_text.Length - 1
+
+                    ch2 = src_text(k1)
+                    If AscW(ch2) < 256 AndAlso Not Char.IsLetterOrDigit(ch2) AndAlso ch2 <> "_"c Then
+                        '  半角で英数字や"_"でない場合
+
+                        Exit For
+                    End If
+                Next
+                str1 = TSys.Substring(src_text, cur1, k1)
+                If vTkn.ContainsKey(str1.ToLower()) Then
+                    '  予約語の場合
+
+                    type1 = vTkn(str1.ToLower())
+                    If type1 = EToken.eGetType AndAlso (prv_type = EToken.eDot OrElse prv_type = EToken.eFunction) Then
+                        type1 = EToken.eId
+                    ElseIf type1 = EToken.eSelect AndAlso prv_type = EToken.eDot Then
+                        type1 = EToken.eId
+                    End If
+                Else
+                    '  識別子の場合
+
+                    type1 = EToken.eId
+                End If
+                tkn1 = NewToken(type1, str1, cur1)
+
+                cur1 = k1
+
+            ElseIf ch1 = """"c OrElse ch1 = "'"c Then
+                '  引用符の場合
+
+                Dim quo1 As Char = ch1
+                Dim sw As New TStringWriter
+                For k1 = cur1 + 1 To src_len - 1
+                    ch2 = src_text(k1)
+                    If ch2 = quo1 Then
+                        If ch2 = "'"c Then
+                            tkn1 = New TToken(EToken.eChar, sw.ToString(), cur1)
+                        Else
+                            tkn1 = New TToken(EToken.eString, sw.ToString(), cur1)
+                        End If
+                        cur1 = k1 + 1
+                        Exit For
+                    End If
+
+                    If ch2 = "\"c Then
+                        Debug.Assert(k1 + 1 < src_len)
+                        Select Case src_text(k1 + 1)
+                            Case "n"c
+                                sw.Write(vbLf)
+                            Case "r"c
+                                sw.Write(vbCr)
+                            Case "t"c
+                                sw.Write(vbTab)
+                            Case "b"c
+                                sw.Write(vbBack)
+                            Case """"c
+                                sw.Write(""""c)
+                            Case "'"c
+                                sw.Write("'"c)
+                            Case "\"c
+                                sw.Write("\"c)
+                            Case "0"c
+                                sw.Write(ChrW(0))
+                            Case Else
+                                Debug.Assert(False)
+                        End Select
+                        k1 += 1
+                    Else
+                        sw.Write(ch2)
+                    End If
+                Next
+
+            ElseIf ch1 = "/"c AndAlso ch2 = "/"c Then
+                ' 行コメントの場合
+
+                k1 = src_text.IndexOf(vbLf, cur1)
+                If k1 = -1 Then
+                    k1 = src_len
+                End If
+                str1 = src_text.Substring(cur1, k1 - cur1)
+                tkn1 = New TToken(EToken.eLineComment, str1, cur1)
+                cur1 = k1
+
+            ElseIf ch1 = "/"c AndAlso ch2 = "*"c Then
+                ' 複数行コメントの場合
+
+                k1 = src_text.IndexOf("*/", cur1)
+                Debug.Assert(k1 <> -1)
+                str1 = src_text.Substring(cur1, k1 + 2 - cur1)
+                tkn1 = New TToken(EToken.eBlockComment, str1, cur1)
+                cur1 = k1 + 2
+
+            Else
+                '  記号の場合
+
+                ok = False
+                type1 = EToken.eUnknown
+                If cur1 + 1 < src_len Then
+                    '  2文字の記号を調べる
+
+                    str1 = TSys.Substring(src_text, cur1, cur1 + 2)
+                    ok = vTkn.ContainsKey(str1)
+                    If ok Then
+                        type1 = vTkn(str1)
+                    End If
+                End If
+                If Not ok Then
+                    '  1文字の記号を調べる
+
+                    str1 = TSys.Substring(src_text, cur1, cur1 + 1)
+                    If vTkn.ContainsKey(str1) Then
+                        type1 = vTkn(str1)
+                    Else
+                        '  ない場合
+
+                        Debug.Print("lex str err [{0}]", TSys.Substring(src_text, cur1, cur1 + 2))
+                        Chk(False)
+                    End If
+                End If
+
+                tkn1 = NewToken(type1, str1, cur1)
+                cur1 = cur1 + str1.Length
+            End If
+
 
             ' Debug.WriteLine("token:{0} {1}", tkn1.StrTkn, tkn1.TypeTkn)
             tkn1.SpcTkn = spc
             v1.Add(tkn1)
             prv_type = tkn1.TypeTkn
+
+            dmp.Write("{0}:{1} ", tkn1.TypeTkn, tkn1.StrTkn)
         Loop
+
+        TFile.WriteAllText("C:\usr\prj\MyIDE\etc\TEST\lex.txt", dmp.ToString())
 
         Return v1
     End Function
@@ -2218,163 +2255,5 @@ Public Class TBasicParser
         End If
         Return New TCall(CType(trm1, TApply))
     End Function
-
 End Class
 
-Public Class TClassStatement
-    Inherits TStatement
-    Public KndClaStmt As EClass = EClass.eClassCla
-    Public ClaClaStmt As TClass
-End Class
-
-Public Class TInheritsStatement
-    Inherits TStatement
-    Public ClassNameInheritsStmt As String
-    Public ParamName As TList(Of String)
-End Class
-
-Public Class TImplementsStatement
-    Inherits TStatement
-    Public ClassImplementsStmt As New TList(Of TClass)
-End Class
-
-Public Class TEnumStatement
-    Inherits TStatement
-    Public NameEnumStmt As String
-End Class
-
-Public Class TFunctionStatement
-    Inherits TStatement
-    Public ModifierFncStmt As TModifier
-    Public OpFncStmt As EToken = EToken.eUnknown
-    Public NameFncStmt As String
-    Public ArgumentFncStmt As New TList(Of TVariable)
-    Public RetType As TClass
-    Public InterfaceFncStmt As TClass
-    Public InterfaceFncName As String
-    Public IsDelegateFncStmt As Boolean
-End Class
-
-Public Class TIfStatement
-    Inherits TStatement
-    Public CndIfStmt As TTerm
-End Class
-
-Public Class TSelectStatement
-    Inherits TStatement
-    Public TermSelectStatement As TTerm
-End Class
-
-Public Class TCaseStatement
-    Inherits TStatement
-    Public IsCaseElse As Boolean
-    Public TermCaseStmt As New TList(Of TTerm)
-End Class
-
-Public Class TCatchStatement
-    Inherits TStatement
-    Public VariableCatchStmt As TVariable
-End Class
-
-Public Class TForStatement
-    Inherits TStatement
-    Public IdxForStmt As TReference
-    Public FromForStmt As TTerm
-    Public ToForStmt As TTerm
-    Public StepForStmt As TTerm
-    Public InVarForStmt As TVariable
-    Public InTrmForStmt As TTerm
-End Class
-
-Public Class TExit
-    Inherits TStatement
-    Public LabelExit As Integer
-
-    Public Sub New()
-    End Sub
-End Class
-
-Public Class TThrow
-    Inherits TStatement
-    Public TrmThrow As TTerm
-    Public Sub New(trm1 As TTerm)
-        TypeStmt = EToken.eThrow
-        TrmThrow = trm1
-    End Sub
-
-End Class
-
-Public Class TReDim
-    Inherits TStatement
-    Public TrmReDim As TTerm
-    Public DimReDim As TList(Of TTerm)
-
-    Public Sub New(trm1 As TTerm, vtrm1 As TList(Of TTerm))
-        TypeStmt = EToken.eReDim
-        TrmReDim = trm1
-        DimReDim = vtrm1
-    End Sub
-End Class
-
-Public Class TImports
-    Inherits TStatement
-End Class
-
-Public Class TModule
-    Inherits TStatement
-    Public NameMod As String
-End Class
-
-Public Class TElseIf
-    Inherits TStatement
-    Public CndElseIf As TTerm
-End Class
-
-Public Class TDoStmt
-    Inherits TStatement
-
-    Public CndDo As TTerm
-End Class
-
-Public Class TEnumElement
-    Inherits TStatement
-
-    Public NameEnumEle As String
-
-    Public Sub New(ref1 As TReference)
-        TypeStmt = EToken.eId
-        NameEnumEle = ref1.NameRef
-    End Sub
-
-End Class
-
-Public Class TComment
-    Inherits TStatement
-
-    Public LineCom As New TList(Of String)
-
-    Public Sub New()
-        TypeStmt = EToken.eComment
-    End Sub
-
-    Public Function GetFirstLine() As String
-        For Each s In LineCom
-            If s <> "" Then
-                Return s
-            End If
-        Next
-
-        Return ""
-    End Function
-End Class
-
-Public Class TError
-    Inherits Exception
-
-    Public MsgErr As String
-
-    Public Sub New(msg As String)
-        Debug.WriteLine("err:" + msg)
-        MsgErr = msg
-    End Sub
-End Class

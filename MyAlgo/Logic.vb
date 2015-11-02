@@ -1,5 +1,12 @@
 ﻿Imports System.Diagnostics
 
+Public Enum ELanguage
+    CSharp
+    JavaScript
+    Java
+    Basic
+End Enum
+
 Public Enum EClass
     eClassCla
     eEnumCla
@@ -32,158 +39,173 @@ Public Enum EAggregateFunction
 End Enum
 
 Public Enum EToken
-    eProtected
-    eFriend
-    eAddressOf
-    eAnp
-    eMns
-    eADD
-    eAnd
-    eAppCall
-    eASN
-    eAt
-    eBase
-    eBaseNew
-    eBaseCall
-    eBreak
-    eCast
-    eComma
-    eComment
-    eConst
-    eCType
-    eDefault
-    eDIV
-    eExtends
-    eFor
-    eForeach
-    eGE
-    eGoto
-    eGT
-    eHAT
-    eBlockComment
-    eLineComment
-    eIIF
-    eImplements
-    eLabel
-    eLC
-    eLE
-    eLT
-    eMMB
-    eMOD
-    eMUL
-    eNamespace
-    eNE
-    eNext
-    eNL
-    eOR
-    eOut
-    eQUE
-    eRC
-    eRef
-    eSM
-    eShared
-    eSub
-    eTab
-    eTilde
-    eTo
-    eTypeof
-    eVirtual
-    eVLine
     eAbstract
+    eADD
+    eADDEQ
+    eAddressOf
     eAggregate
+    eAnd
+    eAnp
+    eAny
+    eAppCall
     eAs
+    eASN
+    eAsync
+    eAt
+    eAwait
+    eBase
+    eBaseCall
+    eBaseNew
+    eBlockComment
+    eBreak
     eByVal
     eCall
     eCase
+    eCast
     eCatch
+    eChar
     eClass
+    eComma
+    eComment
+    eConst
+    eConstructor
+    eContinue
+    eCType
+    eDebugger
+    eDeclare
+    eDefault
     eDelegate
+    eDelete
+    eDEC
     eDim
+    eDIV
+    eDIVEQ
     eDo
+    eDot
     eEach
     eElse
     eElseIf
     eEnd
-    eEndIf
-    eEndSub
-    eEndFunction
-    eEndOperator
     eEndClass
-    eEndStruct
-    eEndInterface
     eEndEnum
+    eEndFunction
+    eEndIf
+    eEndInterface
     eEndModule
+    eEndOperator
     eEndSelect
+    eEndStruct
+    eEndSub
     eEndTry
     eEndWith
     eEnum
+    eEOT
+    eEq
     eExit
     eExitDo
     eExitFor
     eExitSub
+    eExtends
+    eFor
+    eForeach
+    eFriend
     eFrom
     eFunction
+    eGE
     eGet
     eGetType
+    eGoto
+    eGT
     eHandles
+    eHAT
+    eHex
+    eId
     eIf
     eIfBlock
+    eIIF
+    eImplements
     eImports
     eIn
     eInherits
+    eInstanceof
+    eInt
     eInterface
     eInto
+    eINC
     eIs
     eIsNot
     eIterator
+    eLabel
+    eLB
+    eLC
+    eLE
+    eLineComment
     eLoop
     eLowLine
-    eMustOverride
+    eLP
+    eLT
+    eMMB
+    eMns
+    eMOD
+    eMODEQ
     eModule
+    eMUL
+    eMULEQ
+    eMustOverride
+    eNamespace
+    eNE
     eNew
+    eNext
+    eNL
     eNot
     eOf
     eOperator
+    eOR
+    eOut
     eOverride
+    ePackage
     eParamArray
     ePartial
     ePrivate
+    eProtected
     ePublic
+    eQUE
+    eRB
+    eRC
     eReDim
+    eRef
+    eRegEx
     eReturn
+    eRP
     eSelect
+    eSet
+    eShared
+    eSM
+    eStatic
     eStep
+    eString
     eStruct
+    eSub
+    eSUBEQ
+    eTab
     eTake
     eThen
     eThrow
+    eTilde
+    eTo
     eTry
+    eTypeof
     eUnknown
+    eUsing
     eVar
     eVarDecl
+    eVirtual
+    eVLine
     eWhere
     eWhile
     eWith
     eYield
-    eDot
-    eEq
-    eLP
-    eRP
-    eLB
-    eRB
-    eId
-    eInt
-    eHex
-    eSet
-    eChar
-    eString
-    eRegEx
-    eADDEQ
-    eSUBEQ
-    eMULEQ
-    eDIVEQ
-    eMODEQ
-    eEOT
+
     eMAX_ETkn
 End Enum
 
@@ -1267,6 +1289,7 @@ Public Class TSourceFile
     Public FileDir As String
     Public FileSrc As String
     Public LineTkn As TList(Of TList(Of TToken))
+    Public InputTokenList As TList(Of TToken)
     Public StmtSrc As TList(Of TStatement)
     Public FigSrc As TBasicCodeGenerator
     Public TokenListSrc As List(Of TToken)

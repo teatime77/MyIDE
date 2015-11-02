@@ -32,6 +32,10 @@ Public Class TBuilder
 
         prj1.Compile()
 
+        If prj1.Language <> ELanguage.Basic Then
+            Exit Sub
+        End If
+
         If prj1.Dataflow Then
             Dim src2 As TSourceFile, data_flow As TDataflow
 
