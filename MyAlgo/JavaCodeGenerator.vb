@@ -43,7 +43,6 @@ Public Class TJavaCodeGenerator
         dic1.Add("implements", EToken.eImplements)
         dic1.Add("import", EToken.eImports)
         dic1.Add("in", EToken.eIn)
-        dic1.Add("inherits", EToken.eInherits)
         dic1.Add("interface", EToken.eInterface)
         dic1.Add("is", EToken.eIs)
         dic1.Add("loop", EToken.eLoop)

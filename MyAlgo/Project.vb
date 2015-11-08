@@ -696,7 +696,7 @@ Public Class TProject
             ini_fnc.ClaFnc = cls1
             ini_fnc.ModVar = New TModifier()
             ini_fnc.TypeFnc = EToken.eSub
-            ini_fnc.ThisFnc = New TVariable("Me", cls1)
+            ini_fnc.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
             ini_fnc.BlcFnc = New TBlock()
 
             ' フィールドの初期化式から作った代入文をメソッドで定義する。
@@ -755,7 +755,7 @@ Public Class TProject
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
                 new_fnc.TypeFnc = EToken.eNew
-                new_fnc.ThisFnc = New TVariable("Me", cls1)
+                new_fnc.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
                 new_fnc.BlcFnc = New TBlock()
                 new_fnc.IsNew = True
 
@@ -772,77 +772,6 @@ Public Class TProject
     End Sub
 
 
-    Public Sub RegAllClass(src1 As TSourceFile)
-        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken, is_delegate As Boolean
-
-        For Each v In src1.LineTkn
-
-            If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
-
-                is_delegate = False
-                Select Case v(1).TypeTkn
-                    Case EToken.eDelegate
-                        Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
-                        is_delegate = True
-                        k1 = 3
-
-                    Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
-                        k1 = 2
-                    Case EToken.eAbstract
-                        Select Case v(2).TypeTkn
-                            Case EToken.eClass, EToken.eStruct, EToken.eInterface
-                                k1 = 3
-                            Case Else
-                                Debug.Assert(False)
-                        End Select
-                    Case Else
-                        k1 = -1
-                End Select
-
-                If k1 <> -1 Then
-                    id1 = v(k1)
-
-                    If is_delegate Then
-                        Debug.Assert(GetCla(id1.StrTkn) Is Nothing)
-
-                        cla1 = New TDelegate(Me, id1.StrTkn)
-                        SimpleParameterizedClassList.Add(cla1)
-                        SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
-                    Else
-                        cla1 = RegCla(id1.StrTkn)
-                    End If
-
-                    If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.eLP AndAlso v(k1 + 2).TypeTkn = EToken.eOf Then
-                        cla1.GenericType = EGeneric.ParameterizedClass
-
-                        cla1.GenCla = New TList(Of TClass)()
-
-                        k1 += 3
-                        Do While k1 < v.Count
-                            id2 = v(k1)
-
-                            cla2 = New TClass(Me, id2.StrTkn)
-                            cla2.IsParamCla = True
-                            cla2.GenericType = EGeneric.ArgumentClass
-                            cla1.GenCla.Add(cla2)
-
-                            If v(k1 + 1).TypeTkn = EToken.eRP Then
-                                Debug.Assert(is_delegate OrElse k1 + 2 = v.Count)
-                                Exit Do
-                            End If
-
-                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
-                            k1 += 2
-                        Loop
-
-                        dicCmpCla.Add(cla1, New TList(Of TClass)())
-                    Else
-                        cla1.GenericType = EGeneric.SimpleClass
-                    End If
-                End If
-            End If
-        Next
-    End Sub
 
     Public Sub Compile()
         Dim i1 As Integer, cla2 As TClass
@@ -853,7 +782,7 @@ Public Class TProject
         Select Case Language
             Case ELanguage.Basic
                 ParsePrj = New TBasicParser(Me)
-            Case ELanguage.CSharp
+            Case ELanguage.ECMAScript, ELanguage.CSharp
                 ParsePrj = New TScriptParser(Me)
             Case Else
                 Debug.Assert(False)
@@ -866,25 +795,30 @@ Public Class TProject
                 src_f.vTextSrc = TFile.ReadAllLines(SourceDirectory + "\" + src_f.FileSrc)
                 src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
 
-                RegAllClass(src_f)
             Else
                 Dim src_text As String = TFile.ReadAllText(SourceDirectory + "\" + src_f.FileSrc)
                 src_f.InputTokenList = ParsePrj.Lex(src_text)
             End If
+
+            If Language <> ELanguage.CSharp Then
+                ParsePrj.RegAllClass(Me, src_f)
+            End If
         Next
 
-        If Language <> ELanguage.Basic Then
+        If Language = ELanguage.CSharp Then
             Exit Sub
         End If
 
-        For Each src_f In SrcPrj
-            Debug.WriteLine("ソース:{0}", src_f.FileSrc)
-            CurSrc = src_f
-            ParsePrj.ClearParse()
+        If Language = ELanguage.Basic Then
+            For Each src_f In SrcPrj
+                Debug.WriteLine("ソース:{0}", src_f.FileSrc)
+                CurSrc = src_f
+                ParsePrj.ClearParse()
 
-            ParsePrj.ReadAllStatement(src_f)
-            CurSrc = Nothing
-        Next
+                ParsePrj.ReadAllStatement(src_f)
+                CurSrc = Nothing
+            Next
+        End If
 
         ' for Call
         For Each src_f In SrcPrj
@@ -915,7 +849,9 @@ Public Class TProject
                 End If
             Next
         Next
-        Debug.Assert(theMain IsNot Nothing)
+        If theMain Is Nothing Then
+            Debug.Print("Mainがないですよ。")
+        End If
 
         For Each cla1 In SimpleParameterizedClassList
             Debug.Assert(cla1.GenericType = EGeneric.SimpleClass OrElse cla1.GenericType = EGeneric.ParameterizedClass)
@@ -1001,8 +937,11 @@ Public Class TProject
         ' オーバーロード関数をセットする
         SetOvrFnc()
 
-        ' 間接呼び出しをセットする
-        SetCallAll()
+        If theMain IsNot Nothing Then
+
+            ' 間接呼び出しをセットする
+            SetCallAll()
+        End If
     End Sub
 
     Public Sub CodeAnalysis()

@@ -2,11 +2,14 @@
 
 Public MustInherit Class TSourceParser
     Public vTknName As Dictionary(Of EToken, String)
+    Public ThisName As String
 
     Public MustOverride Function Lex(src_text As String) As TList(Of TToken)
-    Public MustOverride Sub ReadAllStatement(src1 As TSourceFile)
+    Public Overridable Sub ReadAllStatement(src1 As TSourceFile)
+    End Sub
     Public MustOverride Sub Parse(src1 As TSourceFile)
     Public MustOverride Sub ClearParse()
+    Public MustOverride Sub RegAllClass(prj1 As TProject, src1 As TSourceFile)
 End Class
 
 '-------------------------------------------------------------------------------- TBasicParser
@@ -28,6 +31,7 @@ Public Class TBasicParser
     Dim CurLineStr As String
 
     Public Sub New(prj1 As TProject)
+        ThisName = "Me"
         PrjParse = prj1
         RegTkn()
     End Sub
@@ -179,8 +183,8 @@ Public Class TBasicParser
     Function ReadInherits() As TStatement
         Dim stmt1 As New TInheritsStatement, id1 As TToken, id2 As TToken
 
-        stmt1.TypeStmt = EToken.eInherits
-        GetTkn(EToken.eInherits)
+        stmt1.TypeStmt = EToken.eExtends
+        GetTkn(EToken.eExtends)
         id1 = GetTkn(EToken.eId)
         stmt1.ClassNameInheritsStmt = id1.StrTkn
 
@@ -823,8 +827,8 @@ Public Class TBasicParser
 
         GetStatement(EToken.eClass)
 
-        If CurStmt.TypeStmt = EToken.eInherits Then
-            instmt = CType(GetStatement(EToken.eInherits), TInheritsStatement)
+        If CurStmt.TypeStmt = EToken.eExtends Then
+            instmt = CType(GetStatement(EToken.eExtends), TInheritsStatement)
             If instmt.ParamName Is Nothing Then
                 spr_cla = PrjParse.GetCla(instmt.ClassNameInheritsStmt)
             Else
@@ -1050,7 +1054,7 @@ Public Class TBasicParser
         fnc1 = New TFunction("Invoke", stmt1.RetType)
         fnc1.SetModFnc(stmt1.ModifierFncStmt)
         fnc1.ArgFnc = stmt1.ArgumentFncStmt
-        fnc1.ThisFnc = New TVariable("Me", dlg1)
+        fnc1.ThisFnc = New TVariable(ThisName, dlg1)
         fnc1.ClaFnc = dlg1
         dlg1.FncCla.Add(fnc1)
 
@@ -1075,7 +1079,7 @@ Public Class TBasicParser
         fnc2.TypeFnc = fnc1.TypeStmt
         fnc2.OpFnc = fnc1.OpFncStmt
         fnc2.ArgFnc.AddRange(fnc1.ArgumentFncStmt)
-        fnc2.ThisFnc = New TVariable("Me", cla1)
+        fnc2.ThisFnc = New TVariable(ThisName, cla1)
         fnc2.InterfaceFnc = fnc1.InterfaceFncStmt
         fnc2.ImplFnc = New TReference(fnc1.InterfaceFncName)
         fnc2.IsNew = (fnc1.TypeStmt = EToken.eNew)
@@ -1314,7 +1318,7 @@ Public Class TBasicParser
                 Case EToken.eClass, EToken.eStruct, EToken.eInterface
                     stmt1 = ReadClass(mod1)
 
-                Case EToken.eInherits
+                Case EToken.eExtends
                     stmt1 = ReadInherits()
 
                 Case EToken.eImplements
@@ -1444,7 +1448,7 @@ Public Class TBasicParser
         dic1.Add("End", EToken.eEnd)
         dic1.Add("Enum", EToken.eEnum)
         dic1.Add("Exit", EToken.eExit)
-        dic1.Add("Extends", EToken.eExtends)
+        dic1.Add("Inherits", EToken.eExtends)
         dic1.Add("For", EToken.eFor)
         dic1.Add("Foreach", EToken.eForeach)
         dic1.Add("From", EToken.eFrom)
@@ -1457,7 +1461,6 @@ Public Class TBasicParser
         '		dic1.Add("IIf", EToken.eIIF)
         dic1.Add("Implements", EToken.eImplements)
         dic1.Add("In", EToken.eIn)
-        dic1.Add("Inherits", EToken.eInherits)
         dic1.Add("Interface", EToken.eInterface)
         dic1.Add("Into", EToken.eInto)
         dic1.Add("Is", EToken.eIs)
@@ -1769,6 +1772,78 @@ Public Class TBasicParser
 
         Return v1
     End Function
+
+    Public Overrides Sub RegAllClass(prj1 As TProject, src1 As TSourceFile)
+        Dim id1 As TToken, k1 As Integer, cla1 As TClass, cla2 As TClass, id2 As TToken, is_delegate As Boolean
+
+        For Each v In src1.LineTkn
+
+            If 3 <= v.Count AndAlso v(0).TypeTkn = EToken.ePublic Then
+
+                is_delegate = False
+                Select Case v(1).TypeTkn
+                    Case EToken.eDelegate
+                        Debug.Assert(v(2).TypeTkn = EToken.eSub OrElse v(2).TypeTkn = EToken.eFunction)
+                        is_delegate = True
+                        k1 = 3
+
+                    Case EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
+                        k1 = 2
+                    Case EToken.eAbstract
+                        Select Case v(2).TypeTkn
+                            Case EToken.eClass, EToken.eStruct, EToken.eInterface
+                                k1 = 3
+                            Case Else
+                                Debug.Assert(False)
+                        End Select
+                    Case Else
+                        k1 = -1
+                End Select
+
+                If k1 <> -1 Then
+                    id1 = v(k1)
+
+                    If is_delegate Then
+                        Debug.Assert(prj1.GetCla(id1.StrTkn) Is Nothing)
+
+                        cla1 = New TDelegate(prj1, id1.StrTkn)
+                        prj1.SimpleParameterizedClassList.Add(cla1)
+                        prj1.SimpleParameterizedClassTable.Add(cla1.NameCla(), cla1)
+                    Else
+                        cla1 = prj1.RegCla(id1.StrTkn)
+                    End If
+
+                    If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.eLP AndAlso v(k1 + 2).TypeTkn = EToken.eOf Then
+                        cla1.GenericType = EGeneric.ParameterizedClass
+
+                        cla1.GenCla = New TList(Of TClass)()
+
+                        k1 += 3
+                        Do While k1 < v.Count
+                            id2 = v(k1)
+
+                            cla2 = New TClass(prj1, id2.StrTkn)
+                            cla2.IsParamCla = True
+                            cla2.GenericType = EGeneric.ArgumentClass
+                            cla1.GenCla.Add(cla2)
+
+                            If v(k1 + 1).TypeTkn = EToken.eRP Then
+                                Debug.Assert(is_delegate OrElse k1 + 2 = v.Count)
+                                Exit Do
+                            End If
+
+                            Debug.Assert(v(k1 + 1).TypeTkn = EToken.eComma)
+                            k1 += 2
+                        Loop
+
+                        prj1.dicCmpCla.Add(cla1, New TList(Of TClass)())
+                    Else
+                        cla1.GenericType = EGeneric.SimpleClass
+                    End If
+                End If
+            End If
+        Next
+    End Sub
 
     Function ArgumentExpressionList(app1 As TApply) As TApply
         Dim trm1 As TTerm

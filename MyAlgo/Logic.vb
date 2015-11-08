@@ -1,6 +1,7 @@
 ﻿Imports System.Diagnostics
 
 Public Enum ELanguage
+    ECMAScript
     CSharp
     JavaScript
     Java
@@ -126,7 +127,6 @@ Public Enum EToken
     eImplements
     eImports
     eIn
-    eInherits
     eInstanceof
     eInt
     eInterface
@@ -181,7 +181,6 @@ Public Enum EToken
     eSet
     eShared
     eSM
-    eStatic
     eStep
     eString
     eStruct

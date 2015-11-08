@@ -194,7 +194,7 @@ Public Class TBasicCodeGenerator
         End If
 
         Fmt(ref1)
-        If ref1.VarRef Is Nothing AndAlso ref1.NameRef <> "true" AndAlso ref1.NameRef <> "false" AndAlso ref1.NameRef <> "null" AndAlso ref1.NameRef <> "undefined" AndAlso ref1.NameRef <> "this" Then
+        If ref1.VarRef Is Nothing AndAlso ref1.NameRef <> "true" AndAlso ref1.NameRef <> "false" AndAlso ref1.NameRef <> "null" AndAlso ref1.NameRef <> "undefined" AndAlso ref1.NameRef <> PrjMK.ParsePrj.ThisName Then
             ' WordAdd("参照未解決", EFigType.eUnknownFig, this);
             ' Debug.WriteLine("参照未解決:{0}", ref1.NameRef);
         End If
@@ -1132,8 +1132,8 @@ Public Class TBasicCodeGenerator
                             Case EToken.eRef
                                 If txt1.TextTxt = "null" Then
                                     sw.Write("Nothing")
-                                ElseIf txt1.TextTxt = "this" Then
-                                    sw.Write("Me")
+                                ElseIf txt1.TextTxt = PrjMK.ParsePrj.ThisName Then
+                                    sw.Write(PrjMK.ParsePrj.ThisName)
                                 Else
                                     sw.Write(txt1.TextTxt)
                                 End If

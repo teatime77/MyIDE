@@ -227,7 +227,7 @@ Public Class TNaviMakeBasicSource
                                 tw.Fmt(EToken.eNL)
 
                                 If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0) IsNot PrjMK.ObjectType Then
-                                    tw.Fmt(EToken.eInherits, .SuperClassList(0).TokenListVar, EToken.eNL)
+                                    tw.Fmt(EToken.eExtends, .SuperClassList(0).TokenListVar, EToken.eNL)
                                 End If
 
                                 If .InterfaceList.Count <> 0 AndAlso .InterfaceList(0) IsNot PrjMK.ObjectType Then
