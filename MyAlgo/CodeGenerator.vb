@@ -18,22 +18,22 @@ End Enum
 Public MustInherit Class TCodeGenerator
     Public vLineFig As New TList(Of FLine)
     Dim CurLine As New FLine
-    Public vTknNameMK As Dictionary(Of EToken, String)
     Public PrjMK As TProject
+    Public ParserCG As TSourceParser
     Public vDelegate As New TList(Of TDelegatePair)
     Public TabMK As Integer
     Public Shared HTMLHead As String = "<!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.0 Transitional//EN"" ""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">" + vbCr + vbLf + "<html xmlns=""http://www.w3.org/1999/xhtml"" >" + vbCr + vbLf + "<head>" + vbCr + vbLf + "<meta charset=""utf-8"" />" + vbCr + vbLf + "<title>Untitled Page</title>" + vbCr + vbLf + "<style type=""text/css"">" + vbCr + vbLf + ".reserved {" + vbCr + vbLf + vbTab + "color: blue;" + vbCr + vbLf + "}" + vbCr + vbLf + ".class {" + vbCr + vbLf + vbTab + "color: Teal;" + vbCr + "" + vbLf + "}" + vbCr + vbLf + ".string {" + vbCr + vbLf + vbTab + "color: red;" + vbCr + vbLf + "}" + vbCr + vbLf + ".comment {" + vbCr + vbLf + vbTab + "color: #008000;" + vbCr + vbLf + "}" + vbCr + vbLf + "</style>" + vbCr + vbLf + "</head>" + vbCr + vbLf + "<body>"
 
-    Public Sub New(prj1 As TProject)
-        vTknNameMK = prj1.vTknNamePrj
+    Public Sub New(prj1 As TProject, parser As TSourceParser)
         PrjMK = prj1
+        ParserCG = parser
     End Sub
 
     '   単語を追加する
     Public Sub WordAdd(str1 As String, type1 As EFigType, obj1 As Object)
         Dim txt1 As FText
         If type1 = EFigType.eComFig Then
-            txt1 = New FText(type1, obj1, vTknNameMK(EToken.eLineComment) + " " + str1)
+            txt1 = New FText(type1, obj1, ParserCG.vTknName(EToken.eLineComment) + " " + str1)
         Else
             txt1 = New FText(type1, obj1, str1)
         End If
@@ -45,8 +45,8 @@ Public MustInherit Class TCodeGenerator
     '   単語を追加する
     Public Sub WordAdd(tkn1 As EToken, type1 As EFigType, obj1 As Object)
         Dim txt1 As FText
-        If vTknNameMK.ContainsKey(tkn1) Then
-            txt1 = New FText(tkn1, type1, obj1, vTknNameMK(tkn1))
+        If ParserCG.vTknName.ContainsKey(tkn1) Then
+            txt1 = New FText(tkn1, type1, obj1, ParserCG.vTknName(tkn1))
         Else
             txt1 = New FText(tkn1, type1, obj1, TSys.Format("未対応:{0}", tkn1))
             Debug.WriteLine("未対応:{0}", tkn1)
@@ -114,10 +114,12 @@ Public MustInherit Class TCodeGenerator
 
 
         ElseIf TypeOf o1 Is EToken Then
-            If Char.IsLetter(vTknNameMK(o1)(0)) Then
-                WordAdd(CType(o1, EToken), EFigType.eResFig, Nothing)
-            Else
-                WordAdd(CType(o1, EToken), EFigType.eSymFig, Nothing)
+            If ParserCG.vTknName.ContainsKey(CType(o1, EToken)) Then
+                If Char.IsLetter(ParserCG.vTknName(o1)(0)) Then
+                    WordAdd(CType(o1, EToken), EFigType.eResFig, Nothing)
+                Else
+                    WordAdd(CType(o1, EToken), EFigType.eSymFig, Nothing)
+                End If
             End If
         Else
             Debug.Assert(False)
@@ -185,14 +187,14 @@ Public MustInherit Class TCodeGenerator
             Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eVLine
                 For i1 = 0 To opr1.ArgApp.Count - 1
                     If i1 <> 0 Then
-                        WordAdd(vTknNameMK(opr1.TypeApp), EFigType.eSymFig, opr1)
+                        WordAdd(ParserCG.vTknName(opr1.TypeApp), EFigType.eSymFig, opr1)
                     End If
                     TrmSrc(opr1.ArgApp(i1))
                 Next
             Case Else
                 Debug.Assert(opr1.TypeApp = EToken.eNot OrElse opr1.Negation)
 
-                WordAdd(vTknNameMK(EToken.eNot), EFigType.eSymFig, opr1)
+                WordAdd(ParserCG.vTknName(EToken.eNot), EFigType.eSymFig, opr1)
                 If opr1.TypeApp = EToken.eNot Then
                     TrmSrc(opr1.ArgApp(0))
                 Else

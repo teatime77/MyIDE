@@ -4,7 +4,7 @@
         Dim builder As New TBuilder
 
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\CSharp.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\ECMAScript.xml")
+        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\FormalScript.xml")
 
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\StackPanel.xml")
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\Circle.xml")

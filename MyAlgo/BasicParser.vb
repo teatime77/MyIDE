@@ -1,6 +1,7 @@
 ﻿Imports System.Diagnostics
 
 Public MustInherit Class TSourceParser
+    Public LanguageSP As ELanguage
     Public vTknName As Dictionary(Of EToken, String)
     Public ThisName As String
 
@@ -31,6 +32,7 @@ Public Class TBasicParser
     Dim CurLineStr As String
 
     Public Sub New(prj1 As TProject)
+        LanguageSP = ELanguage.Basic
         ThisName = "Me"
         PrjParse = prj1
         RegTkn()
@@ -1278,8 +1280,8 @@ Public Class TBasicParser
                 Case EToken.eEnd
                     stmt1 = ReadEnd()
 
-                Case EToken.eDim
-                    GetTkn(EToken.eDim)
+                Case EToken.eVar
+                    GetTkn(EToken.eVar)
                     stmt1 = ReadDim(mod1)
 
                 Case EToken.eIf
@@ -1440,7 +1442,7 @@ Public Class TBasicParser
         dic1.Add("CType", EToken.eCType)
         dic1.Add("Default", EToken.eDefault)
         dic1.Add("Delegate", EToken.eDelegate)
-        dic1.Add("Dim", EToken.eDim)
+        dic1.Add("Dim", EToken.eVar)
         dic1.Add("Do", EToken.eDo)
         dic1.Add("Each", EToken.eEach)
         dic1.Add("Else", EToken.eElse)
@@ -1495,7 +1497,6 @@ Public Class TBasicParser
         dic1.Add("To", EToken.eTo)
         dic1.Add("Try", EToken.eTry)
         dic1.Add("TypeOf", EToken.eTypeof)
-        dic1.Add("Var", EToken.eVar)
         dic1.Add("Overridable", EToken.eVirtual)
         dic1.Add("Where", EToken.eWhere)
         dic1.Add("While", EToken.eWhile)
@@ -1567,7 +1568,6 @@ Public Class TBasicParser
             vTknName.Add(EToken.eEndTry, "End Try")
             vTknName.Add(EToken.eEndWith, "End With")
         End If
-        PrjParse.vTknNamePrj = vTknName
     End Sub
 
     Function NewToken(type1 As EToken, str1 As String, pos1 As Integer) As TToken

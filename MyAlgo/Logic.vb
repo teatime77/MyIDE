@@ -1,7 +1,7 @@
 ﻿Imports System.Diagnostics
 
 Public Enum ELanguage
-    ECMAScript
+    FormalScript
     CSharp
     JavaScript
     Java
@@ -78,7 +78,7 @@ Public Enum EToken
     eDelegate
     eDelete
     eDEC
-    eDim
+    eVar
     eDIV
     eDIVEQ
     eDo
@@ -95,6 +95,7 @@ Public Enum EToken
     eEndModule
     eEndOperator
     eEndSelect
+    eEOL
     eEndStruct
     eEndSub
     eEndTry
@@ -196,7 +197,6 @@ Public Enum EToken
     eTypeof
     eUnknown
     eUsing
-    eVar
     eVarDecl
     eVirtual
     eVLine

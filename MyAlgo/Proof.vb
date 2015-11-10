@@ -50,7 +50,7 @@ Public Class TNaviCSEDat
     Public BFM As TBasicCodeGenerator
 
     Public Sub New()
-        BFM = New TBasicCodeGenerator(TProject.Prj)
+        BFM = New TBasicCodeGenerator(TProject.Prj, TProject.Prj.ParsePrj)
     End Sub
 End Class
 
@@ -721,7 +721,7 @@ Public Class TDataflow
 
         Dim self_var As TVariable, sync_var As TVariable
 
-        RuleCodeGen = New TBasicCodeGenerator(prj1)
+        RuleCodeGen = New TBasicCodeGenerator(prj1, prj1.ParsePrj)
 
         self_var = RuleCp.ArgFnc(0)
         sync_var = New TVariable("_sync", New TClass(ProjectDtf, SyncClassName))

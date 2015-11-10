@@ -53,7 +53,6 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
     <XmlIgnoreAttribute()> Public dicClassMemName As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public SrcPrj As New TList(Of TSourceFile)
-    <XmlIgnoreAttribute()> Public vTknNamePrj As Dictionary(Of EToken, String)
     <XmlIgnoreAttribute()> Public ParsePrj As TSourceParser
     <XmlIgnoreAttribute()> Public theMain As TFunction
     <XmlIgnoreAttribute()> Public ArrayMaker As TFunction
@@ -782,8 +781,8 @@ Public Class TProject
         Select Case Language
             Case ELanguage.Basic
                 ParsePrj = New TBasicParser(Me)
-            Case ELanguage.ECMAScript, ELanguage.CSharp
-                ParsePrj = New TScriptParser(Me)
+            Case ELanguage.FormalScript, ELanguage.CSharp
+                ParsePrj = New TScriptParser(Me, Language)
             Case Else
                 Debug.Assert(False)
         End Select
@@ -1571,8 +1570,8 @@ Public Class TProject
         Return name1
     End Function
 
-    Public Sub SetClassNameList(cla1 As TClass)
-        Dim tw As New TTokenWriter(cla1)
+    Public Sub SetClassNameList(cla1 As TClass, parser As TSourceParser)
+        Dim tw As New TTokenWriter(cla1, parser)
 
         With CType(cla1, TClass)
             Dim i1 As Integer
@@ -1589,7 +1588,7 @@ Public Class TProject
                     ' 配列の場合
 
                     Debug.Assert(.GenCla IsNot Nothing AndAlso .GenCla.Count = 1)
-                    SetClassNameList(.GenCla(0))
+                    SetClassNameList(.GenCla(0), parser)
                     tw.Fmt(.GenCla(0).TokenListVar, EToken.eLP)
 
                     For i1 = 0 To .DimCla - 1
@@ -1610,7 +1609,7 @@ Public Class TProject
                                 tw.Fmt(EToken.eComma)
                             End If
 
-                            SetClassNameList(.GenCla(i1))
+                            SetClassNameList(.GenCla(i1), parser)
                             tw.Fmt(.GenCla(i1).TokenListVar)
                         Next
                         tw.Fmt(EToken.eRP)
@@ -1623,31 +1622,144 @@ Public Class TProject
 
     End Sub
 
-    Public Sub SetTokenListClsAll()
+    Public Sub SetTokenListClsAll(parser As TSourceParser)
         For Each cla1 In SimpleParameterizedSpecializedClassList
-            SetClassNameList(cla1)
+            SetClassNameList(cla1, parser)
         Next
 
         For Each cla1 In ArrayClassList
-            SetClassNameList(cla1)
+            SetClassNameList(cla1, parser)
         Next
     End Sub
 
+    Public Function TokenListToString(parser As TSourceParser, v As List(Of TToken)) As String
+        Dim sw As New TStringWriter
+
+        For Each tkn In v
+            Dim txt As String = ""
+
+            Select Case tkn.TypeTkn
+                Case EToken.eNL
+                Case EToken.eUnknown
+                Case EToken.eComment
+                Case EToken.eTab
+                Case Else
+                    If parser.vTknName.ContainsKey(tkn.TypeTkn) Then
+                        txt = parser.vTknName(tkn.TypeTkn)
+                    Else
+                        txt = "未登録語 : " + tkn.TypeTkn.ToString()
+                        parser.vTknName.Add(tkn.TypeTkn, txt)
+                        Debug.Print(txt)
+                        '                        Debug.Assert(False)
+                    End If
+
+            End Select
+
+            Select Case tkn.TypeTkn
+                Case EToken.eNL
+                    sw.WriteLine("")
+
+                Case EToken.eComment
+                    sw.Write("'" + tkn.StrTkn)
+
+                Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
+                    sw.Write(" " + txt + " ")
+
+                Case EToken.eThen
+                    sw.Write(" " + txt)
+
+                Case EToken.eUnknown
+                    If TypeOf tkn.ObjTkn Is TDot Then
+                        With CType(tkn.ObjTkn, TDot)
+                            sw.Write(".{0}", .NameRef)
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TReference Then
+                        With CType(tkn.ObjTkn, TReference)
+                            sw.Write(.NameRef)
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TClass Then
+                        With CType(tkn.ObjTkn, TClass)
+                            sw.Write(.NameVar)
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TVariable Then
+                        With CType(tkn.ObjTkn, TVariable)
+                            sw.Write(.NameVar)
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is String Then
+                        sw.Write(CType(tkn.ObjTkn, String))
+
+                    Else
+                        Debug.Print("{0}", tkn.ObjTkn.GetType())
+
+                    End If
+
+                Case Else
+                    If txt.Length = 1 Then
+                        Select Case txt(0)
+                            Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
+                                sw.Write(txt)
+                            Case Else
+                                sw.Write(" " + txt + " ")
+                        End Select
+                    Else
+                        sw.Write(" " + txt + " ")
+                    End If
+
+            End Select
+
+        Next
+
+        Return sw.ToString()
+    End Function
+
+    Public Shared Function FileExtension(lang As ELanguage) As String
+        Select Case lang
+            Case ELanguage.Basic
+                Return ".vb"
+            Case ELanguage.FormalScript
+                Return ".ts"
+            Case ELanguage.JavaScript
+                Return ".js"
+            Case ELanguage.Java
+                Return ".java"
+            Case Else
+                Debug.Assert(False)
+                Return Nothing
+        End Select
+    End Function
+
     ' Basicのソースを作る
-    Public Sub MakeAllBasicCode()
-        SetTokenListClsAll()
+    Public Sub MakeAllSourceCode(parser As TSourceParser)
+        SetTokenListClsAll(parser)
 
         '  すべてのソースに対し
         For Each src_f In SrcPrj
-            src_f.FigSrc = New TBasicCodeGenerator(Me)
+            src_f.FigSrc = New TBasicCodeGenerator(Me, parser)
             CurSrc = src_f
 
-            src_f.FigSrc.MakeBasicSrc(src_f)
+            If parser.LanguageSP = ELanguage.Basic Then
 
-            Dim navi_make_basic_source As New TNaviMakeBasicSource(Me)
+                src_f.FigSrc.MakeBasicSrc(src_f)
+                src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
+            End If
+
+            Dim navi_make_basic_source As New TNaviMakeSourceCode(Me, parser)
             navi_make_basic_source.NaviSourceFile(src_f)
 
-            src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
+            Dim out_dir2 As String = String.Format("{0}\{1}", OutputDirectory, parser.LanguageSP)
+            TDirectory.CreateDirectory(out_dir2)
+
+            Dim src_path As String = String.Format("{0}\{1}{2}", out_dir2, TPath.GetFileNameWithoutExtension(src_f.FileSrc), FileExtension(parser.LanguageSP))
+            Dim src_txt2 As String = TokenListToString(parser, src_f.TokenListSrc)
+            TFile.WriteAllText(src_path, src_txt2)
+
 
             CurSrc = Nothing
         Next
@@ -1678,7 +1790,7 @@ Public Class TProject
 
         '  すべてのソースに対し
         For Each src1 In SrcPrj
-            src1.FigSrc = New TBasicCodeGenerator(Me)
+            src1.FigSrc = New TBasicCodeGenerator(Me, ParsePrj)
 
             ' ソース内のすべてのクラスに対し
             For Each cls1 In src1.ClaSrc
@@ -1904,8 +2016,8 @@ Public Class TProject
             fname = TPath.GetFileName(src_f.FileSrc)
             If fname <> "@lib.vb" AndAlso fname <> "Sys.vb" AndAlso fname <> "WindowsForms.vb" Then
 
-                java_code = New TJavaCodeGenerator(Me)
-                java_code.vTknNameMK = vtkn_name
+                java_code = New TJavaCodeGenerator(Me, ParsePrj)
+                java_code.ParserCG.vTknName = vtkn_name
                 java_code.MakeJavaSrc(src_f, out_dir, sw)
 
                 ' for ???

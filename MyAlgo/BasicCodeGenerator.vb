@@ -3,8 +3,8 @@
 Public Class TBasicCodeGenerator
     Inherits TCodeGenerator
 
-    Public Sub New(prj1 As TProject)
-        MyBase.New(prj1)
+    Public Sub New(prj1 As TProject, parser As TSourceParser)
+        MyBase.New(prj1, parser)
     End Sub
 
     '   エスケープ文字を作る
@@ -26,12 +26,12 @@ Public Class TBasicCodeGenerator
         Select Case app1.TypeApp
             Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
                 If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns) Then
-                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(0))
                 Else
 
                     TrmSrc(app1.ArgApp(0))
-                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(1))
                 End If
 
@@ -807,7 +807,7 @@ Public Class TBasicCodeGenerator
         Tab(tab1)
         ModifierSrc(dcl1, dcl1.ModDecl)
         If dcl1.ModDecl Is Nothing OrElse Not dcl1.ModDecl.isPublic AndAlso Not dcl1.ModDecl.isShared Then
-            WordAdd(EToken.eDim, EFigType.eResFig, dcl1)
+            WordAdd(EToken.eVar, EFigType.eResFig, dcl1)
         End If
         '             sw.Write('\t');
         For i1 = 0 To dcl1.VarDecl.Count - 1
@@ -894,7 +894,7 @@ Public Class TBasicCodeGenerator
                 Tab(1)
                 ModifierSrc(fld1, fld1.ModVar)
                 If fld1.ModVar Is Nothing OrElse Not fld1.ModVar.isPublic AndAlso Not fld1.ModVar.isShared Then
-                    WordAdd(EToken.eDim, EFigType.eResFig, fld1)
+                    WordAdd(EToken.eVar, EFigType.eResFig, fld1)
                 End If
                 VarSrc(fld1)
 
@@ -991,90 +991,6 @@ Public Class TBasicCodeGenerator
 
     End Sub
 
-    Public Function TokenListToString(v As List(Of TToken)) As String
-        Dim sw As New TStringWriter
-
-        For Each tkn In v
-            Dim txt As String = ""
-
-            Select Case tkn.TypeTkn
-                Case EToken.eNL
-                Case EToken.eUnknown
-                Case EToken.eComment
-                Case EToken.eTab
-                Case Else
-                    If PrjMK.ParsePrj.vTknName.ContainsKey(tkn.TypeTkn) Then
-                        txt = PrjMK.ParsePrj.vTknName(tkn.TypeTkn)
-                    Else
-                        Debug.Assert(False)
-                    End If
-
-            End Select
-
-            Select Case tkn.TypeTkn
-                Case EToken.eNL
-                    sw.WriteLine("")
-
-                Case EToken.eComment
-                    sw.Write("'" + tkn.StrTkn)
-
-                Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
-                    sw.Write(" " + txt + " ")
-
-                Case EToken.eThen
-                    sw.Write(" " + txt)
-
-                Case EToken.eUnknown
-                    If TypeOf tkn.ObjTkn Is TDot Then
-                        With CType(tkn.ObjTkn, TDot)
-                            sw.Write(".{0}", .NameRef)
-
-                        End With
-
-                    ElseIf TypeOf tkn.ObjTkn Is TReference Then
-                        With CType(tkn.ObjTkn, TReference)
-                            sw.Write(.NameRef)
-                        End With
-
-                    ElseIf TypeOf tkn.ObjTkn Is TClass Then
-                        With CType(tkn.ObjTkn, TClass)
-                            sw.Write(.NameVar)
-
-                        End With
-
-                    ElseIf TypeOf tkn.ObjTkn Is TVariable Then
-                        With CType(tkn.ObjTkn, TVariable)
-                            sw.Write(.NameVar)
-
-                        End With
-
-                    ElseIf TypeOf tkn.ObjTkn Is String Then
-                        sw.Write(CType(tkn.ObjTkn, String))
-
-                    Else
-                        Debug.Print("{0}", tkn.ObjTkn.GetType())
-
-                    End If
-
-                Case Else
-                    If txt.Length = 1 Then
-                        Select Case txt(0)
-                            Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
-                                sw.Write(txt)
-                            Case Else
-                                sw.Write(" " + txt + " ")
-                        End Select
-                    Else
-                        sw.Write(" " + txt + " ")
-                    End If
-
-            End Select
-
-        Next
-
-        Return sw.ToString()
-    End Function
-
     Public Sub OutputBasicSrc(src1 As TSourceFile, out_dir As String)
         Dim src_dir As String, html_path As String, fname As String, ext1 As String, src_txt As String
 
@@ -1089,13 +1005,6 @@ Public Class TBasicCodeGenerator
         TFile.WriteAllText(html_path, MakeSrcHTML(src1))
         ext1 = ".vb"
         TFile.WriteAllText(out_dir + fname + ext1, src_txt)
-
-
-        Dim out_dir2 As String = out_dir + "out2"
-        TDirectory.CreateDirectory(out_dir2)
-        Dim src_txt2 As String = TokenListToString(src1.TokenListSrc)
-        TFile.WriteAllText(out_dir2 + "\" + fname + ext1, src_txt2)
-
     End Sub
 
     Public Overrides Function MakeSrcText() As String

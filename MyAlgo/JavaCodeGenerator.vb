@@ -3,8 +3,8 @@
 Public Class TJavaCodeGenerator
     Inherits TCodeGenerator
 
-    Public Sub New(prj1 As TProject)
-        MyBase.New(prj1)
+    Public Sub New(prj1 As TProject, parser As TSourceParser)
+        MyBase.New(prj1, parser)
     End Sub
 
 
@@ -22,7 +22,7 @@ Public Class TJavaCodeGenerator
         dic1.Add("class", EToken.eClass)
         dic1.Add("const", EToken.eConst)
         dic1.Add("default", EToken.eDefault)
-        dic1.Add("dim", EToken.eDim)
+        dic1.Add("dim", EToken.eVar)
         dic1.Add("do", EToken.eDo)
         dic1.Add("each", EToken.eEach)
         dic1.Add("else", EToken.eElse)
@@ -63,7 +63,6 @@ Public Class TJavaCodeGenerator
         dic1.Add("struct", EToken.eStruct)
         dic1.Add("then", EToken.eThen)
         dic1.Add("typeof", EToken.eTypeof)
-        dic1.Add("var", EToken.eVar)
         dic1.Add("virtual", EToken.eVirtual)
         dic1.Add("where", EToken.eWhere)
         dic1.Add("while", EToken.eWhile)
@@ -354,7 +353,7 @@ Public Class TJavaCodeGenerator
         Select Case app1.TypeApp
             Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
                 If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns) Then
-                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(0))
                 Else
                     If TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction Then
@@ -377,7 +376,7 @@ Public Class TJavaCodeGenerator
                     End If
 
                     TrmSrc(app1.ArgApp(0))
-                    WordAdd(TProject.Prj.vTknNamePrj(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(1))
                 End If
 

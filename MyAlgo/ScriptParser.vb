@@ -18,7 +18,8 @@ Public Class TScriptParser
     Public CurLineIdx As Integer
     Dim CurLineStr As String
 
-    Public Sub New(prj1 As TProject)
+    Public Sub New(prj1 As TProject, lang As ELanguage)
+        LanguageSP = lang
         ThisName = "this"
         PrjParse = prj1
         RegTkn()
@@ -177,7 +178,9 @@ Public Class TScriptParser
 
         vTkn.Add("abstract", EToken.eAbstract)
 
-        If PrjParse.Language = ELanguage.CSharp Then
+        dic1.Add("aggregate", EToken.eAggregate)
+
+        If LanguageSP = ELanguage.CSharp Then
 
             dic1.Add("as", EToken.eAs)
         End If
@@ -194,6 +197,7 @@ Public Class TScriptParser
         dic1.Add("constructor", EToken.eConstructor)
 
         dic1.Add("default", EToken.eDefault)
+        dic1.Add("var", EToken.eVar)
         dic1.Add("do", EToken.eDo)
         dic1.Add("each", EToken.eEach)
         dic1.Add("else", EToken.eElse)
@@ -216,17 +220,18 @@ Public Class TScriptParser
         dic1.Add("iif", EToken.eIIF)
         dic1.Add("implements", EToken.eImplements)
 
-        Select Case PrjParse.Language
+        Select Case LanguageSP
             Case ELanguage.CSharp
                 dic1.Add("imports", EToken.eImports)
-            Case ELanguage.JavaScript
-                dic1.Add("import", EToken.eImports)
 
+            Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.Java
+                dic1.Add("import", EToken.eImports)
         End Select
 
         dic1.Add("in", EToken.eIn)
         dic1.Add("instanceof", EToken.eInstanceof)
         dic1.Add("interface", EToken.eInterface)
+        dic1.Add("into", EToken.eInto)
         dic1.Add("is", EToken.eIs)
         dic1.Add("loop", EToken.eLoop)
         dic1.Add("namespace", EToken.eNamespace)
@@ -239,10 +244,9 @@ Public Class TScriptParser
         dic1.Add("override", EToken.eOverride)
         dic1.Add("partial", EToken.ePartial)
         dic1.Add("private", EToken.ePrivate)
-        dic1.Add("public", EToken.ePublic)
         dic1.Add("ref", EToken.eRef)
         dic1.Add("return", EToken.eReturn)
-        If PrjParse.Language = ELanguage.CSharp Then
+        If LanguageSP = ELanguage.CSharp Then
 
             dic1.Add("set", EToken.eSet)
         End If
@@ -257,7 +261,6 @@ Public Class TScriptParser
         dic1.Add("try", EToken.eTry)
         dic1.Add("typeof", EToken.eTypeof)
         dic1.Add("using", EToken.eUsing)
-        dic1.Add("var", EToken.eVar)
         dic1.Add("virtual", EToken.eVirtual)
         dic1.Add("where", EToken.eWhere)
         dic1.Add("while", EToken.eWhile)
@@ -342,7 +345,12 @@ Public Class TScriptParser
                 vTknName.Add(dic1(key1), key1)
             Next
         End If
-        PrjParse.vTknNamePrj = vTknName
+
+        vTknName.Add(EToken.eAbstract, "")
+        If LanguageSP <> ELanguage.CSharp Then
+            vTknName.Add(EToken.eAs, ":")
+        End If
+        vTknName.Add(EToken.ePublic, "")
     End Sub
 
     Function NewToken(type1 As EToken, str1 As String, pos1 As Integer) As TToken

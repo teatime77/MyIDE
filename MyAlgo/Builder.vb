@@ -64,8 +64,12 @@ Public Class TBuilder
             '            vSrc(PrjIdx) = sw.ToString()
         Else
 
+            Dim basic_parser As New TBasicParser(prj1)
+            Dim formal_parser As New TScriptParser(prj1, ELanguage.FormalScript)
+
             Debug.WriteLine("Basic ソース 生成")
-            prj1.MakeAllBasicCode()
+            prj1.MakeAllSourceCode(formal_parser)
+            prj1.MakeAllSourceCode(basic_parser)
 
             Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
             'prj1.MakeAllHtml()
