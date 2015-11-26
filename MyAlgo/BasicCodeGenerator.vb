@@ -24,7 +24,7 @@ Public Class TBasicCodeGenerator
 
     Public Overrides Sub AppSrc(app1 As TApply)
         Select Case app1.TypeApp
-            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
                 If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns) Then
                     WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(0))
@@ -367,6 +367,8 @@ Public Class TBasicCodeGenerator
             WordAdd(EToken.eIn, EFigType.eResFig, for1)
             TrmSrc(for1.InTrmFor)
             BlcSrc(for1, EToken.eEach, for1.BlcFor, tab1)
+        ElseIf for1.IdxVarFor IsNot Nothing Then
+
         ElseIf for1.FromFor IsNot Nothing Then
             WordAdd(EToken.eFor, EFigType.eResFig, for1)
             Fmt(for1.IdxFor)

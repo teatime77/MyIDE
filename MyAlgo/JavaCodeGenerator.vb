@@ -380,6 +380,10 @@ Public Class TJavaCodeGenerator
                     TrmSrc(app1.ArgApp(1))
                 End If
 
+            Case EToken.eINC, EToken.eDEC
+                TrmSrc(app1.ArgApp(0))
+                WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+
             Case EToken.eAppCall
                 Select Case app1.KndApp
                     Case EApply.eArrayApp

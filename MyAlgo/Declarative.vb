@@ -461,7 +461,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
                             .TypeTrm = .ArgApp(0).TypeTrm
 
                         Case EToken.eAppCall
@@ -470,7 +470,24 @@ Public Class TSetRefDeclarative
                                 Dim ref1 As TReference = CType(.FncApp, TReference)
                                 If TypeOf ref1.VarRef Is TFunction Then
                                     Dim fnc1 As TFunction = CType(ref1.VarRef, TFunction)
-                                    .TypeTrm = fnc1.RetType
+                                    If fnc1.RetType IsNot Nothing AndAlso fnc1.RetType.ContainsArgumentClass Then
+
+                                        Dim dic As New Dictionary(Of String, TClass)
+                                        Dim vidx = From idx In TNaviUp.IndexList(fnc1.ArgFnc) Where fnc1.ArgFnc(idx).TypeVar.ContainsArgumentClass
+                                        Debug.Assert(vidx.Any())
+                                        Dim i1 As Integer = vidx.First()
+                                        Dim tp1 As TClass = fnc1.ArgFnc(i1).TypeVar
+                                        Dim tp2 As TClass = .ArgApp(i1).TypeTrm
+                                        Debug.Assert(tp1.OrgCla Is tp2.OrgCla)
+                                        Dim i2 As Integer
+                                        For i2 = 0 To tp1.GenCla.Count - 1
+                                            dic.Add(tp1.GenCla(i2).NameVar, tp2.GenCla(i2))
+                                        Next
+
+                                        .TypeTrm = .ProjectTrm.SubstituteArgumentClass(fnc1.RetType, dic)
+                                    Else
+                                        .TypeTrm = fnc1.RetType
+                                    End If
                                 Else
                                     Select Case .KndApp
                                         Case EApply.eCallApp
@@ -646,7 +663,7 @@ Public Class TSetRefDeclarative
 
                         If ref1 Is app1.FncApp Then
                             Select Case app1.TypeApp
-                                Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                                Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
 
                                     If .VarRef Is Nothing Then
 
@@ -671,6 +688,10 @@ Public Class TSetRefDeclarative
                                                     name1 = "__Div"
                                                 Case EToken.eMOD
                                                     name1 = "__Mod"
+                                                Case EToken.eINC
+                                                    name1 = "__Inc"
+                                                Case EToken.eDEC
+                                                    name1 = "__Dec"
                                             End Select
 
                                             Dim vvar = (From fnc In app1.ProjectTrm.SystemType.FncCla Where fnc.NameVar = name1).ToList()
@@ -735,7 +756,8 @@ Public Class TSetRefDeclarative
 
                             .VarRef = .ProjectTrm.FindVariable(ref1, .NameRef)
                             If .VarRef Is Nothing Then
-                                .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc, .NameRef, Nothing)
+                                '.VarRef = .ProjectTrm.FindVariable(ref1, .NameRef)
+                                '.VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc, .NameRef, Nothing)
                                 Debug.WriteLine("変数未定義:{0}", .NameRef)
                             End If
                         End If
@@ -780,7 +802,7 @@ Public Class TSetRefDeclarative
                                 Debug.Print("想定外 2")
                             End If
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
                         Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eBaseCall
                         Case Else
                             If .IsLog() Then
@@ -980,6 +1002,197 @@ Public Class TNaviSetLabel
                         .LabelExit = for_do.LabelFor
                     End If
                 End If
+            End With
+        End If
+    End Sub
+End Class
+
+' -------------------------------------------------------------------------------- TNaviSetClassifiedIf
+' クラスの場合分けのIf文を探す。
+Public Class TNaviSetClassifiedIf
+    Inherits TDeclarative
+
+    Public Function IsClassifiedIfBlock(if_blc As TIfBlock) As Boolean
+        If TypeOf if_blc.CndIf Is TApply Then
+            Dim app1 As TApply = CType(if_blc.CndIf, TApply)
+
+            If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.eTypeof Then
+                Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
+
+                If ref1.VarRef Is if_blc.FunctionStmt.ArgFnc(0) Then
+                    Return True
+                End If
+            End If
+        End If
+        Return False
+    End Function
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TIf Then
+            With CType(self, TIf)
+                Dim may_be_classified_if As Boolean = False
+
+                If .ParentStmt Is Nothing Then
+                    may_be_classified_if = True
+                Else
+                    If TypeOf .ParentStmt Is TIfBlock Then
+                        may_be_classified_if = CType(CType(.ParentStmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
+                    Else
+                        may_be_classified_if = False
+                    End If
+                End If
+
+                If may_be_classified_if Then
+                    Dim not_classified_if_block_list = From x In .IfBlc Where Not IsClassifiedIfBlock(x)
+
+                    .ClassifiedIf = Not not_classified_if_block_list.Any()
+                Else
+                    .ClassifiedIf = False
+                End If
+            End With
+        End If
+    End Sub
+End Class
+
+' -------------------------------------------------------------------------------- TNaviMakeClassifiedIfMethod
+Public Class TNaviMakeClassifiedIfMethod
+    Inherits TDeclarative
+    Public ClassifiedIfMethodList As New TList(Of TFunction)
+
+    Public Function MakeBlock(if1 As TIf, blc1 As TBlock) As TBlock
+        Dim blc2 As TBlock = CType(if1.ParentStmt, TBlock)
+        Dim blc3 As New TBlock
+
+        blc3.StmtBlc.AddRange(From x In blc2.StmtBlc Select CType(IIf(x Is if1, blc1, x), TStatement))
+
+        If blc2.ParentStmt Is Nothing Then
+            Return blc2
+        Else
+            Dim if_blc As TIfBlock = CType(blc2.ParentStmt, TIfBlock)
+            Dim if2 As TIf = CType(if_blc.ParentStmt, TIf)
+
+            Return MakeBlock(if2, blc2)
+        End If
+    End Function
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TIfBlock Then
+            With CType(self, TIfBlock)
+                Dim if1 As TIf = CType(.ParentStmt, TIf)
+                If if1.ClassifiedIf Then
+                    Dim blc1 As New TBlock
+
+                    blc1.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.ClassifiedIf)
+
+                    Dim blc2 = MakeBlock(if1, blc1)
+
+                    Dim fnc1 = New TFunction()
+                    fnc1.BlcFnc = blc2
+
+                    Dim app1 As TApply = CType(.CndIf, TApply)
+                    Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
+                    fnc1.ClaFnc = CType(ref1.VarRef, TClass)
+
+                    ClassifiedIfMethodList.Add(fnc1)
+                End If
+            End With
+        End If
+    End Sub
+End Class
+
+' -------------------------------------------------------------------------------- TNaviSetReachableField
+Public Class TNaviSetReachableField
+    Inherits TDeclarative
+    Public Prj As TProject
+    Public ApplicationClass As TClass
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TFunction Then
+            With CType(self, TFunction)
+                Dim assigned_field_list = From ref1 In .RefFnc Where ref1.DefRef AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TField Select CType(ref1.VarRef, TField)
+                Dim reachable_from_bottom_pending As New List(Of TField)(Enumerable.Distinct(assigned_field_list))
+                Dim reachable_from_bottom_processed As New List(Of TField)
+
+                Dim reachable_from_top_pending As New List(Of TField)
+                Dim reachable_from_top_processed As New List(Of TField)
+
+                Dim fld_fld_table As New Dictionary(Of TField, List(Of TField))
+                Dim class_fld_table As New Dictionary(Of TClass, List(Of TField))
+
+                Do While reachable_from_bottom_pending.Count <> 0
+                    Dim fld1 = reachable_from_bottom_pending(0)
+                    reachable_from_bottom_pending.RemoveAt(0)
+                    reachable_from_bottom_processed.Add(fld1)
+
+                    If fld1.ClaFld Is ApplicationClass Then
+                        reachable_from_top_pending.Add(fld1)
+                    End If
+
+                    Dim vcls = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(fld1.ClaFld))
+
+                    Dim vfld2 = From x In Prj.vAllFld Where vcls.Contains(CType(IIf(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
+
+                    For Each fld2 In vfld2
+                        Dim v As List(Of TField)
+
+                        If fld_fld_table.ContainsKey(fld2) Then
+                            v = fld_fld_table(fld2)
+                        Else
+                            v = New List(Of TField)()
+                            fld_fld_table.Add(fld2, v)
+                        End If
+
+                        v.Add(fld1)
+                    Next
+
+                    ' 未処理のフィールド
+                    Dim vfld3 = From x In vfld2 Where Not reachable_from_bottom_processed.Contains(x) AndAlso Not reachable_from_bottom_pending.Contains(x)
+
+                    reachable_from_bottom_pending.AddRange(vfld3)
+                Loop
+
+                Do While reachable_from_top_pending.Count <> 0
+                    Dim fld1 = reachable_from_top_pending(0)
+                    reachable_from_top_pending.RemoveAt(0)
+                    reachable_from_top_processed.Add(fld1)
+
+                    Dim class_fld_list As List(Of TField)
+                    If class_fld_table.ContainsKey(fld1.ClaFld) Then
+                        class_fld_list = class_fld_table(fld1.ClaFld)
+                    Else
+                        class_fld_list = New List(Of TField)()
+                        class_fld_table.Add(fld1.ClaFld, class_fld_list)
+                    End If
+                    class_fld_list.Add(fld1)
+
+                    If fld_fld_table.ContainsKey(fld1) Then
+                        Dim vfld2 As List(Of TField) = fld_fld_table(fld1)
+
+                        ' 未処理のフィールド
+                        Dim vfld3 = From x In vfld2 Where Not reachable_from_top_processed.Contains(x) AndAlso Not reachable_from_top_pending.Contains(x)
+
+                        reachable_from_top_pending.AddRange(vfld3)
+                    End If
+                Loop
+
+                Dim function_name As String = "Navigate_" + .NameVar
+                For Each cla1 In class_fld_table.Keys
+                    Dim vfld As List(Of TField) = class_fld_table(cla1)
+                    Dim fnc1 As New TFunction
+
+                    fnc1.NameVar = function_name
+                    fnc1.BlcFnc = New TBlock()
+
+                    For Each fld1 In vfld
+                        Dim sw As New TStringWriter
+                        If fld1.TypeVar.OrgCla IsNot Nothing Then
+
+                            sw.WriteLine(String.Format("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", fld1.NameVar, function_name))
+                        Else
+                            sw.WriteLine(String.Format(".{0}()", function_name))
+                        End If
+                    Next
+                Next
             End With
         End If
     End Sub

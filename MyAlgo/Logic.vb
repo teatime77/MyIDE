@@ -280,7 +280,7 @@ Public Class TTerm
     Public Function IsApp() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType
+                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC
                     Return True
             End Select
         End If
@@ -399,14 +399,15 @@ Public Class TClass
     Public OrgCla As TClass
     Public GenCla As TList(Of TClass)
     Public SuperClassList As New TList(Of TClass)
-    Public SubClasses As New TList(Of TClass)
-    Public AllSuperCla As TList(Of TClass)
+    Public SubClassList As New TList(Of TClass)
+    Public AllSuperClassList As TList(Of TClass)
     Public InterfaceList As New TList(Of TClass)
     Public FldCla As New TList(Of TField)
     Public FncCla As New TList(Of TFunction)
     Public DimCla As Integer = 0
     Public SrcCla As TSourceFile
     Public IsParamCla As Boolean = False
+    Public ContainsArgumentClass As Boolean = False
     Public GenericType As EGeneric
     Public Parsed As Boolean = False
 
@@ -475,23 +476,23 @@ Public Class TClass
     End Sub
 
     Public Sub SetAllSuperClass()
-        AllSuperCla = New TList(Of TClass)()
-        AllSuperCla2(AllSuperCla)
+        AllSuperClassList = New TList(Of TClass)()
+        AllSuperCla2(AllSuperClassList)
     End Sub
 
     ' このクラスが引数のクラスのサブクラスならTrueを返す
     Public Function IsSubcla(cla1 As TClass) As Boolean
-        If AllSuperCla.Contains(cla1) Then
+        If AllSuperClassList.Contains(cla1) Then
             Return True
         End If
 
         If cla1.GenericType = EGeneric.SpecializedClass Then
-            Dim vcla = From cla2 In AllSuperCla Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
+            Dim vcla = From cla2 In AllSuperClassList Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
             If vcla.Any() Then
                 Return True
             End If
 
-            For Each cla2 In AllSuperCla
+            For Each cla2 In AllSuperClassList
                 If cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla Then
 
                     If Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any() Then
@@ -506,7 +507,7 @@ Public Class TClass
 
     ' このクラスが引数のクラスと同じかサブクラスならTrueを返す
     Public Function IsSubsetOf(cla1 As TClass) As Boolean
-        Return cla1 Is Me OrElse AllSuperCla.Contains(cla1)
+        Return cla1 Is Me OrElse AllSuperClassList.Contains(cla1)
     End Function
 
     Public Function IsArray() As Boolean
@@ -644,6 +645,7 @@ Public Class TFunction
     Public RetType As TClass
     Public InterfaceFnc As TClass
     Public ImplFnc As TReference
+    Public ArgumentClassFnc As TList(Of TClass)
     Public ArgFnc As New TList(Of TVariable)
     Public ThisFnc As TVariable
     Public BlcFnc As TBlock
@@ -1034,7 +1036,6 @@ Public Class TStatement
     Public vTknStmt As TList(Of TToken)
     Public StmtIdx As Integer
     Public TypeStmt As EToken
-    Public BlcStmt As TBlock
     Public RefStmt As New TList(Of TReference)
     Public IsGenerated As Boolean
     Public UsedStmt As Boolean
@@ -1045,6 +1046,8 @@ Public Class TStatement
     Public TokenListStmt As List(Of TToken)
     Public TabStmt As Integer
     Public FunctionStmt As TFunction
+
+    Public ClassifiedIf As Boolean
 
     Public Sub New()
         StmtIdx = StmtCnt
@@ -1091,7 +1094,6 @@ Public Class TBlock
 
     Public Sub AddStmtBlc(stmt1 As TStatement)
         StmtBlc.Add(stmt1)
-        stmt1.BlcStmt = Me
     End Sub
 
     Public Overrides Function JumpEnd() As Boolean

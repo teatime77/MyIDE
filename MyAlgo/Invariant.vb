@@ -538,6 +538,9 @@ Public Class TNaviMakeSourceCode
                                     tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
                                 End If
 
+                            Case EToken.eINC, EToken.eDEC
+                                tw.Fmt(.ArgApp(0).TokenList, .TypeApp)
+
                             Case EToken.eAppCall
 
                                 tw.Fmt(.FncApp.TokenList, AppArgTokenList(self))
@@ -892,6 +895,16 @@ Public Class TNaviMakeSourceCode
 
                                 Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
                                     tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eRC, EToken.eNL)
+                            End Select
+
+                        ElseIf .IdxVarFor IsNot Nothing Then
+                            Select Case ParserMK.LanguageSP
+                                Case ELanguage.Basic
+
+                                Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .IdxVarFor, EToken.eSM, .CndFor.TokenList, EToken.eSM, .StepStmtFor.TokenListStmt, EToken.eRP, EToken.eLC, EToken.eNL)
                                     tw.Fmt(.BlcFor.TokenListStmt)
                                     tw.Fmt(EToken.eRC, EToken.eNL)
                             End Select

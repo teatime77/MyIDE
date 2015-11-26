@@ -32,7 +32,7 @@ Public Class TBuilder
 
         prj1.Compile()
 
-        If prj1.Language <> ELanguage.Basic Then
+        If prj1.Language <> ELanguage.Basic AndAlso prj1.Language <> ELanguage.FormalScript Then
             Exit Sub
         End If
 

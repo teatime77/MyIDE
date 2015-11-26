@@ -122,17 +122,24 @@ Public Class TScriptParser
 
             tp1 = PrjParse.GetCla(id1.StrTkn)
             If tp1 Is Nothing Then
-                Throw New TError(String.Format("不明なクラス {0}", id1.StrTkn))
+                If id1.StrTkn = "Image" Then
+
+                    tp1 = PrjParse.GetCla("HTMLImageElement")
+                End If
+                If tp1 Is Nothing Then
+
+                    Throw New TError(String.Format("不明なクラス {0}", id1.StrTkn))
+                End If
             End If
         End If
-        If CurTkn.TypeTkn = EToken.eLP AndAlso (NxtTkn.TypeTkn = EToken.eRP OrElse NxtTkn.TypeTkn = EToken.eComma) Then
-            GetTkn(EToken.eLP)
+        If CurTkn.TypeTkn = EToken.eLB AndAlso (NxtTkn.TypeTkn = EToken.eRB OrElse NxtTkn.TypeTkn = EToken.eComma) Then
+            GetTkn(EToken.eLB)
             dim_cnt = 1
             Do While CurTkn.TypeTkn = EToken.eComma
                 GetTkn(EToken.eComma)
                 dim_cnt += 1
             Loop
-            GetTkn(EToken.eRP)
+            GetTkn(EToken.eRB)
             If Not is_new Then
                 tp1 = PrjParse.GetArrCla(tp1, dim_cnt)
             End If
@@ -671,16 +678,26 @@ Public Class TScriptParser
     End Sub
 
     Function ArgumentExpressionList(app1 As TApply) As TApply
-        Dim trm1 As TTerm
+        Dim trm1 As TTerm, right_token As EToken
 
-        ' 			bool	b_of;
-        '             b_of = false;
-        GetTkn(EToken.eLP)
+        Select Case CurTkn.TypeTkn
+            Case EToken.eLP
+                GetTkn(EToken.eLP)
+                right_token = EToken.eRP
+
+            Case EToken.eLB
+                GetTkn(EToken.eLB)
+                right_token = EToken.eRB
+
+            Case Else
+                Debug.Assert(False)
+        End Select
+
         If CurTkn.TypeTkn = EToken.eOf Then
             GetTkn(EToken.eOf)
         End If
         '                 b_of = true;
-        If CurTkn.TypeTkn <> EToken.eRP Then
+        If CurTkn.TypeTkn <> right_token Then
             Do While True
                 trm1 = TermExpression()
                 app1.AddInArg(trm1)
@@ -691,7 +708,7 @@ Public Class TScriptParser
                 GetTkn(EToken.eComma)
             Loop
         End If
-        GetTkn(EToken.eRP)
+        GetTkn(right_token)
 
         Return app1
     End Function
@@ -699,7 +716,7 @@ Public Class TScriptParser
     Function CallExpression(trm1 As TTerm) As TTerm
         Dim app1 As TApply
 
-        Do While CurTkn.TypeTkn = EToken.eLP
+        Do While CurTkn.TypeTkn = EToken.eLP OrElse CurTkn.TypeTkn = EToken.eLB
             app1 = TApply.MakeAppCall(trm1)
             ArgumentExpressionList(app1)
             trm1 = app1
@@ -714,18 +731,18 @@ Public Class TScriptParser
         Dim trm1 As TTerm
 
         arr1 = New TArray()
-        GetTkn(EToken.eLC)
-        If CurTkn.TypeTkn <> EToken.eRC Then
+        GetTkn(EToken.eLB)
+        If CurTkn.TypeTkn <> EToken.eRB Then
             Do While True
                 trm1 = TermExpression()
                 arr1.TrmArr.Add(trm1)
-                If CurTkn.TypeTkn = EToken.eRC Then
+                If CurTkn.TypeTkn = EToken.eRB Then
                     Exit Do
                 End If
                 GetTkn(EToken.eComma)
             Loop
         End If
-        GetTkn(EToken.eRC)
+        GetTkn(EToken.eRB)
 
         Return arr1
     End Function
@@ -741,7 +758,7 @@ Public Class TScriptParser
         If CurTkn.TypeTkn = EToken.eLP Then
             ArgumentExpressionList(app1)
         End If
-        If CurTkn.TypeTkn = EToken.eLC Then
+        If CurTkn.TypeTkn = EToken.eLB Then
             ' 配列の場合
             app1.IniApp = ArrayExpression()
 
@@ -751,7 +768,7 @@ Public Class TScriptParser
         If CurTkn.TypeTkn = EToken.eFrom Then
             GetTkn(EToken.eFrom)
 
-            Debug.Assert(CurTkn.TypeTkn = EToken.eLC)
+            Debug.Assert(CurTkn.TypeTkn = EToken.eLB)
             app1.IniApp = ArrayExpression()
         End If
 
@@ -880,7 +897,7 @@ Public Class TScriptParser
                 GetTkn(EToken.eRP)
                 ret1 = CallExpression(trm1)
 
-            Case EToken.eLC
+            Case EToken.eLB
                 Return ArrayExpression()
 
             Case EToken.eString, EToken.eChar, EToken.eInt, EToken.eHex
@@ -952,18 +969,31 @@ Public Class TScriptParser
         Return trm1
     End Function
 
+    Function IncDecExpression() As TTerm
+        Dim trm1 As TTerm = DotExpression()
+
+        If CurTkn.TypeTkn = EToken.eINC OrElse CurTkn.TypeTkn = EToken.eDEC Then
+            Dim tkn1 As TToken = GetTkn(EToken.eUnknown)
+
+            Return TApply.MakeApp1Opr(tkn1, trm1)
+        End If
+
+        Return trm1
+    End Function
+
+
     Function UnaryExpression() As TTerm
         Dim tkn1 As TToken
         Dim trm1 As TTerm
 
         If CurTkn.TypeTkn = EToken.eMns Then
             tkn1 = GetTkn(EToken.eMns)
-            trm1 = DotExpression()
+            trm1 = IncDecExpression()
 
             Return TApply.MakeApp1Opr(tkn1, trm1)
         End If
 
-        Return DotExpression()
+        Return IncDecExpression()
     End Function
 
     Function MultiplicativeExpression() As TTerm
@@ -1107,17 +1137,11 @@ Public Class TScriptParser
                 trm2 = CType(TermExpression(), TTerm)
                 rel1 = TApply.NewOpr2(eq1.TypeTkn, trm1, trm2)
                 asn1 = New TAssignment(rel1)
-                GetTkn(EToken.eSM)
 
                 Return asn1
         End Select
 
-        If TypeOf trm1 Is TReference Then
-            Return New TEnumElement(CType(trm1, TReference))
-        End If
-
-        Dim call1 As TCall = New TCall(CType(trm1, TApply))
-        GetTkn(EToken.eSM)
+        Dim call1 As New TCall(CType(trm1, TApply))
 
         Return call1
     End Function
@@ -1199,19 +1223,19 @@ Public Class TScriptParser
 
         GetTkn(EToken.eFor)
 
-        If CurTkn.TypeTkn = EToken.eId Then
+        If CurTkn.TypeTkn = EToken.eLP Then
 
-            id1 = GetTkn(EToken.eId)
-            for1.IdxFor = New TReference(id1)
-            GetTkn(EToken.eASN)
-            for1.FromFor = CType(TermExpression(), TTerm)
-            GetTkn(EToken.eTo)
-            for1.ToFor = CType(TermExpression(), TTerm)
+            GetTkn(EToken.eLP)
+            GetTkn(EToken.eVar)
 
-            If CurTkn.TypeTkn = EToken.eStep Then
-                GetTkn(EToken.eStep)
-                for1.StepFor = CType(TermExpression(), TTerm)
-            End If
+            for1.IdxVarFor = ReadVariable()
+            GetTkn(EToken.eSM)
+
+            for1.CndFor = TermExpression()
+            GetTkn(EToken.eSM)
+
+            for1.StepStmtFor = AssignmentExpression()
+            GetTkn(EToken.eRP)
         Else
 
             GetTkn(EToken.eEach)
@@ -1294,7 +1318,7 @@ Public Class TScriptParser
         if_cnd = CType(TermExpression(), TTerm)
         GetTkn(EToken.eRP)
 
-        Dim if_blc As TIfBlock = New TIfBlock(if_cnd, ReadBlock(if2))
+        Dim if_blc As New TIfBlock(if_cnd, ReadBlock(if2))
         if2.IfBlc.Add(if_blc)
 
         Do While CurTkn.TypeTkn = EToken.eElse
@@ -1320,6 +1344,7 @@ Public Class TScriptParser
 
         GetTkn(EToken.eVar)
         stmt1.TypeStmt = EToken.eVarDecl
+        stmt1.ModDecl = New TModifier()
         Do While True
             var1 = ReadVariable()
             stmt1.VarDecl.Add(var1)
@@ -1406,6 +1431,7 @@ Public Class TScriptParser
 
             Case EToken.eId, EToken.eBase, EToken.eCType, EToken.eDot
                 stmt1 = AssignmentExpression()
+                GetTkn(EToken.eSM)
 
             Case EToken.eTry
                 stmt1 = ReadTry()
@@ -1625,7 +1651,7 @@ Public Class TScriptParser
             GetTkn(EToken.eMMB)
             dlg1.RetDlg = ReadType(False)
 
-            Dim fnc1 As TFunction = New TFunction("Invoke", dlg1.RetDlg)
+            Dim fnc1 As New TFunction("Invoke", dlg1.RetDlg)
             fnc1.SetModFnc(mod1)
             fnc1.ArgFnc = dlg1.ArgDlg
             fnc1.ThisFnc = New TVariable(ThisName, dlg1)
@@ -1821,6 +1847,10 @@ Public Class TScriptParser
 
         Do While True
             mod1 = ReadModifier()
+
+            Do While CurTkn.TypeTkn = EToken.eLineComment OrElse CurTkn.TypeTkn = EToken.eBlockComment
+                GetTkn(EToken.eUnknown)
+            Loop
 
             Select Case CurTkn.TypeTkn
                 Case EToken.eDelegate, EToken.eClass, EToken.eStruct, EToken.eInterface

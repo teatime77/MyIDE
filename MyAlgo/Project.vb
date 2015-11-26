@@ -426,6 +426,9 @@ Public Class TProject
                     If .InVarFor IsNot Nothing AndAlso .InVarFor.NameVar = name1 Then
                         Return .InVarFor
                     End If
+                    If .IdxVarFor IsNot Nothing AndAlso .IdxVarFor.NameVar = name1 Then
+                        Return .IdxVarFor
+                    End If
                 End With
 
             ElseIf TypeOf obj Is TTry Then
@@ -508,6 +511,10 @@ Public Class TProject
         End If
 
         If dst_cla Is StringType AndAlso src_cla Is CharType Then
+            Return True
+        End If
+
+        If dst_cla.ContainsArgumentClass AndAlso dst_cla.OrgCla Is src_cla.OrgCla Then
             Return True
         End If
 
@@ -716,7 +723,6 @@ Public Class TProject
                 call_ini = New TCall(app_ini)
                 call_ini.IsGenerated = True
                 theMain.BlcFnc.StmtBlc.Insert(0, call_ini)
-                call_ini.BlcStmt = theMain.BlcFnc
 
                 theMain.CallTo.Add(ini_fnc)
                 ini_fnc.CallFrom.Add(theMain)
@@ -731,7 +737,6 @@ Public Class TProject
                     call_ini = New TCall(app_ini)
                     call_ini.IsGenerated = True
                     new1.BlcFnc.StmtBlc.Insert(0, call_ini)
-                    call_ini.BlcStmt = new1.BlcFnc
 
                     new1.CallTo.Add(ini_fnc)
                     ini_fnc.CallFrom.Add(new1)
@@ -835,7 +840,9 @@ Public Class TProject
         For i1 = 0 To ArrayClassList.Count - 1
             cla2 = ArrayClassList(i1)
             Debug.Assert(cla2.InterfaceList.Count = 0)
-            cla2.InterfaceList.Add(GetIEnumerableClass(cla2.GenCla(0)))
+            If Language = ELanguage.Basic OrElse Language = ELanguage.CSharp Then
+                cla2.InterfaceList.Add(GetIEnumerableClass(cla2.GenCla(0)))
+            End If
         Next
 
         For Each cls1 In SimpleParameterizedClassList
@@ -923,7 +930,7 @@ Public Class TProject
         ' サブクラスをセットする
         For Each cls1 In SimpleParameterizedSpecializedClassList
             For Each super_class In cls1.SuperClassList
-                super_class.SubClasses.Add(cls1)
+                super_class.SubClassList.Add(cls1)
             Next
         Next
 
@@ -1005,6 +1012,10 @@ Public Class TProject
                 name1 = "="
             Case EToken.eNE
                 name1 = "<>"
+            Case EToken.eINC
+                name1 = "++"
+            Case EToken.eDEC
+                name1 = "--"
             Case Else
                 Return Nothing
         End Select
@@ -1249,7 +1260,7 @@ Public Class TProject
         ' すべてのクラスに対し
         For Each cls1 In SimpleParameterizedSpecializedClassList
             If cls1.UsedVar Then
-                For Each cls2 In cls1.AllSuperCla
+                For Each cls2 In cls1.AllSuperClassList
                     cls2.UsedVar = True
                 Next
             End If
@@ -1816,7 +1827,7 @@ Public Class TProject
 
                     class_sw.WriteLine("<p style=""text-indent:{0}em"">{1}</p>", indent * 2, cls1.NameVar)
 
-                    For Each sub_class In cls1.SubClasses
+                    For Each sub_class In cls1.SubClassList
                         If SimpleParameterizedClassList.Contains(sub_class) Then
                             class_sw.WriteLine("<p style=""text-indent:{0}em""><a href=""../{1}/{1}.html"">{1}</a></p>", (indent + 1) * 2, sub_class.NameVar)
                         End If

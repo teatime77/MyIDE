@@ -726,6 +726,29 @@ Public Class TNaviUp
         Next
     End Function
 
+    Public Shared Iterator Function ThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        Yield cla1
+        For Each cla2 In AncestorSuperClassList(cla1)
+            Yield cla2
+        Next
+    End Function
+
+    Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        Yield cla1
+        For Each cla2 In DescendantSubClassList(cla1)
+            Yield cla2
+        Next
+    End Function
+
+    Public Shared Iterator Function DescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.SubClassList
+            Yield cla2
+            For Each cla3 In DescendantSubClassList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
+
     Public Shared Iterator Function AncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
         For Each cla2 In cla1.InterfaceList
             Yield cla2

@@ -30,6 +30,7 @@ Public Class TBasicParser
     Dim CurStmt As TStatement
     Public CurLineIdx As Integer
     Dim CurLineStr As String
+    Dim ArgClassTable As Dictionary(Of String, TClass)
 
     Public Sub New(prj1 As TProject)
         LanguageSP = ELanguage.Basic
@@ -278,6 +279,31 @@ Public Class TBasicParser
             End If
         End If
 
+        If NxtTkn.TypeTkn = EToken.eOf Then
+
+            ArgClassTable = New Dictionary(Of String, TClass)()
+            stmt1.ArgumentClassFncStmt = New TList(Of TClass)()
+
+            GetTkn(EToken.eLP)
+            GetTkn(EToken.eOf)
+            Do While True
+                Dim class_name As TToken = GetTkn(EToken.eId)
+
+                Dim arg_class = New TClass(PrjParse, class_name.StrTkn)
+                arg_class.IsParamCla = True
+                arg_class.GenericType = EGeneric.ArgumentClass
+
+                ArgClassTable.Add(arg_class.NameVar, arg_class)
+                stmt1.ArgumentClassFncStmt.Add(arg_class)
+
+                If CurTkn.TypeTkn = EToken.eRP Then
+                    Exit Do
+                End If
+                GetTkn(EToken.eComma)
+            Loop
+            GetTkn(EToken.eRP)
+        End If
+
         GetTkn(EToken.eLP)
         If CurTkn.TypeTkn <> EToken.eRP Then
             Do While True
@@ -324,6 +350,8 @@ Public Class TBasicParser
             PrjParse.dicGenCla.Clear()
         End If
 
+        ArgClassTable = Nothing
+
         Return stmt1
     End Function
 
@@ -331,6 +359,7 @@ Public Class TBasicParser
     Function ReadGenType(id1 As TToken) As TClass
         Dim tp1 As TClass, tp2 As TClass
         Dim vtp As TList(Of TClass)
+        Dim is_param As Boolean = False
 
         GetTkn(EToken.eLP)
         GetTkn(EToken.eOf)
@@ -338,7 +367,11 @@ Public Class TBasicParser
         vtp = New TList(Of TClass)()
         Do While True
             tp2 = ReadType(False)
+            If tp2.GenericType = EGeneric.ArgumentClass Then
+                is_param = True
+            End If
             vtp.Add(tp2)
+
             If CurTkn.TypeTkn <> EToken.eComma Then
 
                 Exit Do
@@ -349,6 +382,7 @@ Public Class TBasicParser
 
         ' ジェネリック型のクラスを得る。
         tp1 = PrjParse.GetAddSpecializedClass(id1.StrTkn, vtp)
+        tp1.ContainsArgumentClass = is_param
 
         Return tp1
     End Function
@@ -367,7 +401,14 @@ Public Class TBasicParser
 
             tp1 = PrjParse.GetCla(id1.StrTkn)
             If tp1 Is Nothing Then
-                Throw New TError(String.Format("不明なクラス {0}", id1.StrTkn))
+                If ArgClassTable IsNot Nothing Then
+                    If ArgClassTable.ContainsKey(id1.StrTkn) Then
+                        tp1 = ArgClassTable(id1.StrTkn)
+                    End If
+                End If
+                If tp1 Is Nothing Then
+                    Throw New TError(String.Format("不明なクラス {0}", id1.StrTkn))
+                End If
             End If
         End If
         If CurTkn.TypeTkn = EToken.eLP AndAlso (NxtTkn.TypeTkn = EToken.eRP OrElse NxtTkn.TypeTkn = EToken.eComma) Then
@@ -1080,6 +1121,7 @@ Public Class TBasicParser
         fnc2.SetModFnc(fnc1.ModifierFncStmt)
         fnc2.TypeFnc = fnc1.TypeStmt
         fnc2.OpFnc = fnc1.OpFncStmt
+        fnc2.ArgumentClassFnc = fnc1.ArgumentClassFncStmt
         fnc2.ArgFnc.AddRange(fnc1.ArgumentFncStmt)
         fnc2.ThisFnc = New TVariable(ThisName, cla1)
         fnc2.InterfaceFnc = fnc1.InterfaceFncStmt
@@ -2323,6 +2365,7 @@ Public Class TFunctionStatement
     Public ModifierFncStmt As TModifier
     Public OpFncStmt As EToken = EToken.eUnknown
     Public NameFncStmt As String
+    Public ArgumentClassFncStmt As TList(Of TClass)
     Public ArgumentFncStmt As New TList(Of TVariable)
     Public RetType As TClass
     Public InterfaceFncStmt As TClass
