@@ -223,7 +223,7 @@ Public Class TBasicCodeGenerator
                     End If
                 End If
                 TrmSrc(rel1.ArgApp(1))
-            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
+            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eInstanceof
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
@@ -281,6 +281,10 @@ Public Class TBasicCodeGenerator
 
             WordAdd(EToken.eTake, EFigType.eResFig, from1)
             TrmSrc(from1.TakeFrom)
+        End If
+
+        If from1.InnerFrom IsNot Nothing Then
+            FromSrc(from1.InnerFrom)
         End If
     End Sub
 

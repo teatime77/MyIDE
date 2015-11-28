@@ -1978,40 +1978,40 @@ Public Class TBasicParser
 
     ' From i In v1 Where i Mod 2 = 0 Select AA(i)
     Function FromExpression() As TFrom
-        Dim stmt1 As New TFrom
-        Dim id1 As TToken, seq1 As TTerm, cnd1 As TTerm = Nothing, sel1 As TTerm = Nothing, take1 As TTerm = Nothing
+        Dim from1 As New TFrom
 
         GetTkn(EToken.eFrom)
-        id1 = GetTkn(EToken.eId)
+
+        Dim id1 As TToken = GetTkn(EToken.eId)
+        from1.VarFrom = New TVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
-        seq1 = TermExpression()
+        from1.SeqFrom = TermExpression()
 
         If CurTkn.TypeTkn = EToken.eWhere Then
 
             GetTkn(EToken.eWhere)
-            cnd1 = TermExpression()
+            from1.CndFrom = TermExpression()
         End If
 
         If CurTkn.TypeTkn = EToken.eSelect Then
 
             GetTkn(EToken.eSelect)
-            sel1 = TermExpression()
+            from1.SelFrom = TermExpression()
         End If
 
         If CurTkn.TypeTkn = EToken.eTake Then
 
             GetTkn(EToken.eTake)
-            take1 = TermExpression()
+            from1.TakeFrom = TermExpression()
         End If
 
-        stmt1.VarFrom = New TVariable(id1, Nothing)
-        stmt1.SeqFrom = seq1
-        stmt1.CndFrom = cnd1
-        stmt1.SelFrom = sel1
-        stmt1.TakeFrom = take1
 
-        Return stmt1
+        If CurTkn.TypeTkn = EToken.eFrom Then
+            from1.InnerFrom = FromExpression()
+        End If
+
+        Return from1
     End Function
 
     ' Aggregate x In v Into Sum(x.Value)
@@ -2226,7 +2226,7 @@ Public Class TBasicParser
 
         trm1 = AdditiveExpression()
         Select Case CurTkn.TypeTkn
-            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot
+            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot, EToken.eInstanceof
                 type1 = CurTkn.TypeTkn
                 GetTkn(EToken.eUnknown)
                 trm2 = AdditiveExpression()

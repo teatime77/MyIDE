@@ -12,14 +12,18 @@ Public Class TAttribute
     End Sub
 End Class
 
+Public Class TLibrary
+    Public LibraryDirectory As String
+    Public SourceFileNameList As String()
+End Class
+
 ' -------------------------------------------------------------------------------- TProject
 Public Class TProject
     <XmlIgnoreAttribute()> Public Shared Prj As TProject
 
     Public Language As ELanguage = ELanguage.Basic
-    Public SourceDirectory As String
     Public OutputDirectory As String
-    Public SourceFileNameList As String()
+    Public LibraryList As TLibrary()
     Public MainClassName As String
     Public MainFunctionName As String
     Public OutputNotUsed As Boolean = True
@@ -781,7 +785,7 @@ Public Class TProject
         Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
-        SrcPrj = New TList(Of TSourceFile)(From fname In SourceFileNameList Select New TSourceFile(fname))
+        SrcPrj = New TList(Of TSourceFile)(From lib1 In LibraryList From fname In lib1.SourceFileNameList Select New TSourceFile(lib1, fname))
 
         Select Case Language
             Case ELanguage.Basic
@@ -796,11 +800,11 @@ Public Class TProject
         For Each src_f In SrcPrj
             Debug.Assert(src_f.vTextSrc Is Nothing)
             If Language = ELanguage.Basic Then
-                src_f.vTextSrc = TFile.ReadAllLines(SourceDirectory + "\" + src_f.FileSrc)
+                src_f.vTextSrc = TFile.ReadAllLines(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
                 src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
 
             Else
-                Dim src_text As String = TFile.ReadAllText(SourceDirectory + "\" + src_f.FileSrc)
+                Dim src_text As String = TFile.ReadAllText(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
                 src_f.InputTokenList = ParsePrj.Lex(src_text)
             End If
 

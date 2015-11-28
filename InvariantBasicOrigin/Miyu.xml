@@ -1,30 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Language>Basic</Language>
-  <SourceDirectory>C:\usr\prj\MyIDE\MyAlgo</SourceDirectory>
   <OutputDirectory>C:\usr\prj\MyIDE\MyAlgo\out\Miyu</OutputDirectory>
-  <SourceFileNameList>
-    <string>@lib.vb</string>
-    <string>Builder.vb</string>
-    <string>Invariant.vb</string>
-    <string>BasicCodeGenerator.vb</string>
-    <string>BasicParser.vb</string>
-    <string>ScriptParser.vb</string>
-    <string>CodeGenerator.vb</string>
-    <string>Graph.vb</string>
-    <string>IDE.vb</string>
-    <string>JavaCodeGenerator.vb</string>
-    <string>LALR.vb</string>
-    <string>Logic.vb</string>
-    <string>Navigation.vb</string>
-    <string>Declarative.vb</string>
-    <string>ProgramTransformation.vb</string>
-    <string>Project.vb</string>
-    <string>Proof.vb</string>
-    <string>System.vb</string>
-    <string>TWnd.vb</string>
-    <string>WindowsForms.vb</string>
-  </SourceFileNameList>
+  <LibraryList>
+    <TLibrary>
+      <LibraryDirectory>C:\usr\prj\MyIDE\MyAlgo</LibraryDirectory>
+      <SourceFileNameList>
+        <string>@lib.vb</string>
+        <string>Builder.vb</string>
+        <string>Invariant.vb</string>
+        <string>BasicCodeGenerator.vb</string>
+        <string>BasicParser.vb</string>
+        <string>ScriptParser.vb</string>
+        <string>CodeGenerator.vb</string>
+        <string>Graph.vb</string>
+        <string>IDE.vb</string>
+        <string>JavaCodeGenerator.vb</string>
+        <string>LALR.vb</string>
+        <string>Logic.vb</string>
+        <string>Navigation.vb</string>
+        <string>Declarative.vb</string>
+        <string>ProgramTransformation.vb</string>
+        <string>Project.vb</string>
+        <string>Proof.vb</string>
+        <string>System.vb</string>
+        <string>TWnd.vb</string>
+        <string>WindowsForms.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+  </LibraryList>
   <MainClassName>TIDE</MainClassName>
   <MainFunctionName>TestMiyu</MainFunctionName>
   <OutputNotUsed>false</OutputNotUsed>

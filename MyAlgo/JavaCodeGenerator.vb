@@ -683,7 +683,7 @@ Public Class TJavaCodeGenerator
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
-            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
+            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eInstanceof
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))

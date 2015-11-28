@@ -613,7 +613,7 @@ Public Class TNaviMakeSourceCode
                                     End If
                                 End If
                                 tw.Fmt(.ArgApp(1).TokenList)
-                            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
+                            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eInstanceof
                                 tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
                             Case EToken.eIsNot
                                 tw.Fmt(.ArgApp(0).TokenList, EToken.eIsNot, .ArgApp(1).TokenList)
@@ -659,6 +659,10 @@ Public Class TNaviMakeSourceCode
                             tw.Fmt(EToken.eTake, .TakeFrom.TokenList)
                         End If
 
+                        If .InnerFrom IsNot Nothing Then
+
+                            tw.Fmt(.InnerFrom.TokenList)
+                        End If
                     End With
 
                 ElseIf TypeOf self Is TAggregate Then

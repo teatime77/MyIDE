@@ -291,7 +291,7 @@ Public Class TTerm
     Public Function IsRel() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs
+                Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs, EToken.eInstanceof
                     Return True
             End Select
         End If
@@ -1006,6 +1006,7 @@ Public Class TFrom
     Public CndFrom As TTerm
     Public SelFrom As TTerm
     Public TakeFrom As TTerm
+    Public InnerFrom As TFrom
 End Class
 
 ' -------------------------------------------------------------------------------- TAggregate
@@ -1284,6 +1285,7 @@ End Class
 
 ' -------------------------------------------------------------------------------- TSourceFile
 Public Class TSourceFile
+    Public LibSrc As TLibrary
     Public vUsing As New TList(Of String)
     Public ClaSrc As New TList(Of TClass)
     Public vTextSrc As String()
@@ -1295,7 +1297,8 @@ Public Class TSourceFile
     Public FigSrc As TBasicCodeGenerator
     Public TokenListSrc As List(Of TToken)
 
-    Public Sub New(path1 As String)
+    Public Sub New(lib1 As TLibrary, path1 As String)
+        LibSrc = lib1
         FileSrc = path1
     End Sub
 

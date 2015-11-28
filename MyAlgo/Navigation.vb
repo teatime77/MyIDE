@@ -219,6 +219,7 @@ Public Class TNavi
         NaviTerm(frm1.CndFrom, arg1)
         NaviTerm(frm1.SelFrom, arg1)
         NaviTerm(frm1.TakeFrom, arg1)
+        NaviTerm(frm1.InnerFrom, arg1)
     End Sub
 
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate, arg1 As Object)

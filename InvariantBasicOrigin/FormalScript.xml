@@ -1,14 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Language>Basic</Language>
-  <OutputDirectory>C:\usr\prj\MyIDE\ViewSrc\out\MyView</OutputDirectory>
+  <Language>FormalScript</Language>
+  <OutputDirectory>C:\usr\prj\MyIDE\App\TypeScript\App1\out</OutputDirectory>
   <LibraryList>
     <TLibrary>
-      <LibraryDirectory>C:\usr\prj\MyIDE\ViewSrc</LibraryDirectory>
+      <LibraryDirectory>C:\usr\prj\MyIDE\App\TypeScript\lib</LibraryDirectory>
       <SourceFileNameList>
-        <string>@lib.vb</string>
-        <string>System.vb</string>
-        <string>View.vb</string>
+        <string>sys.ts</string>
+        <string>lib.ts</string>
+      </SourceFileNameList>
+    </TLibrary>
+    <TLibrary>
+      <LibraryDirectory>C:\usr\prj\MyIDE\App\TypeScript\App1</LibraryDirectory>
+      <SourceFileNameList>
+        <string>app.ts</string>
       </SourceFileNameList>
     </TLibrary>
   </LibraryList>
@@ -17,5 +22,5 @@
   <OutputNotUsed>true</OutputNotUsed>
   <UseReferenceGraph>false</UseReferenceGraph>
   <ClassNameTablePath />
-  <Dataflow>true</Dataflow>
+  <Dataflow>false</Dataflow>
 </TProject>

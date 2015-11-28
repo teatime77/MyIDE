@@ -192,6 +192,7 @@ Public Class TDeclarative
         NaviTerm(frm1.CndFrom)
         NaviTerm(frm1.SelFrom)
         NaviTerm(frm1.TakeFrom)
+        NaviTerm(frm1.InnerFrom)
     End Sub
 
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate)
@@ -458,7 +459,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs
+                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs, EToken.eInstanceof
                             .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
@@ -555,15 +556,19 @@ Public Class TSetRefDeclarative
                 With CType(trm1, TFrom)
                     Dim cla1 As TClass, cla2 As TClass
 
-                    If .SelFrom Is Nothing Then
-                        cla1 = .SeqFrom.TypeTrm
-                        Debug.Assert(cla1 IsNot Nothing)
-                        cla2 = .ProjectTrm.ElementType(cla1)
-                        .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla2)
+                    If .InnerFrom IsNot Nothing Then
+                        .TypeTrm = .InnerFrom.TypeTrm
                     Else
-                        cla1 = .SelFrom.TypeTrm
-                        Debug.Assert(cla1 IsNot Nothing)
-                        .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla1)
+                        If .SelFrom Is Nothing Then
+                            cla1 = .SeqFrom.TypeTrm
+                            Debug.Assert(cla1 IsNot Nothing)
+                            cla2 = .ProjectTrm.ElementType(cla1)
+                            .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla2)
+                        Else
+                            cla1 = .SelFrom.TypeTrm
+                            Debug.Assert(cla1 IsNot Nothing)
+                            .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla1)
+                        End If
                     End If
                 End With
 

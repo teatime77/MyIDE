@@ -1,14 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Language>Basic</Language>
-  <OutputDirectory>C:\usr\prj\MyIDE\ViewSrc\out\MyView</OutputDirectory>
+  <Language>CSharp</Language>
+  <OutputDirectory>C:\usr\prj\MyIDE\etc\TEST\out</OutputDirectory>
   <LibraryList>
     <TLibrary>
-      <LibraryDirectory>C:\usr\prj\MyIDE\ViewSrc</LibraryDirectory>
+      <LibraryDirectory>C:\usr\prj\MyIDE\etc\TEST</LibraryDirectory>
       <SourceFileNameList>
-        <string>@lib.vb</string>
-        <string>System.vb</string>
-        <string>View.vb</string>
+        <string>Logic.cs</string>
       </SourceFileNameList>
     </TLibrary>
   </LibraryList>

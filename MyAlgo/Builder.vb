@@ -20,7 +20,7 @@ Public Class TBuilder
 
         Dim nav2 As TNaviCSE
 
-        For Each s In prj1.SourceFileNameList
+        For Each s In From x In prj1.LibraryList From y In x.SourceFileNameList Select y
             Debug.Print(s)
         Next
 
@@ -40,7 +40,7 @@ Public Class TBuilder
             Dim src2 As TSourceFile, data_flow As TDataflow
 
             src2 = prj1.SrcPrj(2)
-            Debug.Print("---------------------------------------------------- 不変条件 {0}", prj1.SourceFileNameList(2))
+            Debug.Print("---------------------------------------------------- 不変条件")
 
             data_flow = New TDataflow(prj1)
             data_flow.SetChangeableFldList(prj1)
