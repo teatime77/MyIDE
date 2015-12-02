@@ -898,8 +898,6 @@ Public Class TBasicParser
         Select Case cla1.NameCla()
             Case "System"
                 PrjParse.SystemType = cla1
-            Case "Array"
-                PrjParse.ArrayType = cla1
             Case "String"
                 PrjParse.StringType = cla1
             Case "Char"
@@ -1593,6 +1591,10 @@ Public Class TBasicParser
                 vTknName.Add(dic1(key1), key1)
             Next
             vTknName.Add(EToken.eASN, "=")
+            vTknName.Add(EToken.eINC, "++")
+            vTknName.Add(EToken.eDEC, "--")
+
+
             vTknName.Add(EToken.eExitFor, "Exit For")
             vTknName.Add(EToken.eExitDo, "Exit Do")
             vTknName.Add(EToken.eExitSub, "Exit Sub")

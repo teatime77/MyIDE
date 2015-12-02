@@ -151,12 +151,18 @@ Public Class TScriptParser
     Function ReadTailCom() As String
         Dim tkn1 As TToken
 
-        If CurTkn.TypeTkn = EToken.eSM Then
-            Return ""
-        Else
-            tkn1 = GetTkn(EToken.eLineComment)
-            Return tkn1.StrTkn
-        End If
+        Select Case CurTkn.TypeTkn
+            Case EToken.eSM
+                Return ""
+
+            Case EToken.eLineComment
+                tkn1 = GetTkn(EToken.eLineComment)
+                Return tkn1.StrTkn
+
+            Case Else
+                Debug.Assert(False)
+                Return Nothing
+        End Select
     End Function
 
     Function ReadLineComment() As TStatement
@@ -654,8 +660,6 @@ Public Class TScriptParser
                             PrjParse.ObjectType = cla1
                         Case "System"
                             PrjParse.SystemType = cla1
-                        Case "Array"
-                            PrjParse.ArrayType = cla1
                         Case "string"
                             PrjParse.StringType = cla1
                         Case "char"

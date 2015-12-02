@@ -412,6 +412,23 @@ Public Class TSetRefDeclarative
         End If
     End Sub
 
+    Function InstanceOfIfBlock(var1 As TVariable, o As Object) As Boolean
+        If TypeOf (o) Is TIfBlock Then
+            Dim cnd As TTerm = CType(o, TIfBlock).CndIf
+
+            If TypeOf (cnd) Is TApply Then
+                Dim app1 As TApply = CType(cnd, TApply)
+
+                If (app1.TypeApp = EToken.eTypeof OrElse app1.TypeApp = EToken.eInstanceof) AndAlso TypeOf (app1.ArgApp(0)) Is TReference AndAlso CType(app1.ArgApp(0), TReference).VarRef Is var1 Then
+                    Dim o2 As Object = app1.ArgApp(1)
+                    Return True
+                End If
+            End If
+        End If
+
+        Return False
+    End Function
+
     Public Sub SetTypeTrm(trm1 As TTerm)
         With trm1
             If TypeOf trm1 Is TConstant Then
@@ -447,8 +464,18 @@ Public Class TSetRefDeclarative
                         ElseIf TypeOf .VarRef Is TClass Then
                             .TypeTrm = CType(.VarRef, TClass)
                         Else
+
                             .TypeTrm = .VarRef.TypeVar
                             Debug.Assert(.TypeTrm IsNot Nothing)
+
+                            Dim v = From o In TNaviUp.AncestorList(trm1) Where InstanceOfIfBlock(.VarRef, o)
+                            If v.Any() Then
+                                Dim if_blc As TIfBlock = v.First()
+                                Dim tp1 As TClass = CType(CType(CType(if_blc.CndIf, TApply).ArgApp(1), TReference).VarRef, TClass)
+                                If tp1 IsNot Nothing AndAlso tp1.IsSubcla(.VarRef.TypeVar) Then
+                                    .TypeTrm = tp1
+                                End If
+                            End If
                         End If
                     End If
                 End With
@@ -623,12 +650,7 @@ Public Class TSetRefDeclarative
                         If .IsAddressOf Then
                             .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
                         Else
-                            If .TypeDot.IsArray() Then
-                                Debug.Assert(.ProjectTrm.ArrayType IsNot Nothing)
-                                .VarRef = TProject.FindFieldFunction(.ProjectTrm.ArrayType, .NameRef, app1.ArgApp)
-                            Else
-                                .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
-                            End If
+                            .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, app1.ArgApp)
                         End If
 
                         If .VarRef Is Nothing Then
@@ -638,12 +660,7 @@ Public Class TSetRefDeclarative
                         End If
                     Else
 
-                        If .TypeDot.IsArray() Then
-                            Debug.Assert(.ProjectTrm.ArrayType IsNot Nothing)
-                            .VarRef = TProject.FindFieldFunction(.ProjectTrm.ArrayType, .NameRef, Nothing)
-                        Else
-                            .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
-                        End If
+                        .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
                     End If
 
 

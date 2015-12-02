@@ -448,19 +448,6 @@ Public Class TClass
         fld.ClaFld = Me
     End Sub
 
-    Public Shared Function MakeArray(cla1 As TClass, dim1 As Integer) As TClass
-        Dim cla2 As TClass
-
-        Debug.Assert(cla1 IsNot Nothing)
-        cla2 = New TClass(cla1.ProjectCla, "Array")
-        cla2.GenCla = New TList(Of TClass)()
-        cla2.GenCla.Add(cla1)
-        cla2.DimCla = dim1
-        cla2.GenericType = EGeneric.SpecializedClass
-
-        Return cla2
-    End Function
-
     Public Sub AllSuperCla2(vcla As TList(Of TClass))
         vcla.AddRange(SuperClassList)
         vcla.AddRange(InterfaceList)

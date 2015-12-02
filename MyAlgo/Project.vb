@@ -35,7 +35,6 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public ArrayClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
     <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
@@ -48,7 +47,6 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public CharType As TClass
     <XmlIgnoreAttribute()> Public IntType As TClass
     <XmlIgnoreAttribute()> Public StringType As TClass
-    <XmlIgnoreAttribute()> Public ArrayType As TClass
     <XmlIgnoreAttribute()> Public WaitHandleType As TClass
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassTable As New Dictionary(Of String, TClass) ' クラス辞書
     <XmlIgnoreAttribute()> Public dicGenCla As New Dictionary(Of String, TClass)
@@ -158,7 +156,7 @@ Public Class TProject
     End Function
 
     ' ジェネリック型のクラスを作る
-    Public Function AddSpecializedClass(name1 As String, vtp As TList(Of TClass)) As TClass
+    Public Function AddSpecializedClass(name1 As String, vtp As TList(Of TClass), dim_len As Integer) As TClass
         Dim cla1 As TClass, cla3 As TClass, v As TList(Of TClass) = Nothing
 
         cla1 = GetCla(name1)
@@ -176,6 +174,7 @@ Public Class TProject
         cla3.KndCla = cla1.KndCla
         cla3.GenericType = EGeneric.SpecializedClass
         cla3.OrgCla = cla1
+        cla3.DimCla = dim_len
 
         cla3.GenCla = New TList(Of TClass)(From tp In vtp)
         For Each tp In vtp
@@ -213,7 +212,7 @@ Public Class TProject
             Return cla1
         End If
 
-        cla1 = AddSpecializedClass(name1, vtp)
+        cla1 = AddSpecializedClass(name1, vtp, 0)
         Return cla1
     End Function
 
@@ -238,9 +237,10 @@ Public Class TProject
         End If
 
         '  新たに型を作る
-        cla3 = TClass.MakeArray(cla1, dim_cnt)
+        Dim vtp As New TList(Of TClass)
+        vtp.Add(cla1)
+        cla3 = AddSpecializedClass("Array", vtp, dim_cnt)
         v.Add(cla3)
-        ArrayClassList.Add(cla3)
 
         Return cla3
     End Function
@@ -319,7 +319,7 @@ Public Class TProject
                 If cla1 Is Nothing Then
                     ' ない場合
 
-                    cla1 = AddSpecializedClass(name1, vtp)
+                    cla1 = AddSpecializedClass(name1, vtp, 0)
                     SetMemberOfSpecializedClass(cla1)
                 End If
 
@@ -782,7 +782,6 @@ Public Class TProject
 
 
     Public Sub Compile()
-        Dim i1 As Integer, cla2 As TClass
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
 
         SrcPrj = New TList(Of TSourceFile)(From lib1 In LibraryList From fname In lib1.SourceFileNameList Select New TSourceFile(lib1, fname))
@@ -841,14 +840,6 @@ Public Class TProject
         Next
         PendingSpecializedClassList = Nothing
 
-        For i1 = 0 To ArrayClassList.Count - 1
-            cla2 = ArrayClassList(i1)
-            Debug.Assert(cla2.InterfaceList.Count = 0)
-            If Language = ELanguage.Basic OrElse Language = ELanguage.CSharp Then
-                cla2.InterfaceList.Add(GetIEnumerableClass(cla2.GenCla(0)))
-            End If
-        Next
-
         For Each cls1 In SimpleParameterizedClassList
             For Each fnc1 In cls1.FncCla
                 If cls1.NameCla() = MainClassName AndAlso fnc1.NameFnc() = MainFunctionName Then
@@ -870,9 +861,6 @@ Public Class TProject
         Dim sw As New TStringWriter
         For Each cla1 In SimpleParameterizedClassList
             DumpClass(cla1, sw)
-            cla1.SetAllSuperClass()
-        Next
-        For Each cla1 In ArrayClassList
             cla1.SetAllSuperClass()
         Next
 
@@ -1641,10 +1629,6 @@ Public Class TProject
         For Each cla1 In SimpleParameterizedSpecializedClassList
             SetClassNameList(cla1, parser)
         Next
-
-        For Each cla1 In ArrayClassList
-            SetClassNameList(cla1, parser)
-        Next
     End Sub
 
     Public Function TokenListToString(parser As TSourceParser, v As List(Of TToken)) As String
@@ -2089,7 +2073,7 @@ Public Class TProject
         If ref1.VarRef Is Nothing Then
             Debug.Assert(CurSrc IsNot Nothing)
             fname = TPath.GetFileNameWithoutExtension(CurSrc.FileSrc)
-            Debug.Assert(fname = "@lib" OrElse fname = "System")
+            Debug.Assert(fname = "@lib" OrElse fname = "System" OrElse fname = "sys")
         End If
     End Sub
 End Class
