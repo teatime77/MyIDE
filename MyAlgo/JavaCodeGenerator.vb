@@ -62,7 +62,7 @@ Public Class TJavaCodeGenerator
         dic1.Add("static", EToken.eShared)
         dic1.Add("struct", EToken.eStruct)
         dic1.Add("then", EToken.eThen)
-        dic1.Add("typeof", EToken.eTypeof)
+        dic1.Add("typeof", EToken.eInstanceof)
         dic1.Add("virtual", EToken.eVirtual)
         dic1.Add("where", EToken.eWhere)
         dic1.Add("while", EToken.eWhile)
@@ -525,7 +525,7 @@ Public Class TJavaCodeGenerator
                 TrmSrc(app1.ArgApp(2))
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case EToken.eTypeof
+            Case EToken.eInstanceof
                 WordAdd("typeof", EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
@@ -692,7 +692,7 @@ Public Class TJavaCodeGenerator
                 WordAdd(EToken.eNE, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
-            Case EToken.eTypeof
+            Case EToken.eInstanceof
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(" instanceof ", EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))

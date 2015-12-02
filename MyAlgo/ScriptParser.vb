@@ -272,7 +272,6 @@ Public Class TScriptParser
         dic1.Add("then", EToken.eThen)
         dic1.Add("throw", EToken.eThrow)
         dic1.Add("try", EToken.eTry)
-        dic1.Add("typeof", EToken.eTypeof)
         dic1.Add("using", EToken.eUsing)
         dic1.Add("virtual", EToken.eVirtual)
         dic1.Add("where", EToken.eWhere)
@@ -909,8 +908,8 @@ Public Class TScriptParser
             Case EToken.eNew
                 Return NewExpression()
 
-            Case EToken.eTypeof
-                GetTkn(EToken.eTypeof)
+            Case EToken.eInstanceof
+                GetTkn(EToken.eInstanceof)
                 trm1 = AdditiveExpression()
                 GetTkn(EToken.eIs)
                 type1 = ReadType(False)

@@ -106,7 +106,7 @@ Public Class TBasicCodeGenerator
                 TrmSrc(app1.ArgApp(2))
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case EToken.eTypeof
+            Case EToken.eInstanceof
                 WordAdd("typeof", EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
@@ -228,7 +228,7 @@ Public Class TBasicCodeGenerator
                     End If
                 End If
                 TrmSrc(rel1.ArgApp(1))
-            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eInstanceof
+            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
@@ -237,8 +237,8 @@ Public Class TBasicCodeGenerator
                 WordAdd(EToken.eIsNot, EFigType.eSymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
-            Case EToken.eTypeof
-                WordAdd(EToken.eTypeof, EFigType.eResFig, rel1)
+            Case EToken.eInstanceof
+                WordAdd(EToken.eInstanceof, EFigType.eResFig, rel1)
                 TrmSrc(rel1.ArgApp(0))
                 WordAdd(EToken.eIs, EFigType.eResFig, rel1)
                 TrmSrc(rel1.ArgApp(1))

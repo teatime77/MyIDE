@@ -588,8 +588,8 @@ Public Class TNaviMakeSourceCode
                             Case EToken.eQUE
                                 tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
-                            Case EToken.eTypeof
-                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+                            Case EToken.eInstanceof
+                                tw.Fmt(EToken.eInstanceof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
 
                             '--------------------------------------------------------------------------------------
                             Case EToken.eEq, EToken.eNE
@@ -613,13 +613,17 @@ Public Class TNaviMakeSourceCode
                                     End If
                                 End If
                                 tw.Fmt(.ArgApp(1).TokenList)
-                            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eInstanceof
+                            Case EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE
                                 tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
                             Case EToken.eIsNot
                                 tw.Fmt(.ArgApp(0).TokenList, EToken.eIsNot, .ArgApp(1).TokenList)
 
-                            Case EToken.eTypeof
-                                tw.Fmt(EToken.eTypeof, .ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
+                            Case EToken.eInstanceof
+                                If ParserMK.LanguageSP = ELanguage.Basic Then
+                                    tw.Fmt(.ArgApp(0).TokenList, .TypeApp, .ArgApp(1).TokenList)
+                                Else
+                                    tw.Fmt(EToken.eInstanceof, .ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)
+                                End If
 
                             Case EToken.eIs
                                 tw.Fmt(.ArgApp(0).TokenList, EToken.eIs, .ArgApp(1).TokenList)

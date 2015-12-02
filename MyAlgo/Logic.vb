@@ -194,7 +194,6 @@ Public Enum EToken
     eTilde
     eTo
     eTry
-    eTypeof
     eUnknown
     eUsing
     eVarDecl
@@ -291,7 +290,7 @@ Public Class TTerm
     Public Function IsRel() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs, EToken.eInstanceof
+                Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eInstanceof, EToken.eIs
                     Return True
             End Select
         End If
@@ -916,7 +915,7 @@ Public Class TApply
     Public Shared Function NewTypeOf(trm1 As TTerm, type2 As TClass) As TApply
         Dim app1 As New TApply
 
-        app1.TypeApp = EToken.eTypeof
+        app1.TypeApp = EToken.eInstanceof
         app1.AddInArg(trm1)
         app1.AddInArg(New TReference(type2))
 

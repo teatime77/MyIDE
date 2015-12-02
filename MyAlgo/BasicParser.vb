@@ -1536,7 +1536,7 @@ Public Class TBasicParser
         dic1.Add("Throw", EToken.eThrow)
         dic1.Add("To", EToken.eTo)
         dic1.Add("Try", EToken.eTry)
-        dic1.Add("TypeOf", EToken.eTypeof)
+        dic1.Add("TypeOf", EToken.eInstanceof)
         dic1.Add("Overridable", EToken.eVirtual)
         dic1.Add("Where", EToken.eWhere)
         dic1.Add("While", EToken.eWhile)
@@ -2110,8 +2110,8 @@ Public Class TBasicParser
             Case EToken.eNew
                 Return NewExpression()
 
-            Case EToken.eTypeof
-                GetTkn(EToken.eTypeof)
+            Case EToken.eInstanceof
+                GetTkn(EToken.eInstanceof)
                 trm1 = AdditiveExpression()
                 GetTkn(EToken.eIs)
                 type1 = ReadType(False)
@@ -2228,7 +2228,7 @@ Public Class TBasicParser
 
         trm1 = AdditiveExpression()
         Select Case CurTkn.TypeTkn
-            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot, EToken.eInstanceof
+            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot
                 type1 = CurTkn.TypeTkn
                 GetTkn(EToken.eUnknown)
                 trm2 = AdditiveExpression()

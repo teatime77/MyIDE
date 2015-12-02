@@ -419,7 +419,7 @@ Public Class TSetRefDeclarative
             If TypeOf (cnd) Is TApply Then
                 Dim app1 As TApply = CType(cnd, TApply)
 
-                If (app1.TypeApp = EToken.eTypeof OrElse app1.TypeApp = EToken.eInstanceof) AndAlso TypeOf (app1.ArgApp(0)) Is TReference AndAlso CType(app1.ArgApp(0), TReference).VarRef Is var1 Then
+                If app1.TypeApp = EToken.eInstanceof AndAlso TypeOf (app1.ArgApp(0)) Is TReference AndAlso CType(app1.ArgApp(0), TReference).VarRef Is var1 Then
                     Dim o2 As Object = app1.ArgApp(1)
                     Return True
                 End If
@@ -486,7 +486,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eTypeof, EToken.eIs, EToken.eInstanceof
+                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eInstanceof, EToken.eIs
                             .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
@@ -559,7 +559,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eQUE
                             .TypeTrm = .ArgApp(1).TypeTrm
 
-                        Case EToken.eTypeof
+                        Case EToken.eInstanceof
                             .TypeTrm = .ProjectTrm.BoolType
 
                         Case EToken.eNew
@@ -1038,7 +1038,7 @@ Public Class TNaviSetClassifiedIf
         If TypeOf if_blc.CndIf Is TApply Then
             Dim app1 As TApply = CType(if_blc.CndIf, TApply)
 
-            If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.eTypeof Then
+            If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.eInstanceof Then
                 Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
 
                 If ref1.VarRef Is if_blc.FunctionStmt.ArgFnc(0) Then

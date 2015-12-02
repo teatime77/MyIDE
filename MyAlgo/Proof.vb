@@ -1045,7 +1045,7 @@ Public Class TDataflow
         Dim A As TClass, B As TClass, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
 
         Select Case P.TypeApp
-            Case EToken.eTypeof
+            Case EToken.eInstanceof
                 A = CType(P.ArgApp(1), TReference).VarRef
                 B = CType(Q.ArgApp(1), TReference).VarRef
 
@@ -1181,7 +1181,7 @@ Public Class TDataflow
             If TypeOf and1.ArgApp(i1) Is TApply Then
                 app1 = CType(and1.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case EToken.eTypeof, EToken.eIs, EToken.eEq
+                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
 
                         For i2 = i1 + 1 To and1.ArgApp.Count - 1
                             If TypeOf and1.ArgApp(i2) Is TApply Then
@@ -1223,7 +1223,7 @@ Public Class TDataflow
             If TypeOf P.ArgApp(i1) Is TApply Then
                 app1 = CType(P.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case EToken.eTypeof, EToken.eIs, EToken.eEq
+                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
 
                         i2 = 0
                         Do While i2 < Q.ArgApp.Count

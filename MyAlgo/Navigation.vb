@@ -839,7 +839,7 @@ Public Class TNaviMakeVirtualMethod
             If TypeOf (if_blc.CndIf) Is TApply Then
                 Dim app1 As TApply = CType(if_blc.CndIf, TApply)
 
-                If app1.TypeApp = EToken.eTypeof AndAlso TypeOf app1.ArgApp(0) Is TReference Then
+                If app1.TypeApp = EToken.eInstanceof AndAlso TypeOf app1.ArgApp(0) Is TReference Then
                     Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
 
                     If ref1.VarRef Is CurrentVar Then
