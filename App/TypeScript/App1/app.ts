@@ -3,6 +3,7 @@
 
 class TMyApplication extends TApplication {
     Razania: TImage = null;
+    CircleR: number = 80;
 
     AppInitialize() {
         var x: number = 100, y: number = 100;
@@ -42,7 +43,7 @@ class TMyApplication extends TApplication {
         ell1.SetBoundingRectangle(x+5, y+5, 70, 30);
         ell1.Velocity.X = 3;
         ell1.Velocity.Y = 3;
-        ell1.BackgroundColor = "#FF0000";    // "rgb(255, 255, 0)";
+        ell1.BackgroundColor = "#FF0000";
         ell1.BorderColor = "#0000FF";
         ell1.BorderWidth = 10;
         this.ShapeList.push(ell1);
@@ -85,7 +86,7 @@ class TMyApplication extends TApplication {
 
         // 矩形 枠と塗りつぶし
         var rc3 = new TRectangle();
-        rc3.SetBoundingRectangle(-50, -50, 50, 50);
+        rc3.SetBoundingRectangle(-25, -25, 50, 50);
         rc3.Velocity.X = 1;
         rc3.Velocity.Y = 1;
         rc3.BackgroundColor = "rgb(0, 255, 0)";
@@ -96,7 +97,7 @@ class TMyApplication extends TApplication {
 
         // ラベル
         var txt2 = new TLabel();
-        txt2.SetBoundingRectangle(0, 0, 50, 50);
+        txt2.SetBoundingRectangle(25, 25, 50, 50);
         txt2.Velocity.X = 4;
         txt2.Velocity.Y = 4;
         txt2.BackgroundColor = "rgb(192, 80, 77)";
@@ -107,26 +108,40 @@ class TMyApplication extends TApplication {
         txt2.Parent = grp;
         grp.Children.push(txt2);
     }
-
+    cnt: number = 0;
     Rule(self: Object) {
         if (self instanceof TShape) {
-            var shape: TShape = <TShape>self;
-            if (shape.Parent == null) {
-                if (shape.Position.X < 0 || this.Size.X < shape.Position.X + shape.Size.X) {
-                    shape.Velocity.X = - shape.Velocity.X;
+            if (self.Parent == null) {
+                if (self.Center.X - self.Radius < 0 || this.Size.X < self.Center.X + self.Radius) {
+                    self.Velocity.X = - self.Velocity.X;
                 }
-                if (shape.Position.Y < 0 || this.Size.Y < shape.Position.Y + shape.Size.Y) {
-                    shape.Velocity.Y = - shape.Velocity.Y;
+                if (self.Center.Y - self.Radius < 0 || this.Size.Y < self.Center.Y + self.Radius) {
+                    self.Velocity.Y = - self.Velocity.Y;
                 }
-                shape.Position.X += shape.Velocity.X;
-                shape.Position.Y += shape.Velocity.Y;
+                self.Center.X += self.Velocity.X;
+                self.Center.Y += self.Velocity.Y;
             }
 
-            if (shape instanceof TImage) {
-                shape.Rotation += 5 * Math.PI / 180;
+            if (self.AbsCenter.Distance(this.MousePosition) <= self.Radius) {
+                if (self instanceof TImage) {
+                    self.Rotation += 19 * Math.PI / 180;
+                }
+                else {
+                    self.Rotation -= 19 * Math.PI / 180;
+                }
             }
             else {
-                shape.Rotation -= 5 * Math.PI / 180;
+                self.Rotation += 5 * Math.PI / 180;
+            }
+
+            if (self instanceof TImage) {
+
+                this.cnt++;
+                console.log("pos:" + (self.AbsCenter.X | 0) + " " + (self.AbsCenter.Y | 0) + " " + self.ImageIm.src);
+                if (self.ImageIm.src == "http://localhost:17623/img/circle.png") {
+                    self.Size.X = this.CircleR + 20 * Math.sin(Math.PI * this.cnt / 180);
+                    self.Size.Y = this.CircleR + 20 * Math.cos(Math.PI * this.cnt / 180);
+                }
             }
         }
     }

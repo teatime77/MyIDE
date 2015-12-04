@@ -8,6 +8,7 @@ class System {
     null: Object;
     undefined: Object;
     document: Document;
+    console: Console;
 
     __Add(a: number, b: number): number {
         return 0;
@@ -36,11 +37,22 @@ class System {
     __Dec(a: number): number {
         return 0;
     }
+
+    __BitOr(a: number): number {
+        return 0;
+    }
 }
 
-class Array {
+class Console {
+    log(msg: string) { }
+}
+
+class Array<T> {
     length: number;
-    push(o: Object) { }
+    push(o: T) { }
+    pop(): T {
+        return null;
+    }
 }
 
 class string {
@@ -63,6 +75,18 @@ class boolean {
 
 class Math {
     static PI: number;
+    sqrt(x: number): number {
+        return 0;
+    }
+    cos(x: number): number {
+        return 0;
+    }
+    sin(x: number): number {
+        return 0;
+    }
+    max(x: number, y:number): number {
+        return 0;
+    }
 }
 
 class CanvasRenderingContext2D {
@@ -89,6 +113,7 @@ class CanvasRenderingContext2D {
     translate(x: number, y: number) { }
     rotate(angle: number) { }
     scale(x: number, y: number) { }
+    setTransform(m11: number, m12: number, m21: number, m22: number, dx: number, dy: number) { }
 }
 
 class HTMLElement {
@@ -148,3 +173,11 @@ class MouseEvent {
     y: number;
 }
 
+class ClientRect {
+    bottom: number;
+    height: number;
+    left: number;
+    right: number;
+    top: number;
+    width: number;
+}

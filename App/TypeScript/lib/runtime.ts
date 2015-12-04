@@ -28,41 +28,60 @@ class TRuntime {
     Canvas: HTMLCanvasElement;
     Graphics: TGraphics;
 
+    SetMouseEvent(ev: MouseEvent) {
+        console.log("SetMouseEvent");
+        var rc: ClientRect = this.Canvas.getBoundingClientRect();
+        var x : number = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body)["scrollLeft"];
+        var y : number = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body)["scrollTop"];
+        console.log("SetMouseEvent:" + rc.left + " " + window.pageXOffset + " " + document.documentElement.scrollLeft);
+
+        this.App.MousePosition.X = ev.clientX - rc.left;// ev.x - (x + rc.left);
+        this.App.MousePosition.Y = ev.clientY - rc.top;// ev.y - (y + rc.top);
+    }
+
     RuntimeInitialize() {
         this.App.Size.X = this.Canvas.width;
         this.App.Size.Y = this.Canvas.height;
         this.Graphics = new TGraphics(this.Canvas);
 
         this.Canvas.onmousedown = (ev: MouseEvent) => {
-            console.log("onmousedown:" + ev.x + " " + ev.y);
+            this.SetMouseEvent(ev);
+            console.log("onmousedown:" + ev.clientX + " " + ev.clientY);
         }
 
         this.Canvas.onmouseenter = (ev: MouseEvent) => {
-            console.log("onmouseenter");
+            //this.SetMouseEvent(ev);
+//            console.log("onmouseenter");
         }
 
         this.Canvas.onmouseleave = (ev: MouseEvent) => {
-            console.log("onmouseleave");
+            //this.SetMouseEvent(ev);
+            //console.log("onmouseleave");
         }
 
         this.Canvas.onmousemove = (ev: MouseEvent) => {
-            console.log("onmousemove:" + ev.x + " " + ev.y);
+            this.SetMouseEvent(ev);
+            //console.log("onmousemove:" + ev.x + " " + ev.y);
         }
 
         this.Canvas.onmouseout = (ev: MouseEvent) => {
-            console.log("onmouseout");
+            //this.SetMouseEvent(ev);
+            //console.log("onmouseout");
         }
 
         this.Canvas.onmouseover = (ev: MouseEvent) => {
-            console.log("onmouseover");
+            //this.SetMouseEvent(ev);
+            //console.log("onmouseover");
         }
 
         this.Canvas.onmouseup = (ev: MouseEvent) => {
-            console.log("onmouseup:" + ev.x + " " + ev.y);
+            //this.SetMouseEvent(ev);
+            //console.log("onmouseup:" + ev.x + " " + ev.y);
         }
 
         this.Canvas.onmousewheel = (ev: MouseWheelEvent) => {
-            console.log("onmousewheel");
+            //this.SetMouseEvent(ev);
+            //console.log("onmousewheel");
         }
 
         this.App.AppInitialize();
@@ -83,12 +102,12 @@ class TRuntime {
 
         if (this.App.ShapeList != null) {
             for (var i = 0; i < this.App.ShapeList.length; i++) {
-                this.NaviShape( this.App.ShapeList[i] );
+                this.NaviShape(this.App.ShapeList[i] );
             }
 
             this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
             for (var i = 0; i < this.App.ShapeList.length; i++) {
-                this.App.ShapeList[i].Draw(this.Graphics.Context);
+                this.App.ShapeList[i].Draw(this.Graphics);
             }
         }
         window.requestAnimationFrame(() => this.AnimationFrameLoop());
