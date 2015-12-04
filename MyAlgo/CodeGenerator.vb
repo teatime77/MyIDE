@@ -184,7 +184,7 @@ Public MustInherit Class TCodeGenerator
         Dim i1 As Integer
 
         Select Case opr1.TypeApp
-            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eVLine
+            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eBitOR
                 For i1 = 0 To opr1.ArgApp.Count - 1
                     If i1 <> 0 Then
                         WordAdd(ParserCG.vTknName(opr1.TypeApp), EFigType.eSymFig, opr1)

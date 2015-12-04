@@ -24,7 +24,7 @@ Public Class TBasicCodeGenerator
 
     Public Overrides Sub AppSrc(app1 As TApply)
         Select Case app1.TypeApp
-            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
+            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
                 If app1.ArgApp.Count = 1 Then
                     If app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns Then
                         WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)

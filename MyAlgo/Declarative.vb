@@ -243,7 +243,7 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviIf(if1 As TIf)
-        StartCondition(if1)
+        'StartCondition(if1)
         NaviIfBlockList(if1.IfBlc)
     End Sub
 
@@ -489,7 +489,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eInstanceof, EToken.eIs
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
                             .TypeTrm = .ArgApp(0).TypeTrm
 
                         Case EToken.eAppCall
@@ -685,7 +685,7 @@ Public Class TSetRefDeclarative
 
                         If ref1 Is app1.FncApp Then
                             Select Case app1.TypeApp
-                                Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
+                                Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
 
                                     If .VarRef Is Nothing Then
 
@@ -714,6 +714,8 @@ Public Class TSetRefDeclarative
                                                     name1 = "__Inc"
                                                 Case EToken.eDEC
                                                     name1 = "__Dec"
+                                                Case EToken.eBitOR
+                                                    name1 = "__BitOr"
                                             End Select
 
                                             Dim vvar = (From fnc In app1.ProjectTrm.SystemType.FncCla Where fnc.NameVar = name1).ToList()
@@ -824,7 +826,7 @@ Public Class TSetRefDeclarative
                                 Debug.Print("想定外 2")
                             End If
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
                         Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eBaseCall
                         Case Else
                             If .IsLog() Then
@@ -1054,20 +1056,26 @@ Public Class TNaviSetClassifiedIf
             With CType(self, TIf)
                 Dim may_be_classified_if As Boolean = False
 
-                If .ParentStmt Is Nothing Then
+                Dim up_stmt As TStatement = TDataflow.UpStmtProper(.ParentStmt)
+
+                If up_stmt Is Nothing Then
                     may_be_classified_if = True
                 Else
-                    If TypeOf .ParentStmt Is TIfBlock Then
-                        may_be_classified_if = CType(CType(.ParentStmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
+                    If TypeOf up_stmt Is TIfBlock Then
+                        may_be_classified_if = CType(CType(up_stmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
                     Else
                         may_be_classified_if = False
                     End If
                 End If
 
                 If may_be_classified_if Then
-                    Dim not_classified_if_block_list = From x In .IfBlc Where Not IsClassifiedIfBlock(x)
+                    Dim classified_if_block_list = From x In .IfBlc Where IsClassifiedIfBlock(x)
 
-                    .ClassifiedIf = Not not_classified_if_block_list.Any()
+                    If classified_if_block_list.Count() = .IfBlc.Count Then
+                        .ClassifiedIf = True
+                    Else
+                        .ClassifiedIf = False
+                    End If
                 Else
                     .ClassifiedIf = False
                 End If

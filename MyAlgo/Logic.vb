@@ -198,7 +198,7 @@ Public Enum EToken
     eUsing
     eVarDecl
     eVirtual
-    eVLine
+    eBitOR
     eWhere
     eWhile
     eWith
@@ -279,7 +279,7 @@ Public Class TTerm
     Public Function IsApp() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC
+                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC, EToken.eBitOR
                     Return True
             End Select
         End If

@@ -1571,7 +1571,7 @@ Public Class TBasicParser
         dic1.Add("_", EToken.eLowLine)
         dic1.Add("^", EToken.eHAT)
         dic1.Add("{", EToken.eLC)
-        dic1.Add("|", EToken.eVLine)
+        dic1.Add("|", EToken.eBitOR)
         dic1.Add("}", EToken.eRC)
         dic1.Add("~", EToken.eTilde)
         dic1.Add("<", EToken.eLT)

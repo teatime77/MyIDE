@@ -48,6 +48,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public IntType As TClass
     <XmlIgnoreAttribute()> Public StringType As TClass
     <XmlIgnoreAttribute()> Public WaitHandleType As TClass
+    <XmlIgnoreAttribute()> Public MainClass As TClass
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassTable As New Dictionary(Of String, TClass) ' クラス辞書
     <XmlIgnoreAttribute()> Public dicGenCla As New Dictionary(Of String, TClass)
     <XmlIgnoreAttribute()> Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
@@ -841,6 +842,10 @@ Public Class TProject
         PendingSpecializedClassList = Nothing
 
         For Each cls1 In SimpleParameterizedClassList
+            If cls1.NameCla() = MainClassName Then
+                MainClass = cls1
+            End If
+
             For Each fnc1 In cls1.FncCla
                 If cls1.NameCla() = MainClassName AndAlso fnc1.NameFnc() = MainFunctionName Then
                     theMain = fnc1
@@ -932,6 +937,14 @@ Public Class TProject
         set_up_trm = New TNaviSetUpTrm()
         set_up_trm.NaviProject(Me, Nothing)
 
+        If MainClass IsNot Nothing Then
+            Dim vrule = From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")
+            For Each rule In vrule
+                Dim set_classified_if As New TNaviSetClassifiedIf
+                set_classified_if.NaviFunction(rule)
+            Next
+        End If
+
         ' オーバーロード関数をセットする
         SetOvrFnc()
 
@@ -1008,6 +1021,8 @@ Public Class TProject
                 name1 = "++"
             Case EToken.eDEC
                 name1 = "--"
+            Case EToken.eBitOR
+                name1 = "|"
             Case Else
                 Return Nothing
         End Select

@@ -316,7 +316,7 @@ Public Class TScriptParser
         dic1.Add("]", EToken.eRB)
         dic1.Add("^", EToken.eHAT)
         dic1.Add("{", EToken.eLC)
-        dic1.Add("|", EToken.eVLine)
+        dic1.Add("|", EToken.eBitOR)
         dic1.Add("}", EToken.eRC)
         dic1.Add("~", EToken.eTilde)
 
@@ -1073,13 +1073,13 @@ Public Class TScriptParser
         Return RelationalExpression()
     End Function
 
-    Function AndExpression() As TTerm
+    Function BitOrExpression() As TTerm
         Dim trm1 As TTerm
         Dim opr1 As TApply
         Dim type1 As EToken
 
         trm1 = NotExpression()
-        If CurTkn.TypeTkn = EToken.eAnd OrElse CurTkn.TypeTkn = EToken.eAnp Then
+        If CurTkn.TypeTkn = EToken.eBitOR Then
 
             type1 = CurTkn.TypeTkn
             opr1 = TApply.NewOpr(type1)
@@ -1087,6 +1087,29 @@ Public Class TScriptParser
             Do While CurTkn.TypeTkn = type1
                 GetTkn(type1)
                 opr1.AddInArg(NotExpression())
+            Loop
+
+            Return opr1
+        Else
+
+            Return trm1
+        End If
+    End Function
+
+    Function AndExpression() As TTerm
+        Dim trm1 As TTerm
+        Dim opr1 As TApply
+        Dim type1 As EToken
+
+        trm1 = BitOrExpression()
+        If CurTkn.TypeTkn = EToken.eAnd OrElse CurTkn.TypeTkn = EToken.eAnp Then
+
+            type1 = CurTkn.TypeTkn
+            opr1 = TApply.NewOpr(type1)
+            opr1.AddInArg(trm1)
+            Do While CurTkn.TypeTkn = type1
+                GetTkn(type1)
+                opr1.AddInArg(BitOrExpression())
             Loop
 
             Return opr1

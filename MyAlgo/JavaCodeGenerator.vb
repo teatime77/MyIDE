@@ -94,7 +94,7 @@ Public Class TJavaCodeGenerator
         dic1.Add("]", EToken.eRB)
         dic1.Add("^", EToken.eHAT)
         dic1.Add("{", EToken.eLC)
-        dic1.Add("|", EToken.eVLine)
+        dic1.Add("|", EToken.eBitOR)
         dic1.Add("}", EToken.eRC)
         dic1.Add("~", EToken.eTilde)
         dic1.Add("==", EToken.eEq)
@@ -351,7 +351,7 @@ Public Class TJavaCodeGenerator
         Dim i1 As Integer, asn1 As TAssignment, cla1 As TClass, dot1 As TDot, ref1 As TReference, trm1 As TTerm, fnc1 As TFunction, found As Boolean, tp1 As TClass
 
         Select Case app1.TypeApp
-            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eBitOR
                 If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.eADD OrElse app1.TypeApp = EToken.eMns) Then
                     WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
                     TrmSrc(app1.ArgApp(0))

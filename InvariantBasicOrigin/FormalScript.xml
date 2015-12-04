@@ -17,7 +17,7 @@
       </SourceFileNameList>
     </TLibrary>
   </LibraryList>
-  <MainClassName>TNaviView</MainClassName>
+  <MainClassName>TMyApplication</MainClassName>
   <MainFunctionName>GlobalRule</MainFunctionName>
   <OutputNotUsed>true</OutputNotUsed>
   <UseReferenceGraph>false</UseReferenceGraph>

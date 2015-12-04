@@ -524,13 +524,13 @@ Public Class TNaviMakeSourceCode
                         End If
 
                         Select Case .TypeApp
-                            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eVLine
+                            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eBitOR
                                 tw.Fmt(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(.TypeApp, self)))
                             Case EToken.eNot
                                 tw.Fmt(EToken.eNot, .ArgApp(0).TokenList)
 
                             '--------------------------------------------------------------------------------------
-                            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD
+                            Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eBitOR
                                 If .ArgApp.Count = 1 AndAlso (.TypeApp = EToken.eADD OrElse .TypeApp = EToken.eMns) Then
                                     tw.Fmt(.TypeApp, .ArgApp(0).TokenList)
                                 Else
