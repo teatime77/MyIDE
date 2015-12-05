@@ -125,6 +125,10 @@ Public Class TDataflow
         End If
     End Function
 
+    Public Shared Function UpBlock(stmt1 As TStatement) As TBlock
+        Return CType(CType(stmt1.ParentStmt, IUpList).GetUpList(), TBlock)
+    End Function
+
     Public Shared Function UpStmtProper(obj1 As Object) As TStatement
         Dim up_obj As Object
 

@@ -243,7 +243,6 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviIf(if1 As TIf)
-        'StartCondition(if1)
         NaviIfBlockList(if1.IfBlc)
     End Sub
 
@@ -1085,23 +1084,35 @@ Public Class TNaviSetClassifiedIf
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviMakeClassifiedIfMethod
+' クラスの場合分けのIf文からクラスごとのメソッドを作る。
 Public Class TNaviMakeClassifiedIfMethod
     Inherits TDeclarative
     Public ClassifiedIfMethodList As New TList(Of TFunction)
 
-    Public Function MakeBlock(if1 As TIf, blc1 As TBlock) As TBlock
-        Dim blc2 As TBlock = CType(if1.ParentStmt, TBlock)
-        Dim blc3 As New TBlock
+    Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
+        Dim up_blc As TBlock = TDataflow.UpBlock(if1)
+        Dim up_blc_copy As New TBlock
 
-        blc3.StmtBlc.AddRange(From x In blc2.StmtBlc Select CType(IIf(x Is if1, blc1, x), TStatement))
+        ' up_blcの変数をup_blc_copyにコピーする。
+        Dim vvar1 = From var1 In up_blc.VarBlc Select Sys.CopyVar(var1, cpy)
+        up_blc_copy.VarBlc.AddRange(vvar1)
 
-        If blc2.ParentStmt Is Nothing Then
-            Return blc2
+        ' up_blcの子の文をup_blc_copyにコピーする。
+        up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(IIf(x Is if1, blc1, Sys.CopyStmt(x, cpy)), TStatement))
+
+        If up_blc.ParentStmt Is if1.FunctionStmt Then
+            ' メソッドの直下のブロックの場合
+
+            Return up_blc_copy
         Else
-            Dim if_blc As TIfBlock = CType(blc2.ParentStmt, TIfBlock)
+            ' メソッドの直下のブロックでない場合
+
+            ' １つ上のIf文を得る。
+            Dim if_blc As TIfBlock = CType(up_blc.ParentStmt, TIfBlock)
             Dim if2 As TIf = CType(if_blc.ParentStmt, TIf)
 
-            Return MakeBlock(if2, blc2)
+            ' １つ上のif文を囲むブロックをコピーする。
+            Return CopyAncestorBlock(if2, up_blc_copy, cpy)
         End If
     End Function
 
@@ -1110,18 +1121,47 @@ Public Class TNaviMakeClassifiedIfMethod
             With CType(self, TIfBlock)
                 Dim if1 As TIf = CType(.ParentStmt, TIf)
                 If if1.ClassifiedIf Then
-                    Dim blc1 As New TBlock
+                    Dim fnc1 As New TFunction
+                    Dim blc_if_copy As New TBlock
+                    Dim cpy As New TCopy
 
-                    blc1.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.ClassifiedIf)
+                    cpy.CurFncCpy = fnc1
 
-                    Dim blc2 = MakeBlock(if1, blc1)
+                    ' 関数のthisをコピーする。
+                    fnc1.ThisFnc = Sys.CopyVar(.FunctionStmt.ThisFnc, cpy)
 
-                    Dim fnc1 = New TFunction()
-                    fnc1.BlcFnc = blc2
+                    ' 関数の引数をコピーする。
+                    Dim varg_var = From var1 In .FunctionStmt.ArgFnc Select Sys.CopyVar(var1, cpy)
+                    fnc1.ArgFnc.AddRange(varg_var)
 
+                    ' .BlcIfの変数をblc_if_copyにコピーする。
+                    Dim vvar1 = From var1 In .BlcIf.VarBlc Select Sys.CopyVar(var1, cpy)
+                    blc_if_copy.VarBlc.AddRange(vvar1)
+
+                    ' このif文を囲むブロックの変数をコピーする。
+                    Dim vvar2 = (From blc In TNaviUp.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
+
+                    ' .BlcIfの子の文をblc_if_copyにコピーする。
+                    blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.ClassifiedIf Select Sys.CopyStmt(x, cpy))
+
+                    ' このif文を囲むブロックをコピーする。
+                    fnc1.BlcFnc = CopyAncestorBlock(if1, blc_if_copy, cpy)
+
+                    ' クラスにメソッドを追加する。
                     Dim app1 As TApply = CType(.CndIf, TApply)
                     Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
+                    fnc1.NameVar = .FunctionStmt.NameVar
+                    fnc1.ModVar = New TModifier()
+                    fnc1.TypeFnc = .FunctionStmt.TypeFnc
                     fnc1.ClaFnc = CType(ref1.VarRef, TClass)
+                    fnc1.ClaFnc.FncCla.Add(fnc1)
+
+                    Dim set_parent_stmt As New TNaviSetParentStmt
+                    set_parent_stmt.NaviFunction(fnc1, Nothing)
+
+                    Dim set_up_trm As New TNaviSetUpTrm
+                    set_up_trm.NaviFunction(fnc1, Nothing)
+
 
                     ClassifiedIfMethodList.Add(fnc1)
                 End If

@@ -940,8 +940,13 @@ Public Class TProject
         If MainClass IsNot Nothing Then
             Dim vrule = From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")
             For Each rule In vrule
+                ' クラスの場合分けのIf文を探す。
                 Dim set_classified_if As New TNaviSetClassifiedIf
                 set_classified_if.NaviFunction(rule)
+
+                ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
+                Dim make_classified_if_method As New TNaviMakeClassifiedIfMethod
+                make_classified_if_method.NaviFunction(rule)
             Next
         End If
 
@@ -1761,7 +1766,7 @@ Public Class TProject
             If parser.LanguageSP = ELanguage.Basic Then
 
                 src_f.FigSrc.MakeBasicSrc(src_f)
-                src_f.FigSrc.OutputBasicSrc(src_f, OutputDirectory + "\")
+                src_f.FigSrc.OutputBasicTextHTML(src_f, OutputDirectory + "\")
             End If
 
             Dim navi_make_basic_source As New TNaviMakeSourceCode(Me, parser)

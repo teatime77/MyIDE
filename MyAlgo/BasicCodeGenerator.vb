@@ -1002,7 +1002,7 @@ Public Class TBasicCodeGenerator
 
     End Sub
 
-    Public Sub OutputBasicSrc(src1 As TSourceFile, out_dir As String)
+    Public Sub OutputBasicTextHTML(src1 As TSourceFile, out_dir As String)
         Dim src_dir As String, html_path As String, fname As String, ext1 As String, src_txt As String
 
         src_txt = MakeSrcText()

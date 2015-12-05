@@ -351,7 +351,7 @@ Public Class TNaviMakeSourceCode
                                             tw.Fmt(EToken.eOperator, self)
 
                                         Case Else
-                                            Debug.WriteLine("")
+                                            Debug.WriteLine("関数のタイプが不明:" + .NameVar)
                                     End Select
 
                                 Case ELanguage.JavaScript
@@ -589,7 +589,11 @@ Public Class TNaviMakeSourceCode
                                 tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
                             Case EToken.eInstanceof
-                                tw.Fmt(EToken.eInstanceof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+                                If ParserMK.LanguageSP = ELanguage.Basic Then
+                                    tw.Fmt(EToken.eInstanceof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+                                Else
+                                    tw.Fmt(.ArgApp(0).TokenList, EToken.eInstanceof, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+                                End If
 
                             '--------------------------------------------------------------------------------------
                             Case EToken.eEq, EToken.eNE
@@ -603,7 +607,7 @@ Public Class TNaviMakeSourceCode
                                     ' tp1 = .ArgApp[0].TypeTrm;
                                     ' tp2 = .ArgApp[1].TypeTrm;
                                 End If
-                                If tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
+                                If ParserMK.LanguageSP <> ELanguage.Basic OrElse tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
                                     tw.Fmt(.TypeApp)
                                 Else
                                     If .TypeApp = EToken.eNE Then

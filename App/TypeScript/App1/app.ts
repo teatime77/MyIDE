@@ -109,20 +109,20 @@ class TMyApplication extends TApplication {
         grp.Children.push(txt2);
     }
     cnt: number = 0;
-    Rule(self: Object) {
+    Rule(self: Object, app:TMyApplication) {
         if (self instanceof TShape) {
             if (self.Parent == null) {
-                if (self.Center.X - self.Radius < 0 || this.Size.X < self.Center.X + self.Radius) {
+                if (self.Center.X - self.Radius < 0 || app.Size.X < self.Center.X + self.Radius) {
                     self.Velocity.X = - self.Velocity.X;
                 }
-                if (self.Center.Y - self.Radius < 0 || this.Size.Y < self.Center.Y + self.Radius) {
+                if (self.Center.Y - self.Radius < 0 || app.Size.Y < self.Center.Y + self.Radius) {
                     self.Velocity.Y = - self.Velocity.Y;
                 }
                 self.Center.X += self.Velocity.X;
                 self.Center.Y += self.Velocity.Y;
             }
 
-            if (self.AbsCenter.Distance(this.MousePosition) <= self.Radius) {
+            if (self.AbsCenter.Distance(app.MousePosition) <= self.Radius) {
                 if (self instanceof TImage) {
                     self.Rotation += 19 * Math.PI / 180;
                 }
@@ -136,11 +136,11 @@ class TMyApplication extends TApplication {
 
             if (self instanceof TImage) {
 
-                this.cnt++;
+                app.cnt++;
                 console.log("pos:" + (self.AbsCenter.X | 0) + " " + (self.AbsCenter.Y | 0) + " " + self.ImageIm.src);
                 if (self.ImageIm.src == "http://localhost:17623/img/circle.png") {
-                    self.Size.X = this.CircleR + 20 * Math.sin(Math.PI * this.cnt / 180);
-                    self.Size.Y = this.CircleR + 20 * Math.cos(Math.PI * this.cnt / 180);
+                    self.Size.X = app.CircleR + 20 * Math.sin(Math.PI * app.cnt / 180);
+                    self.Size.Y = app.CircleR + 20 * Math.cos(Math.PI * app.cnt / 180);
                 }
             }
         }

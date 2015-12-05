@@ -89,7 +89,7 @@ class TRuntime {
     }
 
     NaviShape(self: Object) {
-        this.App.Rule(self);
+        this.App.Rule(self, <TMyApplication>this.App);
         if (self instanceof TGroup) {
             for (var i: number = 0; i < self.Children.length; i++) {
                 this.NaviShape(self.Children[i]);

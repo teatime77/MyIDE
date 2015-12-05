@@ -430,6 +430,6 @@ class TApplication {
     AppInitialize() {
     }
 
-    Rule(self: Object) {
+    Rule(self: Object, app: TMyApplication) {
     }
 }
