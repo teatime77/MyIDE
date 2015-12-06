@@ -230,7 +230,6 @@ Public Class TScriptParser
         dic1.Add("goto", EToken.eGoto)
         dic1.Add("handles", EToken.eHandles)
         dic1.Add("if", EToken.eIf)
-        dic1.Add("iif", EToken.eIIF)
         dic1.Add("implements", EToken.eImplements)
 
         Select Case LanguageSP
@@ -311,7 +310,7 @@ Public Class TScriptParser
         dic1.Add("/", EToken.eDIV)
         dic1.Add(":", EToken.eMMB)
         dic1.Add(";", EToken.eSM)
-        dic1.Add("?", EToken.eQUE)
+        dic1.Add("?", EToken.Question)
         dic1.Add("[", EToken.eLB)
         dic1.Add("]", EToken.eRB)
         dic1.Add("^", EToken.eHAT)

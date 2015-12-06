@@ -1491,7 +1491,7 @@ Public Class TProject
 
                     For idx = 0 To 1
 
-                        def_ref = IIf(idx = 0, True, False)
+                        def_ref = If(idx = 0, True, False)
 
                         ' ノードの辞書を初期化する
                         TFlowNode.CntNd = 0
@@ -1523,7 +1523,7 @@ Public Class TProject
 
                         TDirectory.CreateDirectory(dot_dir)
 
-                        file_name = GetHtmlFileName(cla1) + "_" + GetHtmlFileName(fld1) + "_" + IIf(def_ref, "define", "use")
+                        file_name = GetHtmlFileName(cla1) + "_" + GetHtmlFileName(fld1) + "_" + If(def_ref, "define", "use")
                         dot_path = dot_dir + "\" + file_name + ".dot"
 
                         ' dotファイルに書く
@@ -1896,8 +1896,8 @@ Public Class TProject
 
                                 ' フィールドに値を代入している関数とフィールドの値を参照している関数
                                 For idx = 0 To 1
-                                    def_ref = IIf(idx = 0, True, False)
-                                    sw.WriteLine("<h2>{0}</h2>", IIf(def_ref, "このフィールドに値を代入している関数", "このフィールドの値を参照している関数"))
+                                    def_ref = If(idx = 0, True, False)
+                                    sw.WriteLine("<h2>{0}</h2>", If(def_ref, "このフィールドに値を代入している関数", "このフィールドの値を参照している関数"))
 
                                     vref = New TList(Of TReference)(From ref1 In fld1.RefVar Where ref1.DefRef = def_ref)
                                     If vref.Count = 0 Then
@@ -1989,8 +1989,8 @@ Public Class TProject
 
                                 ' 関数が値を代入しているフィールドと、関数が値を参照しているフィールド
                                 For idx = 0 To 1
-                                    def_ref = IIf(idx = 0, True, False)
-                                    sw.WriteLine("<h2>{0}</h2>", IIf(def_ref, "この関数が値を代入しているフィールド", "この関数が値を参照しているフィールド"))
+                                    def_ref = If(idx = 0, True, False)
+                                    sw.WriteLine("<h2>{0}</h2>", If(def_ref, "この関数が値を代入しているフィールド", "この関数が値を参照しているフィールド"))
 
                                     vref = New TList(Of TReference)(From ref1 In fnc1.RefFnc Where ref1.DefRef = def_ref AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TField)
                                     If vref.Count = 0 Then

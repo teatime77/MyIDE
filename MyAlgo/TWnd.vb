@@ -2154,7 +2154,7 @@ Public Class TTextBox
         w = 0
         ' for ???
         For i = 0 To k - 1
-            w += IIf(256 < AscW(s(i)), 2, 1)
+            w += If(256 < AscW(s(i)), 2, 1)
         Next
 
         Return w
@@ -2179,7 +2179,7 @@ Public Class TTextBox
                 Return i
             End If
 
-            x2 += IIf(256 < AscW(s1(i)), 2, 1) * CharW
+            x2 += If(256 < AscW(s1(i)), 2, 1) * CharW
         Next
 
         Return s1.Length
@@ -2226,7 +2226,7 @@ Public Class TSrcEditAbs
         BrsSrc(EToken.eMUL) = black_brs
         BrsSrc(EToken.eDIV) = black_brs
         BrsSrc(EToken.eMOD) = black_brs
-        BrsSrc(EToken.eQUE) = black_brs
+        BrsSrc(EToken.Question) = black_brs
 
         BrsSrc(EToken.eEq) = black_brs
         BrsSrc(EToken.eNE) = black_brs

@@ -39,7 +39,6 @@ Public Class TJavaCodeGenerator
         dic1.Add("goto", EToken.eGoto)
         dic1.Add("handles", EToken.eHandles)
         dic1.Add("if", EToken.eIf)
-        dic1.Add("iif", EToken.eIIF)
         dic1.Add("implements", EToken.eImplements)
         dic1.Add("import", EToken.eImports)
         dic1.Add("in", EToken.eIn)
@@ -89,7 +88,7 @@ Public Class TJavaCodeGenerator
         dic1.Add("/", EToken.eDIV)
         dic1.Add(":", EToken.eMMB)
         dic1.Add(";", EToken.eSM)
-        dic1.Add("?", EToken.eQUE)
+        dic1.Add("?", EToken.Question)
         dic1.Add("[", EToken.eLB)
         dic1.Add("]", EToken.eRB)
         dic1.Add("^", EToken.eHAT)
@@ -420,18 +419,8 @@ Public Class TJavaCodeGenerator
                         Exit Sub
                 End Select
 
-                If TypeOf app1.FncApp Is TReference AndAlso CType(app1.FncApp, TReference).NameRef = "IIf" Then
-                    WordAdd("(", EFigType.eSymFig, app1)
-                    TrmSrc(app1.ArgApp(0))
-                    WordAdd("?", EFigType.eSymFig, app1)
-                    TrmSrc(app1.ArgApp(1))
-                    WordAdd(":", EFigType.eSymFig, app1)
-                    TrmSrc(app1.ArgApp(2))
-                    WordAdd(")", EFigType.eSymFig, app1)
-                Else
-                    TrmSrc(app1.FncApp)
-                    AppArg(app1)
-                End If
+                TrmSrc(app1.FncApp)
+                AppArg(app1)
 
             Case EToken.eBaseCall
                 WordAdd(EToken.eBase, EFigType.eResFig, app1)
@@ -516,7 +505,7 @@ Public Class TJavaCodeGenerator
                 WordAdd(".", EFigType.eSymFig, app1)
                 WordAdd(EToken.eClass, EFigType.eResFig, app1)
 
-            Case EToken.eQUE
+            Case EToken.Question
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
                 WordAdd("?", EFigType.eSymFig, app1)

@@ -124,7 +124,6 @@ Public Enum EToken
     eId
     eIf
     eIfBlock
-    eIIF
     eImplements
     eImports
     eIn
@@ -170,7 +169,7 @@ Public Enum EToken
     ePrivate
     eProtected
     ePublic
-    eQUE
+    Question
     eRB
     eRC
     eReDim
@@ -279,7 +278,7 @@ Public Class TTerm
     Public Function IsApp() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC, EToken.eBitOR
+                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC, EToken.eBitOR, EToken.Question
                     Return True
             End Select
         End If
@@ -859,14 +858,11 @@ Public Class TApply
         Return app1
     End Function
 
-    Public Shared Function MakeApp3Opr(tkn1 As TToken, trm1 As TTerm, trm2 As TTerm, trm3 As TTerm) As TApply
+    Public Shared Function MakeApp3Opr(trm1 As TTerm, trm2 As TTerm, trm3 As TTerm) As TApply
         Dim app1 As TApply
 
-        Debug.Assert(tkn1.TypeTkn = EToken.eQUE)
         app1 = New TApply()
-        app1.TypeApp = tkn1.TypeTkn
-
-        app1.FncApp = New TReference(tkn1)
+        app1.TypeApp = EToken.Question
 
         app1.AddInArg(trm1)
         app1.AddInArg(trm2)

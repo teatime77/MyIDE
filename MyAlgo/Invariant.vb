@@ -585,8 +585,8 @@ Public Class TNaviMakeSourceCode
                             Case EToken.eGetType
                                 tw.Fmt(EToken.eGetType, EToken.eLP, .ClassApp.TokenListVar, EToken.eRP)
 
-                            Case EToken.eQUE
-                                tw.Fmt(EToken.eIIF, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
+                            Case EToken.Question
+                                tw.Fmt(EToken.eIf, EToken.eLP, .ArgApp(0).TokenList, EToken.eComma, .ArgApp(1).TokenList, EToken.eComma, .ArgApp(2).TokenList, EToken.eRP)
 
                             Case EToken.eInstanceof
                                 If ParserMK.LanguageSP = ELanguage.Basic Then

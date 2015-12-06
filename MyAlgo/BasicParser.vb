@@ -1500,7 +1500,6 @@ Public Class TBasicParser
         dic1.Add("GoTo", EToken.eGoto)
         dic1.Add("Handles", EToken.eHandles)
         dic1.Add("If", EToken.eIf)
-        '		dic1.Add("IIf", EToken.eIIF)
         dic1.Add("Implements", EToken.eImplements)
         dic1.Add("In", EToken.eIn)
         dic1.Add("Interface", EToken.eInterface)
@@ -1565,7 +1564,6 @@ Public Class TBasicParser
         dic1.Add("/", EToken.eDIV)
         dic1.Add(":", EToken.eMMB)
         dic1.Add("", EToken.eSM)
-        dic1.Add("?", EToken.eQUE)
         dic1.Add("[", EToken.eLB)
         dic1.Add("]", EToken.eRB)
         dic1.Add("_", EToken.eLowLine)
@@ -2148,6 +2146,19 @@ Public Class TBasicParser
 
             Case EToken.eAggregate
                 Return AggregateExpression()
+
+            Case EToken.eIf
+                GetTkn(EToken.eIf)
+                GetTkn(EToken.eLP)
+                Dim cnd1 As TTerm = TermExpression()
+                GetTkn(EToken.eComma)
+                trm1 = TermExpression()
+                GetTkn(EToken.eComma)
+                trm2 = TermExpression()
+                GetTkn(EToken.eRP)
+
+                app1 = TApply.MakeApp3Opr(cnd1, trm1, trm2)
+                Return app1
 
             Case Else
                 Chk(False)

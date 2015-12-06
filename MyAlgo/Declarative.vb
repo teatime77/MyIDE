@@ -555,7 +555,7 @@ Public Class TSetRefDeclarative
                         Case EToken.eAs, EToken.eCast
                             .TypeTrm = .ClassApp
 
-                        Case EToken.eQUE
+                        Case EToken.Question
                             .TypeTrm = .ArgApp(1).TypeTrm
 
                         Case EToken.eInstanceof
@@ -825,7 +825,7 @@ Public Class TSetRefDeclarative
                                 Debug.Print("想定外 2")
                             End If
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
+                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR, EToken.Question
                         Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eBaseCall
                         Case Else
                             If .IsLog() Then
@@ -1098,7 +1098,7 @@ Public Class TNaviMakeClassifiedIfMethod
         up_blc_copy.VarBlc.AddRange(vvar1)
 
         ' up_blcの子の文をup_blc_copyにコピーする。
-        up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(IIf(x Is if1, blc1, Sys.CopyStmt(x, cpy)), TStatement))
+        up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(If(x Is if1, blc1, Sys.CopyStmt(x, cpy)), TStatement))
 
         If up_blc.ParentStmt Is if1.FunctionStmt Then
             ' メソッドの直下のブロックの場合
@@ -1276,7 +1276,7 @@ Public Class TNaviSetReachableField
                     function_table.Add(cla1, New TFunction())
                 Next
 
-                Dim dummy_function As TFunction = New TFunction(function_name, Nothing)
+                Dim dummy_function As New TFunction(function_name, Nothing)
 
                 For Each cla1 In used_field_table.Keys
                     Dim used_field_list As List(Of TField) = used_field_table(cla1)
@@ -1295,7 +1295,7 @@ Public Class TNaviSetReachableField
                     fnc1.BlcFnc = New TBlock()
 
                     'Dim self_var As TVariable = New TVariable("self", .ArgFnc(0).TypeVar)
-                    Dim app_var As TVariable = New TVariable("app", Prj.MainClass)
+                    Dim app_var As New TVariable("app", Prj.MainClass)
                     'fnc1.ArgFnc.Add(self_var)
                     fnc1.ArgFnc.Add(app_var)
 

@@ -394,7 +394,7 @@ Public Class TGraphics
 
         w = 0
         For i = 0 To s.Length - 1
-            w += IIf(256 < AscW(s(i)), 2, 1)
+            w += If(256 < AscW(s(i)), 2, 1)
         Next
 
         Return New TPnt(w * fnt.SizeFont * 7.0 / 10.0, fnt.SizeFont * 14.0 / 10.0)

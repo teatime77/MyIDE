@@ -96,8 +96,8 @@ Public Class TBasicCodeGenerator
                 TypeSrc(app1.ClassApp)
                 WordAdd(")", EFigType.eSymFig, app1)
 
-            Case EToken.eQUE
-                WordAdd(EToken.eIIF, EFigType.eResFig, app1)
+            Case EToken.Question
+                WordAdd(EToken.eIf, EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)
                 TrmSrc(app1.ArgApp(0))
                 WordAdd(",", EFigType.eSymFig, app1)
