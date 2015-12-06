@@ -36,6 +36,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
+    <XmlIgnoreAttribute()> Public SimpleFieldList As List(Of TField)    ' 単純クラスのフィールドのリスト
     <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
     <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
     <XmlIgnoreAttribute()> Public CurSrc As TSourceFile ' 現在のソース
@@ -780,7 +781,24 @@ Public Class TProject
         Next
     End Sub
 
+    Public Sub EnsureFunctionIntegrity(fnc1 As TFunction)
+        Dim set_parent_stmt As New TNaviSetParentStmt
+        set_parent_stmt.NaviFunction(fnc1, Nothing)
 
+        ' 関数内の参照をセットする
+        Dim set_function As New TNaviSetFunction
+        set_function.NaviFunction(fnc1, Nothing)
+
+        Dim set_project_trm As New TNaviSetProjectTrm
+        set_project_trm.NaviFunction(fnc1)
+
+        ' 変数参照を解決する
+        Dim set_ref As New TSetRefDeclarative
+        set_ref.NaviFunction(fnc1)
+
+        Dim set_up_trm As New TNaviSetUpTrm
+        set_up_trm.NaviFunction(fnc1, Nothing)
+    End Sub
 
     Public Sub Compile()
         Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
@@ -931,6 +949,9 @@ Public Class TProject
             Next
         Next
 
+        ' 単純クラスのフィールドのリスト
+        SimpleFieldList = (From cla1 In SimpleParameterizedClassList Where cla1.GenericType = EGeneric.SimpleClass From fld In cla1.FldCla Select fld).ToList()
+
         set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NaviProject(Me, Nothing)
 
@@ -938,7 +959,7 @@ Public Class TProject
         set_up_trm.NaviProject(Me, Nothing)
 
         If MainClass IsNot Nothing Then
-            Dim vrule = From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")
+            Dim vrule = (From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")).ToList()
             For Each rule In vrule
                 ' クラスの場合分けのIf文を探す。
                 Dim set_classified_if As New TNaviSetClassifiedIf
@@ -947,6 +968,16 @@ Public Class TProject
                 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
                 Dim make_classified_if_method As New TNaviMakeClassifiedIfMethod
                 make_classified_if_method.NaviFunction(rule)
+
+                ' ナビゲート関数を作る。
+                Dim set_reachable_field As New TNaviSetReachableField
+                set_reachable_field.Prj = Me
+                set_reachable_field.ClassifiedClassList = make_classified_if_method.ClassifiedClassList
+                set_reachable_field.NaviFunction(rule)
+
+                For Each fnc1 In set_reachable_field.NaviFunctionList
+                    EnsureFunctionIntegrity(fnc1)
+                Next
             Next
         End If
 

@@ -1087,7 +1087,7 @@ End Class
 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
 Public Class TNaviMakeClassifiedIfMethod
     Inherits TDeclarative
-    Public ClassifiedIfMethodList As New TList(Of TFunction)
+    Public ClassifiedClassList As New List(Of TClass)
 
     Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
         Dim up_blc As TBlock = TDataflow.UpBlock(if1)
@@ -1121,6 +1121,7 @@ Public Class TNaviMakeClassifiedIfMethod
             With CType(self, TIfBlock)
                 Dim if1 As TIf = CType(.ParentStmt, TIf)
                 If if1.ClassifiedIf Then
+
                     Dim fnc1 As New TFunction
                     Dim blc_if_copy As New TBlock
                     Dim cpy As New TCopy
@@ -1150,10 +1151,12 @@ Public Class TNaviMakeClassifiedIfMethod
                     ' クラスにメソッドを追加する。
                     Dim app1 As TApply = CType(.CndIf, TApply)
                     Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
+                    Dim classified_class As TClass = CType(ref1.VarRef, TClass)
+
                     fnc1.NameVar = .FunctionStmt.NameVar
                     fnc1.ModVar = New TModifier()
                     fnc1.TypeFnc = .FunctionStmt.TypeFnc
-                    fnc1.ClaFnc = CType(ref1.VarRef, TClass)
+                    fnc1.ClaFnc = classified_class
                     fnc1.ClaFnc.FncCla.Add(fnc1)
 
                     Dim set_parent_stmt As New TNaviSetParentStmt
@@ -1162,8 +1165,7 @@ Public Class TNaviMakeClassifiedIfMethod
                     Dim set_up_trm As New TNaviSetUpTrm
                     set_up_trm.NaviFunction(fnc1, Nothing)
 
-
-                    ClassifiedIfMethodList.Add(fnc1)
+                    ClassifiedClassList.Add(classified_class)
                 End If
             End With
         End If
@@ -1171,98 +1173,160 @@ Public Class TNaviMakeClassifiedIfMethod
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviSetReachableField
+' ナビゲート関数を作る。
 Public Class TNaviSetReachableField
     Inherits TDeclarative
     Public Prj As TProject
-    Public ApplicationClass As TClass
+    Public ClassifiedClassList As List(Of TClass)
+    Public NaviFunctionList As New List(Of TFunction)
 
     Public Overrides Sub StartCondition(self As Object)
         If TypeOf self Is TFunction Then
             With CType(self, TFunction)
-                Dim assigned_field_list = From ref1 In .RefFnc Where ref1.DefRef AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TField Select CType(ref1.VarRef, TField)
-                Dim reachable_from_bottom_pending As New List(Of TField)(Enumerable.Distinct(assigned_field_list))
+                'Dim assigned_field_list = From ref1 In .RefFnc Where ref1.DefRef AndAlso ref1.VarRef IsNot Nothing AndAlso TypeOf ref1.VarRef Is TField Select CType(ref1.VarRef, TField)
+                Dim reachable_from_bottom_pending As New List(Of TField)
                 Dim reachable_from_bottom_processed As New List(Of TField)
 
                 Dim reachable_from_top_pending As New List(Of TField)
                 Dim reachable_from_top_processed As New List(Of TField)
 
-                Dim fld_fld_table As New Dictionary(Of TField, List(Of TField))
-                Dim class_fld_table As New Dictionary(Of TClass, List(Of TField))
+                Dim parent_to_child_field_table As New Dictionary(Of TField, List(Of TField))
+                Dim used_field_table As New Dictionary(Of TClass, List(Of TField))
+
+                For Each classified_class In ClassifiedClassList
+
+                    ' classified_classとそのスーパークラスのリスト
+                    Dim classified_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(classified_class))
+
+                    ' 型がclassified_classかスーパークラスであるフィールドのリスト
+                    Dim parent_field_list = From x In Prj.SimpleFieldList Where classified_super_class_list.Contains(CType(If(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
+
+                    ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
+                    reachable_from_bottom_pending.AddRange((From parent_field In parent_field_list Where Not reachable_from_bottom_pending.Contains(parent_field)).ToList())
+                Next
 
                 Do While reachable_from_bottom_pending.Count <> 0
-                    Dim fld1 = reachable_from_bottom_pending(0)
+                    Dim current_field = reachable_from_bottom_pending(0)
                     reachable_from_bottom_pending.RemoveAt(0)
-                    reachable_from_bottom_processed.Add(fld1)
+                    reachable_from_bottom_processed.Add(current_field)
+                    Debug.Print("current field {0}", current_field)
 
-                    If fld1.ClaFld Is ApplicationClass Then
-                        reachable_from_top_pending.Add(fld1)
+                    If TNaviUp.ThisAncestorSuperClassList(Prj.MainClass).Contains(current_field.ClaFld) Then
+                        ' current_fieldが属するクラスが、アプリクラスの場合
+
+                        reachable_from_top_pending.Add(current_field)
                     End If
 
-                    Dim vcls = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(fld1.ClaFld))
+                    ' current_fieldが属するクラスとそのスーパークラスのリスト
+                    Dim vcls = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(current_field.ClaFld))
 
-                    Dim vfld2 = From x In Prj.vAllFld Where vcls.Contains(CType(IIf(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
+                    ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
+                    Dim parent_field_list = From x In Prj.SimpleFieldList Where vcls.Contains(CType(If(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
 
-                    For Each fld2 In vfld2
-                        Dim v As List(Of TField)
+                    For Each parent_field In parent_field_list
+                        Dim child_list As List(Of TField)
 
-                        If fld_fld_table.ContainsKey(fld2) Then
-                            v = fld_fld_table(fld2)
+                        If parent_to_child_field_table.ContainsKey(parent_field) Then
+                            child_list = parent_to_child_field_table(parent_field)
                         Else
-                            v = New List(Of TField)()
-                            fld_fld_table.Add(fld2, v)
+                            child_list = New List(Of TField)()
+                            parent_to_child_field_table.Add(parent_field, child_list)
                         End If
 
-                        v.Add(fld1)
+                        ' このリストにcurrent_fieldを追加する。
+                        child_list.Add(current_field)
+                        Debug.Print("parent field {0}", parent_field)
                     Next
 
                     ' 未処理のフィールド
-                    Dim vfld3 = From x In vfld2 Where Not reachable_from_bottom_processed.Contains(x) AndAlso Not reachable_from_bottom_pending.Contains(x)
+                    Dim pending_parent_field_list = From parent_field In parent_field_list Where Not reachable_from_bottom_processed.Contains(parent_field) AndAlso Not reachable_from_bottom_pending.Contains(parent_field)
 
-                    reachable_from_bottom_pending.AddRange(vfld3)
+                    reachable_from_bottom_pending.AddRange(pending_parent_field_list)
                 Loop
 
                 Do While reachable_from_top_pending.Count <> 0
-                    Dim fld1 = reachable_from_top_pending(0)
+                    Dim current_field = reachable_from_top_pending(0)
                     reachable_from_top_pending.RemoveAt(0)
-                    reachable_from_top_processed.Add(fld1)
+                    reachable_from_top_processed.Add(current_field)
 
-                    Dim class_fld_list As List(Of TField)
-                    If class_fld_table.ContainsKey(fld1.ClaFld) Then
-                        class_fld_list = class_fld_table(fld1.ClaFld)
+                    Dim used_field_list As List(Of TField)
+                    If used_field_table.ContainsKey(current_field.ClaFld) Then
+                        used_field_list = used_field_table(current_field.ClaFld)
                     Else
-                        class_fld_list = New List(Of TField)()
-                        class_fld_table.Add(fld1.ClaFld, class_fld_list)
+                        used_field_list = New List(Of TField)()
+                        used_field_table.Add(current_field.ClaFld, used_field_list)
                     End If
-                    class_fld_list.Add(fld1)
+                    used_field_list.Add(current_field)
 
-                    If fld_fld_table.ContainsKey(fld1) Then
-                        Dim vfld2 As List(Of TField) = fld_fld_table(fld1)
+                    If parent_to_child_field_table.ContainsKey(current_field) Then
+                        Dim child_list As List(Of TField) = parent_to_child_field_table(current_field)
 
                         ' 未処理のフィールド
-                        Dim vfld3 = From x In vfld2 Where Not reachable_from_top_processed.Contains(x) AndAlso Not reachable_from_top_pending.Contains(x)
+                        Dim pending_chile_field_list = From chile_field In child_list Where Not reachable_from_top_processed.Contains(chile_field) AndAlso Not reachable_from_top_pending.Contains(chile_field)
 
-                        reachable_from_top_pending.AddRange(vfld3)
+                        reachable_from_top_pending.AddRange(pending_chile_field_list)
                     End If
                 Loop
 
+                Dim sw As New TStringWriter
                 Dim function_name As String = "Navigate_" + .NameVar
-                For Each cla1 In class_fld_table.Keys
-                    Dim vfld As List(Of TField) = class_fld_table(cla1)
-                    Dim fnc1 As New TFunction
+
+                Dim function_table As New Dictionary(Of TClass, TFunction)
+                For Each cla1 In used_field_table.Keys
+                    function_table.Add(cla1, New TFunction())
+                Next
+
+                Dim dummy_function As TFunction = New TFunction(function_name, Nothing)
+
+                For Each cla1 In used_field_table.Keys
+                    Dim used_field_list As List(Of TField) = used_field_table(cla1)
+                    Dim fnc1 As TFunction = function_table(cla1)
+
+                    Debug.Print("Rule {0}", cla1.NameVar)
+                    NaviFunctionList.Add(fnc1)
 
                     fnc1.NameVar = function_name
+                    fnc1.ModVar = New TModifier()
+                    fnc1.TypeFnc = EToken.eSub
+                    fnc1.ThisFnc = New TVariable(Prj.ParsePrj.ThisName, cla1)
+                    fnc1.ClaFnc = cla1
+                    fnc1.ClaFnc.FncCla.Add(fnc1)
+
                     fnc1.BlcFnc = New TBlock()
 
-                    For Each fld1 In vfld
-                        Dim sw As New TStringWriter
-                        If fld1.TypeVar.OrgCla IsNot Nothing Then
+                    'Dim self_var As TVariable = New TVariable("self", .ArgFnc(0).TypeVar)
+                    Dim app_var As TVariable = New TVariable("app", Prj.MainClass)
+                    'fnc1.ArgFnc.Add(self_var)
+                    fnc1.ArgFnc.Add(app_var)
 
-                            sw.WriteLine(String.Format("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", fld1.NameVar, function_name))
+                    For Each used_field In used_field_list
+                        If used_field.TypeVar.OrgCla IsNot Nothing Then
+
+
+                            Dim for1 As New TFor
+                            for1.InVarFor = New TVariable("x", Nothing)
+                            for1.InTrmFor = New TDot(New TReference(fnc1.ThisFnc), used_field)
+                            for1.BlcFor = New TBlock()
+
+                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
+                            'app1.ArgApp.Add(New TReference(self_var))
+                            app1.ArgApp.Add(New TReference(app_var))
+                            for1.BlcFor.AddStmtBlc(New TCall(app1))
+
+                            fnc1.BlcFnc.AddStmtBlc(for1)
+
+                            sw.WriteLine(String.Format("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", used_field.NameVar, function_name))
                         Else
+                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(New TReference(fnc1.ThisFnc), used_field), dummy_function))
+                            app1.ArgApp.Add(New TReference(app_var))
+                            fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
+
                             sw.WriteLine(String.Format(".{0}()", function_name))
                         End If
                     Next
                 Next
+
+                Debug.Print(sw.ToString())
             End With
         End If
     End Sub

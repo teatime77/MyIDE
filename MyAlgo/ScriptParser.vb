@@ -717,10 +717,8 @@ Public Class TScriptParser
     End Function
 
     Function CallExpression(trm1 As TTerm) As TTerm
-        Dim app1 As TApply
-
         Do While CurTkn.TypeTkn = EToken.eLP OrElse CurTkn.TypeTkn = EToken.eLB
-            app1 = TApply.MakeAppCall(trm1)
+            Dim app1 As TApply = TApply.MakeAppCall(trm1)
             ArgumentExpressionList(app1)
             trm1 = app1
         Loop
