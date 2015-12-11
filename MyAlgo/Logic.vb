@@ -53,6 +53,7 @@ Public Enum EToken
     eASN
     eAsync
     eAt
+    Attribute
     eAwait
     eBase
     eBaseCall
@@ -258,6 +259,7 @@ Public Class TModifier
     Public isAbstract As Boolean
     Public isVirtual As Boolean
     Public isIterator As Boolean
+    Public isWeak As Boolean
 
     Public isXmlIgnore As Boolean
 
@@ -662,6 +664,16 @@ Public Class TFunction
     Public Sub New(name1 As String, ret_type As TClass)
         MyBase.New(name1, CType(Nothing, TClass))
         RetType = ret_type
+    End Sub
+
+    Public Sub New(function_name As String, prj1 As TProject, cla1 As TClass)
+        NameVar = function_name
+        ModVar = New TModifier()
+        TypeFnc = EToken.eSub
+        ThisFnc = New TVariable(prj1.ParsePrj.ThisName, cla1)
+        ClaFnc = cla1
+        ClaFnc.FncCla.Add(Me)
+        BlcFnc = New TBlock()
     End Sub
 
     Public Overrides Function ToString() As String

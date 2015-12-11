@@ -110,7 +110,12 @@ class TRect {
     Size: TPoint = new TPoint();
 }
 
+function weak(x) {
+    return x;
+}
+
 class TShape {
+    @weak
     Parent: TShape = null;
     Center: TPoint = new TPoint();
     Radius: number;

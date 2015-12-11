@@ -549,6 +549,13 @@ Public Class TScriptParser
                 tkn1 = New TToken(EToken.eBlockComment, str1, cur1)
                 cur1 = k1 + 2
 
+            ElseIf ch1 = "@"c Then
+                Debug.Assert(src_text.IndexOf("@weak", cur1) = cur1)
+
+                str1 = src_text.Substring(cur1, 5)
+                tkn1 = New TToken(EToken.Attribute, str1, cur1)
+                cur1 += str1.Length
+
             Else
                 '  記号の場合
 
@@ -1795,6 +1802,9 @@ Public Class TScriptParser
                 Case EToken.eIterator
                     mod1.isIterator = True
                 Case EToken.eProtected, EToken.eFriend, EToken.ePrivate
+                Case EToken.Attribute
+                    mod1.isWeak = True
+
 
                 Case EToken.eLT
                     GetTkn(EToken.eLT)
@@ -1879,6 +1889,14 @@ Public Class TScriptParser
 
                 Case EToken.eEnum
                     ReadEnum()
+
+                Case EToken.eEOT
+                    Exit Do
+
+                Case EToken.eFunction
+                    GetTkn(EToken.eFunction)
+                    Dim fnc1 As TFunction = ReadFunction(Nothing, mod1)
+                    Debug.Assert(fnc1.NameVar = "weak")
 
                 Case Else
                     Exit Do

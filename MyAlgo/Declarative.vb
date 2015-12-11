@@ -1199,7 +1199,7 @@ Public Class TNaviSetReachableField
                     Dim classified_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(classified_class))
 
                     ' 型がclassified_classかスーパークラスであるフィールドのリスト
-                    Dim parent_field_list = From x In Prj.SimpleFieldList Where classified_super_class_list.Contains(CType(If(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
+                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where Not parent_field.ModVar.isWeak AndAlso classified_super_class_list.Contains(CType(If(parent_field.TypeVar.OrgCla Is Nothing, parent_field.TypeVar, Prj.ElementType(parent_field.TypeVar)), TClass))
 
                     ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
                     reachable_from_bottom_pending.AddRange((From parent_field In parent_field_list Where Not reachable_from_bottom_pending.Contains(parent_field)).ToList())
@@ -1209,7 +1209,7 @@ Public Class TNaviSetReachableField
                     Dim current_field = reachable_from_bottom_pending(0)
                     reachable_from_bottom_pending.RemoveAt(0)
                     reachable_from_bottom_processed.Add(current_field)
-                    Debug.Print("current field {0}", current_field)
+                    Debug.Print("current field {0} {1}", current_field, current_field.ModVar.isWeak)
 
                     If TNaviUp.ThisAncestorSuperClassList(Prj.MainClass).Contains(current_field.ClaFld) Then
                         ' current_fieldが属するクラスが、アプリクラスの場合
@@ -1221,7 +1221,7 @@ Public Class TNaviSetReachableField
                     Dim vcls = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(current_field.ClaFld))
 
                     ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
-                    Dim parent_field_list = From x In Prj.SimpleFieldList Where vcls.Contains(CType(If(x.TypeVar.OrgCla Is Nothing, x.TypeVar, Prj.ElementType(x.TypeVar)), TClass))
+                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where Not parent_field.ModVar.isWeak AndAlso vcls.Contains(CType(If(parent_field.TypeVar.OrgCla Is Nothing, parent_field.TypeVar, Prj.ElementType(parent_field.TypeVar)), TClass))
 
                     For Each parent_field In parent_field_list
                         Dim child_list As List(Of TField)
@@ -1273,10 +1273,11 @@ Public Class TNaviSetReachableField
 
                 Dim function_table As New Dictionary(Of TClass, TFunction)
                 For Each cla1 In used_field_table.Keys
-                    function_table.Add(cla1, New TFunction())
+                    function_table.Add(cla1, New TFunction(function_name, Prj, cla1))
                 Next
 
                 Dim dummy_function As New TFunction(function_name, Nothing)
+                Dim navi_needed_class_list As New List(Of TClass)
 
                 For Each cla1 In used_field_table.Keys
                     Dim used_field_list As List(Of TField) = used_field_table(cla1)
@@ -1285,18 +1286,7 @@ Public Class TNaviSetReachableField
                     Debug.Print("Rule {0}", cla1.NameVar)
                     NaviFunctionList.Add(fnc1)
 
-                    fnc1.NameVar = function_name
-                    fnc1.ModVar = New TModifier()
-                    fnc1.TypeFnc = EToken.eSub
-                    fnc1.ThisFnc = New TVariable(Prj.ParsePrj.ThisName, cla1)
-                    fnc1.ClaFnc = cla1
-                    fnc1.ClaFnc.FncCla.Add(fnc1)
-
-                    fnc1.BlcFnc = New TBlock()
-
-                    'Dim self_var As TVariable = New TVariable("self", .ArgFnc(0).TypeVar)
                     Dim app_var As New TVariable("app", Prj.MainClass)
-                    'fnc1.ArgFnc.Add(self_var)
                     fnc1.ArgFnc.Add(app_var)
 
                     For Each used_field In used_field_list
@@ -1315,6 +1305,7 @@ Public Class TNaviSetReachableField
 
                             fnc1.BlcFnc.AddStmtBlc(for1)
 
+
                             sw.WriteLine(String.Format("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", used_field.NameVar, function_name))
                         Else
                             Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(New TReference(fnc1.ThisFnc), used_field), dummy_function))
@@ -1323,7 +1314,24 @@ Public Class TNaviSetReachableField
 
                             sw.WriteLine(String.Format(".{0}()", function_name))
                         End If
+
+                        Dim navi_needed_class As TClass = If(used_field.TypeVar.OrgCla IsNot Nothing, Prj.ElementType(used_field.TypeVar), used_field.TypeVar)
+                        If Not navi_needed_class_list.Contains(navi_needed_class) Then
+                            navi_needed_class_list.Add(navi_needed_class)
+                        End If
                     Next
+                Next
+
+                For Each cla1 In used_field_table.Keys
+                    If navi_needed_class_list.Contains(cla1) Then
+                        navi_needed_class_list.Remove(cla1)
+                    End If
+                Next
+
+                For Each cla1 In navi_needed_class_list
+                    Dim fnc1 As New TFunction(function_name, Prj, cla1)
+
+                    fnc1.ArgFnc.Add(New TVariable("app", Prj.MainClass))
                 Next
 
                 Debug.Print(sw.ToString())
