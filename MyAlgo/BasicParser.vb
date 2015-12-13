@@ -588,7 +588,7 @@ Public Class TBasicParser
     Function ReadSelect() As TStatement
         Dim stmt1 As New TSelectStatement
 
-        stmt1.TypeStmt = EToken.eSelect
+        stmt1.TypeStmt = EToken.eSwitch
         GetTkn(EToken.eSelect)
         GetTkn(EToken.eCase)
         stmt1.TermSelectStatement = CType(TermExpression(), TTerm)
@@ -1026,8 +1026,8 @@ Public Class TBasicParser
                     for2.BlcFor = BlcParse(for2)
                     GetStatement(EToken.eLoop)
 
-                Case EToken.eSelect
-                    sel1 = CType(GetStatement(EToken.eSelect), TSelectStatement)
+                Case EToken.eSwitch
+                    sel1 = CType(GetStatement(EToken.eSwitch), TSelectStatement)
                     sel2 = New TSelect()
                     sel2.TrmSel = sel1.TermSelectStatement
                     CurBlc.AddStmtBlc(sel2)
@@ -2024,6 +2024,12 @@ Public Class TBasicParser
 
         GetTkn(EToken.eIn)
         aggr1.SeqAggr = TermExpression()
+
+        If CurTkn.TypeTkn = EToken.eWhere Then
+
+            GetTkn(EToken.eWhere)
+            aggr1.CndAggr = TermExpression()
+        End If
 
         GetTkn(EToken.eInto)
 

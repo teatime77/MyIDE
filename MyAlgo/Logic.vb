@@ -187,6 +187,7 @@ Public Enum EToken
     eStruct
     eSub
     eSUBEQ
+    eSwitch
     eTab
     eTake
     eThen
@@ -273,6 +274,7 @@ Public Class TTerm
     Public FunctionTrm As TFunction
     Public TypeTrm As TClass
     Public ProjectTrm As TProject
+    Public RefPathTrm As TRefPath
 
     Public Sub New()
     End Sub
@@ -336,6 +338,7 @@ Public Class TVariable
     Public ComVar As TComment
     Public NoType As Boolean = False
     Public UsedVar As Boolean = False
+    Public RefPathVar As TRefPath
     ' public List<TReference> UseVar = new List<TReference>();
     ' public List<TReference> DefVar = new List<TReference>();
 
@@ -749,7 +752,6 @@ Public Class TReference
     Public DefRef As Boolean = False
     Public IsAddressOf As Boolean = False
 
-
     Public Sub New()
         MyBase.New()
     End Sub
@@ -1009,6 +1011,7 @@ Public Class TAggregate
     Inherits TTerm
     Public VarAggr As TVariable
     Public SeqAggr As TTerm
+    Public CndAggr As TTerm
     Public FunctionAggr As EAggregateFunction
     Public IntoAggr As TTerm
 End Class
@@ -1175,7 +1178,7 @@ Public Class TSelect
     Public CaseSel As New TList(Of TCase)
 
     Public Sub New()
-        TypeStmt = EToken.eSelect
+        TypeStmt = EToken.eSwitch
     End Sub
 End Class
 

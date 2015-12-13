@@ -73,7 +73,7 @@ Public Class TScriptParser
                 NxtTkn = EOTTkn
             End If
 
-            Debug.Print("token {0} {0}", CurTkn.StrTkn, CurTkn.TypeTkn)
+            'Debug.Print("token {0} {0}", CurTkn.StrTkn, CurTkn.TypeTkn)
 
             Return tkn1
         Else
@@ -258,6 +258,7 @@ Public Class TScriptParser
         dic1.Add("private", EToken.ePrivate)
         dic1.Add("ref", EToken.eRef)
         dic1.Add("return", EToken.eReturn)
+        dic1.Add("select", EToken.eSelect)
         If LanguageSP = ELanguage.CSharp Then
 
             dic1.Add("set", EToken.eSet)
@@ -267,7 +268,7 @@ Public Class TScriptParser
         dic1.Add("struct", EToken.eStruct)
 
         '        dic1.Add("sub", EToken.eSub)
-        dic1.Add("switch", EToken.eSelect)
+        dic1.Add("switch", EToken.eSwitch)
         dic1.Add("then", EToken.eThen)
         dic1.Add("throw", EToken.eThrow)
         dic1.Add("try", EToken.eTry)
@@ -829,6 +830,12 @@ Public Class TScriptParser
         GetTkn(EToken.eIn)
         aggr1.SeqAggr = TermExpression()
 
+        If CurTkn.TypeTkn = EToken.eWhere Then
+
+            GetTkn(EToken.eWhere)
+            aggr1.CndAggr = TermExpression()
+        End If
+
         GetTkn(EToken.eInto)
 
         id2 = GetTkn(EToken.eId)
@@ -1300,7 +1307,7 @@ Public Class TScriptParser
     Function ReadSelect() As TSelect
         Dim sel2 As New TSelect, case2 As TCase
 
-        GetTkn(EToken.eSelect)
+        GetTkn(EToken.eSwitch)
         GetTkn(EToken.eLP)
         sel2.TrmSel = TermExpression()
         GetTkn(EToken.eRP)
@@ -1448,7 +1455,7 @@ Public Class TScriptParser
             Case EToken.eDo
                 stmt1 = ReadDo()
 
-            Case EToken.eSelect
+            Case EToken.eSwitch
                 stmt1 = ReadSelect()
 
             Case EToken.eFor

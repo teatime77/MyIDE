@@ -55,6 +55,34 @@ class Array<T> {
     }
 }
 
+class IEnumerable<T>{
+    Count(): number {
+        return 0;
+    }
+
+    Any(): boolean {
+        return false;
+    }
+
+    First(): T {
+        return null;
+    }
+
+    Contains(value: T): boolean {
+        return false;
+    }
+
+//    Public Function ToList() As List(Of T)
+//        Return Nothing
+//    End Function
+
+
+//    Public Function ToArray() As T()
+//        Return Nothing
+//    End Function
+}
+
+
 class string {
 }
 

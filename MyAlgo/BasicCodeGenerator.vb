@@ -300,6 +300,12 @@ Public Class TBasicCodeGenerator
         WordAdd(EToken.eIn, EFigType.eResFig, aggr1)
         TrmSrc(aggr1.SeqAggr)
 
+        If aggr1.CndAggr IsNot Nothing Then
+
+            WordAdd(EToken.eWhere, EFigType.eResFig, aggr1)
+            TrmSrc(aggr1.CndAggr)
+        End If
+
         WordAdd(EToken.eInto, EFigType.eResFig, aggr1)
 
         Select Case aggr1.FunctionAggr

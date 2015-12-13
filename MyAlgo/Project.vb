@@ -961,6 +961,10 @@ Public Class TProject
         If MainClass IsNot Nothing Then
             Dim vrule = (From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")).ToList()
             For Each rule In vrule
+                ' 参照パスをセットする。
+                'Dim set_ref_path As New TNaviSetRefPath
+                'set_ref_path.NaviFunction(rule)
+
                 ' クラスの場合分けのIf文を探す。
                 Dim set_classified_if As New TNaviSetClassifiedIf
                 set_classified_if.NaviFunction(rule)
@@ -970,7 +974,7 @@ Public Class TProject
                 make_classified_if_method.NaviFunction(rule)
 
                 ' ナビゲート関数を作る。
-                Dim set_reachable_field As New TNaviSetReachableField
+                Dim set_reachable_field As New TNaviMakeNavigateFunction
                 set_reachable_field.Prj = Me
                 set_reachable_field.ClassifiedClassList = make_classified_if_method.ClassifiedClassList
                 set_reachable_field.NaviFunction(rule)

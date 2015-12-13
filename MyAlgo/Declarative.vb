@@ -198,6 +198,7 @@ Public Class TDeclarative
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate)
         NaviTerm(aggr1.SeqAggr)
         NaviLocalVariable(aggr1.VarAggr)
+        NaviTerm(aggr1.CndAggr)
         NaviTerm(aggr1.IntoAggr)
     End Sub
 
@@ -1172,9 +1173,9 @@ Public Class TNaviMakeClassifiedIfMethod
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNaviSetReachableField
+' -------------------------------------------------------------------------------- TNaviMakeNavigateFunction
 ' ナビゲート関数を作る。
-Public Class TNaviSetReachableField
+Public Class TNaviMakeNavigateFunction
     Inherits TDeclarative
     Public Prj As TProject
     Public ClassifiedClassList As List(Of TClass)
@@ -1335,6 +1336,136 @@ Public Class TNaviSetReachableField
                 Next
 
                 Debug.Print(sw.ToString())
+            End With
+        End If
+    End Sub
+End Class
+
+' -------------------------------------------------------------------------------- TNaviSetRefPath
+' 参照パスをセットする。
+Public Class TNaviSetRefPath
+    Inherits TDeclarative
+
+    Public Overrides Sub EndCondition(self As Object)
+        If TypeOf self Is TTerm Then
+            With CType(self, TTerm)
+                .RefPathTrm = New TRefPath()
+
+                If TypeOf self Is TDot Then
+                    With CType(self, TDot)
+                        Debug.Assert(.VarRef IsNot Nothing)
+
+                        If .TrmDot Is Nothing Then
+                            .RefPathTrm.RefPathType = ERefPathType.SelfField
+                        Else
+                            Select Case .TrmDot.RefPathTrm.RefPathType
+                                Case ERefPathType.Self
+                                    .RefPathTrm.RefPathType = ERefPathType.SelfField
+
+                                Case ERefPathType.Parent
+                                    .RefPathTrm.RefPathType = ERefPathType.ParentField
+
+                                Case ERefPathType.Prev
+                                    .RefPathTrm.RefPathType = ERefPathType.PrevField
+
+                                Case ERefPathType.App
+                                    .RefPathTrm.RefPathType = ERefPathType.AppField
+
+                            End Select
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TReference Then
+                    With CType(self, TReference)
+                        Debug.Assert(.VarRef IsNot Nothing)
+
+                        Select Case .VarRef.RefPathVar.RefPathType
+                            Case ERefPathType.SelfField, ERefPathType.Parent, ERefPathType.Prev, ERefPathType.App
+                                .RefPathTrm = .VarRef.RefPathVar
+
+                            Case Else
+                        End Select
+                    End With
+
+                ElseIf TypeOf self Is TFrom Then
+                    With CType(self, TFrom)
+
+                    End With
+
+                ElseIf TypeOf self Is TAggregate Then
+                    With CType(self, TAggregate)
+
+                    End With
+                End If
+
+            End With
+
+        ElseIf TypeOf self Is TVariable Then
+            With CType(self, TVariable)
+                .RefPathVar = New TRefPath()
+
+                If TypeOf self Is TField Then
+                    With CType(self, TField)
+
+                    End With
+                Else
+                    If TypeOf .UpVar Is TList(Of TVariable) Then
+                        Dim up_obj As Object = TNaviUp.UpObj(.UpVar)
+
+                        If TypeOf up_obj Is TFunction Then
+                            Dim fnc1 As TFunction = CType(up_obj, TFunction)
+
+                            Dim k As Integer = fnc1.ArgFnc.IndexOf(CType(self, TVariable))
+                            Select Case k
+                                Case 0
+                                    .RefPathVar.RefPathType = ERefPathType.App
+
+                                Case 1
+                                    .RefPathVar.RefPathType = ERefPathType.Self
+
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+
+                        ElseIf TypeOf up_obj Is TVariableDeclaration Then
+                            If .InitVar IsNot Nothing Then
+                                .RefPathVar = .InitVar.RefPathTrm
+                            End If
+
+                        ElseIf TypeOf up_obj Is TTry Then
+                            Debug.Assert(False)
+                        Else
+                            Debug.Assert(False)
+                            Debug.Print("----------------------------------------- UpVar List {0}", up_obj.GetType())
+                        End If
+
+                    ElseIf TypeOf .UpVar Is TFrom Then
+                        Dim from1 As TFrom = CType(.UpVar, TFrom)
+
+                        Select Case from1.SelFrom.RefPathTrm.RefPathType
+                            Case ERefPathType.SelfField
+                                from1.VarFrom.RefPathVar.RefPathType = ERefPathType.SelfFieldChild
+
+                            Case ERefPathType.SelfFieldChildField
+                                from1.VarFrom.RefPathVar.RefPathType = ERefPathType.SelfFieldChildFieldChild
+
+                            Case Else
+                                Debug.Assert(False)
+                        End Select
+
+                    ElseIf TypeOf .UpVar Is TAggregate Then
+                        Dim aggr1 As TAggregate = CType(.UpVar, TAggregate)
+
+                    ElseIf TypeOf .UpVar Is TFor Then
+                        Debug.Assert(False)
+
+                    Else
+                        Debug.Assert(False)
+                        Debug.Print("----------------------------------------- UpVar {0}", .UpVar.GetType())
+                    End If
+
+                End If
+
             End With
         End If
     End Sub

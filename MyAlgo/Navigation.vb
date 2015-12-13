@@ -225,6 +225,7 @@ Public Class TNavi
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate, arg1 As Object)
         NaviTerm(aggr1.SeqAggr, arg1)
         NaviLocalVariable(aggr1.VarAggr, arg1)
+        NaviTerm(aggr1.CndAggr, arg1)
         NaviTerm(aggr1.IntoAggr, arg1)
     End Sub
 

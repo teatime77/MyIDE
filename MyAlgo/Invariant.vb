@@ -675,7 +675,14 @@ Public Class TNaviMakeSourceCode
 
                 ElseIf TypeOf self Is TAggregate Then
                     With CType(self, TAggregate)
-                        tw.Fmt(EToken.eAggregate, .VarAggr.NameVar, EToken.eIn, .SeqAggr.TokenList, EToken.eInto)
+                        tw.Fmt(EToken.eAggregate, .VarAggr.NameVar, EToken.eIn, .SeqAggr.TokenList)
+
+                        If .CndAggr IsNot Nothing Then
+
+                            tw.Fmt(EToken.eWhere, .CndAggr.TokenList)
+                        End If
+
+                        tw.Fmt(EToken.eInto)
 
                         Select Case .FunctionAggr
                             Case EAggregateFunction.eSum
@@ -838,7 +845,7 @@ Public Class TNaviMakeSourceCode
                                 tw.Fmt(EToken.eSelect, EToken.eCase, .TrmSel.TokenList, EToken.eNL)
 
                             Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                tw.Fmt(EToken.eSelect, EToken.eLP, .TrmSel.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                tw.Fmt(EToken.eSwitch, EToken.eLP, .TrmSel.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
                         End Select
 
 

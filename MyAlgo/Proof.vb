@@ -169,15 +169,15 @@ Public Class TDataflow
     End Function
 
     ' 値が変化したときの条件を正規化する。
-    Public Function NormalizeValueChangedCondition(change As TChange, ref1 As TReference, ref_type As ERefType) As TApply
+    Public Function NormalizeValueChangedCondition(change As TChange, ref1 As TReference, ref_type As ERefPathType) As TApply
         Dim J As TApply
         Dim trans As TTransRelative
 
         Select Case ref_type
-            Case ERefType.自身のフィールド
+            Case ERefPathType.SelfField
                 J = Sys.CopyTrm(change.ConditionChn, Nothing)
-            Case ERefType.親のフィールド, ERefType.直前のフィールド
-                If ref_type = ERefType.親のフィールド Then
+            Case ERefPathType.ParentField, ERefPathType.PrevField
+                If ref_type = ERefPathType.ParentField Then
                     trans = New TTransRelative(E相対位置.親)
                 Else
                     trans = New TTransRelative(E相対位置.直前)
@@ -194,11 +194,9 @@ Public Class TDataflow
                     End If
                 Next
 
-            Case ERefType.不特定の子のフィールド
+            Case ERefPathType.SelfFieldChild
                 J = Nothing
-            Case ERefType.特定の子のフィールド
-                J = Nothing
-            Case ERefType.局所変数
+            Case ERefPathType.局所変数
                 J = Sys.CopyTrm(change.ConditionChn, Nothing)
             Case Else
                 J = Nothing
@@ -394,7 +392,7 @@ Public Class TDataflow
                     ' 規則内の変数参照で、値の代入ではない場合
 
                     ' 参照のされ方を得る。
-                    Dim ref_type As ERefType = GetRefType(ref1)
+                    Dim ref_type As ERefPathType = GetRefType(ref1)
 
                     ' 代入時の条件を自身の条件に直す。
                     NormalizedCondition = NormalizeValueChangedCondition(Change, ref1, ref_type)
@@ -486,13 +484,13 @@ Public Class TDataflow
     End Sub
 
     ' 参照のされ方から相対レベルを得る。
-    Public Function RelLevelByRefType(ref_type As ERefType) As Integer
+    Public Function RelLevelByRefType(ref_type As ERefPathType) As Integer
         Select Case ref_type
-            Case ERefType.自身のフィールド, ERefType.直前のフィールド, ERefType.局所変数
+            Case ERefPathType.SelfField, ERefPathType.PrevField, ERefPathType.局所変数
                 Return 0
-            Case ERefType.親のフィールド
+            Case ERefPathType.ParentField
                 Return 1
-            Case ERefType.不特定の子のフィールド, ERefType.特定の子のフィールド
+            Case ERefPathType.SelfFieldChild
                 Return -1
             Case Else
                 Debug.WriteLine("")
@@ -687,7 +685,7 @@ Public Class TDataflow
     End Sub
 
     ' タスクの起動のコードを作る
-    Public Sub MakeInvokeCode(change As TChange, ref_type As ERefType)
+    Public Sub MakeInvokeCode(change As TChange, ref_type As ERefPathType)
         Dim invoke_str As String = Nothing
 
         If change.AsnChn Is Nothing Then
@@ -695,19 +693,19 @@ Public Class TDataflow
         End If
 
         Select Case ref_type
-            Case ERefType.親のフィールド
+            Case ERefPathType.ParentField
                 ' 親のフィールドを参照している場合
 
                 ' 子のタスクが起動していなければ、起動する。
                 invoke_str = "' 子のタスクが起動していなければ、起動する。"
 
-            Case ERefType.不特定の子のフィールド
+            Case ERefPathType.SelfFieldChild
                 ' 不特定の子のフィールドを参照している場合
 
                 ' 親のタスクが起動していなければ、起動する。
                 invoke_str = "' 親のタスクが起動していなければ、起動する。"
 
-            Case ERefType.直前のフィールド
+            Case ERefPathType.PrevField
                 ' 直前のフィールドを参照している場合
 
                 ' 次のタスクが起動していなければ、起動する。
@@ -778,10 +776,10 @@ Public Class TDataflow
 
                         Dim ref_type = TDataflow.GetRefType(ref1)
                         Select Case ref_type
-                            Case ERefType.親のフィールド
+                            Case ERefPathType.ParentField
                                 stmt1.BeforeSrc = String.Format("CType(._ParentControl.Sync, {0}).{1}.WaitOne()", SyncClassName, signal_name)
 
-                            Case ERefType.不特定の子のフィールド
+                            Case ERefPathType.SelfFieldChild
                                 Dim sw1 As New StringWriter
 
                                 Dim children_fld As TField = AsnAggregateChildrenFld(CType(stmt1, TAssignment))
@@ -790,10 +788,10 @@ Public Class TDataflow
 
                                 stmt1.BeforeSrc = sw1.ToString()
 
-                            Case ERefType.直前のフィールド
+                            Case ERefPathType.PrevField
                                 stmt1.BeforeSrc = String.Format("CType(._Prev.Sync, {0}).{1}.WaitOne()", SyncClassName, signal_name)
 
-                            Case ERefType.その他
+                            Case ERefPathType.その他
                                 stmt1.BeforeSrc = "'その他の待ち"
 
                         End Select
@@ -882,7 +880,7 @@ Public Class TDataflow
         call1.BeforeSrc = sw.ToString()
     End Sub
 
-    Public Shared Function GetRefType(trm1 As TReference) As ERefType
+    Public Shared Function GetRefType(trm1 As TReference) As ERefPathType
 
         If TypeOf trm1 Is TDot Then
             Dim dot1 As TDot, dot2 As TDot, ref2 As TReference
@@ -890,9 +888,9 @@ Public Class TDataflow
             dot1 = CType(trm1, TDot)
             If dot1.TrmDot Is Nothing Then
                 If dot1.NameRef.StartsWith(ParentPrefix) Then
-                    Return ERefType.親
+                    Return ERefPathType.Parent
                 Else
-                    Return ERefType.自身のフィールド
+                    Return ERefPathType.SelfField
                 End If
             Else
 
@@ -902,11 +900,11 @@ Public Class TDataflow
                     If dot2.TrmDot Is Nothing Then
 
                         If dot2.NameRef.StartsWith(ParentPrefix) Then
-                            Return ERefType.親のフィールド
+                            Return ERefPathType.ParentField
                         End If
 
                         If dot2.NameRef.StartsWith(PrevPrefix) Then
-                            Return ERefType.直前のフィールド
+                            Return ERefPathType.PrevField
                         End If
                     End If
 
@@ -914,7 +912,7 @@ Public Class TDataflow
 
                     ref2 = CType(dot1.TrmDot, TReference)
                     If ref2.NameRef.StartsWith(ChildPrefix) Then
-                        Return ERefType.不特定の子のフィールド
+                        Return ERefPathType.SelfFieldChild
                     End If
                 End If
             End If
@@ -924,13 +922,13 @@ Public Class TDataflow
 
             ref1 = CType(trm1, TReference)
             If ref1.NameRef.StartsWith(CurrentPrefix) Then
-                Return ERefType.自分自身
+                Return ERefPathType.Self
             Else
-                Return ERefType.局所変数
+                Return ERefPathType.局所変数
             End If
         End If
 
-        Return ERefType.その他
+        Return ERefPathType.その他
     End Function
 
     ' 条件を追加する
@@ -1292,15 +1290,22 @@ Public Enum E相対位置
     直前
 End Enum
 
-' 参照のされ方
-Public Enum ERefType
-    自身のフィールド
-    親のフィールド
-    不特定の子のフィールド
-    特定の子のフィールド
-    直前のフィールド
-    親
-    自分自身
+' 参照パス
+Public Enum ERefPathType
+    Self
+    Parent
+    Prev
+    App
+
+    SelfField
+    ParentField
+    PrevField
+    AppField
+
+    SelfFieldChild
+    SelfFieldChildField
+    SelfFieldChildFieldChild
+
     局所変数
     その他
 End Enum
@@ -1311,6 +1316,12 @@ Public Enum EBinomialInference
     SecondRedundant
     Unknown
 End Enum
+
+' 参照パス
+Public Class TRefPath
+    Public RefPathType As ERefPathType
+    Public FieldPath As New List(Of TField)
+End Class
 
 Public Class TChange
     Public AsnChn As TAssignment
@@ -1330,11 +1341,11 @@ End Class
 Public Class TAffectedRef
     Public SrcChange As TChange
     Public RefAfr As TReference
-    Public RefTypeAfr As ERefType
+    Public RefTypeAfr As ERefPathType
     Public StmtAfr As TStatement
     Public DstChangeList As New TList(Of TChange)
 
-    Public Sub New(src_change As TChange, ref1 As TReference, ref_type As ERefType, stmt1 As TStatement)
+    Public Sub New(src_change As TChange, ref1 As TReference, ref_type As ERefPathType, stmt1 As TStatement)
         src_change.AffectedRefList.Add(Me)
         SrcChange = src_change
 
@@ -1414,14 +1425,14 @@ Public Class TTransRelative
     End Sub
 
     Public Overrides Function TransDot(dot1 As TDot, arg1 As Object) As TTerm
-        Dim 参照のされ方 As ERefType
+        Dim 参照のされ方 As ERefPathType
         Dim parent_fld As TField, prev_fld As TField, F As TField
 
         If Not 無効 Then
 
             参照のされ方 = TDataflow.GetRefType(dot1)
 
-            If 参照のされ方 = ERefType.自身のフィールド Then
+            If 参照のされ方 = ERefPathType.SelfField Then
 
                 Debug.Assert(dot1.TrmDot Is Nothing)
                 F = CType(dot1.VarRef, TField)
@@ -1446,13 +1457,13 @@ Public Class TTransRelative
     End Function
 
     Public Overrides Function TransRef(ref1 As TReference, arg1 As Object) As TTerm
-        Dim 参照のされ方 As ERefType
+        Dim 参照のされ方 As ERefPathType
         Dim parent_fld As TField, prev_fld As TField
 
         If Not 無効 Then
 
             参照のされ方 = TDataflow.GetRefType(ref1)
-            If 参照のされ方 = ERefType.自分自身 Then
+            If 参照のされ方 = ERefPathType.Self Then
                 Select Case 相対位置
                     Case E相対位置.親
                         ' _current を .Parent にする。
@@ -1553,7 +1564,7 @@ Public Class TFindSyncField
     Public SyncFldList As New TList(Of TField)
 
     Public Overrides Function StartDot(dot1 As TDot, arg1 As Object) As Object
-        Dim stmt1 As TStatement, ref_type As ERefType, fld1 As TField
+        Dim stmt1 As TStatement, ref_type As ERefPathType, fld1 As TField
 
         stmt1 = TDataflow.UpStmt(dot1)
         If ValidStmt.ContainsKey(stmt1) Then
@@ -1561,7 +1572,7 @@ Public Class TFindSyncField
 
             ref_type = TDataflow.GetRefType(dot1)
             Select Case ref_type
-                Case ERefType.自身のフィールド
+                Case ERefPathType.SelfField
                     fld1 = CType(dot1.VarRef, TField)
                     If dot1.DefRef AndAlso Not SetFld.Contains(fld1) Then
                         ' 自身のフィールドへの代入で、未処理の場合
@@ -1575,7 +1586,7 @@ Public Class TFindSyncField
                         End If
                     End If
 
-                Case ERefType.親のフィールド, ERefType.不特定の子のフィールド, ERefType.直前のフィールド
+                Case ERefPathType.ParentField, ERefPathType.SelfFieldChild, ERefPathType.PrevField
 
                     fld1 = CType(dot1.VarRef, TField)
                     If Not dot1.DefRef AndAlso Not GetFld.Contains(fld1) Then
@@ -1750,7 +1761,7 @@ Public Class Sys
                 ElseIf TypeOf trm1 Is TParenthesis Then
                     trm2 = CopyPar(CType(trm1, TParenthesis), cpy)
                 ElseIf TypeOf trm1 Is TFrom Then
-                    Debug.Assert(False)
+                    trm2 = CopyFrom(CType(trm1, TFrom), cpy)
                 ElseIf TypeOf trm1 Is TAggregate Then
                     trm2 = CopyAggregate(CType(trm1, TAggregate), cpy)
                 Else
@@ -1764,13 +1775,28 @@ Public Class Sys
         Return trm2
     End Function
 
+    Public Shared Function CopyFrom(from1 As TFrom, cpy As TCopy) As TFrom
+        Dim from2 As New TFrom
+
+        from2.SeqFrom = CopyTrm(from1.SeqFrom, cpy)
+        from2.VarFrom = CopyVar(from1.VarFrom, cpy)
+        from2.CndFrom = CopyTrm(from1.CndFrom, cpy)
+        from2.SelFrom = CopyTrm(from1.SelFrom, cpy)
+        from2.TakeFrom = CopyTrm(from1.TakeFrom, cpy)
+        from2.InnerFrom = CopyTrm(from1.InnerFrom, cpy)
+
+        Return from2
+    End Function
+
     Public Shared Function CopyAggregate(agg1 As TAggregate, cpy As TCopy) As TAggregate
         Dim agg2 As New TAggregate
 
-        agg2.VarAggr = CopyVar(agg1.VarAggr, cpy)
         agg2.SeqAggr = CopyTrm(agg1.SeqAggr, cpy)
-        agg2.FunctionAggr = agg1.FunctionAggr
+        agg2.VarAggr = CopyVar(agg1.VarAggr, cpy)
+        agg2.CndAggr = CopyTrm(agg1.CndAggr, cpy)
         agg2.IntoAggr = CopyTrm(agg1.IntoAggr, cpy)
+
+        agg2.FunctionAggr = agg1.FunctionAggr
 
         Return agg2
     End Function

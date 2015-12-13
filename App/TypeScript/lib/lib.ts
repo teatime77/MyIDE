@@ -123,6 +123,7 @@ class TShape {
     Size: TPoint = new TPoint();
     Rotation: number = 0;
     Velocity: TPoint = new TPoint();
+    BoundingRectangle: TRect = new TRect();
 
     SetBoundingRectangle(x: number, y: number, w: number, h: number) {
         this.Center.X = x;
