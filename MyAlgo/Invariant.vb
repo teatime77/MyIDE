@@ -650,11 +650,11 @@ Public Class TNaviMakeSourceCode
                     End With
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
-                        tw.Fmt(EToken.eFrom, .VarFrom.NameVar, EToken.eIn, .SeqFrom.TokenList)
+                        tw.Fmt(EToken.eFrom, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
 
-                        If .CndFrom IsNot Nothing Then
+                        If .CndQry IsNot Nothing Then
 
-                            tw.Fmt(EToken.eWhere, .CndFrom.TokenList)
+                            tw.Fmt(EToken.eWhere, .CndQry.TokenList)
                         End If
 
                         If .SelFrom IsNot Nothing Then
@@ -675,11 +675,11 @@ Public Class TNaviMakeSourceCode
 
                 ElseIf TypeOf self Is TAggregate Then
                     With CType(self, TAggregate)
-                        tw.Fmt(EToken.eAggregate, .VarAggr.NameVar, EToken.eIn, .SeqAggr.TokenList)
+                        tw.Fmt(EToken.eAggregate, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
 
-                        If .CndAggr IsNot Nothing Then
+                        If .CndQry IsNot Nothing Then
 
-                            tw.Fmt(EToken.eWhere, .CndAggr.TokenList)
+                            tw.Fmt(EToken.eWhere, .CndQry.TokenList)
                         End If
 
                         tw.Fmt(EToken.eInto)

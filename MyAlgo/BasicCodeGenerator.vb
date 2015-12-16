@@ -266,14 +266,14 @@ Public Class TBasicCodeGenerator
     ' From i In v1 Where i Mod 2 = 0 Select AA(i)
     Public Overrides Sub FromSrc(from1 As TFrom)
         WordAdd(EToken.eFrom, EFigType.eResFig, from1)
-        Fmt(from1.VarFrom)
+        Fmt(from1.VarQry)
         WordAdd(EToken.eIn, EFigType.eResFig, from1)
-        TrmSrc(from1.SeqFrom)
+        TrmSrc(from1.SeqQry)
 
-        If from1.CndFrom IsNot Nothing Then
+        If from1.CndQry IsNot Nothing Then
 
             WordAdd(EToken.eWhere, EFigType.eResFig, from1)
-            TrmSrc(from1.CndFrom)
+            TrmSrc(from1.CndQry)
         End If
 
         If from1.SelFrom IsNot Nothing Then
@@ -296,14 +296,14 @@ Public Class TBasicCodeGenerator
     ' Aggregate x In v Into Sum(x.Value)
     Public Overrides Sub AggregateSrc(aggr1 As TAggregate)
         WordAdd(EToken.eAggregate, EFigType.eResFig, aggr1)
-        Fmt(aggr1.VarAggr)
+        Fmt(aggr1.VarQry)
         WordAdd(EToken.eIn, EFigType.eResFig, aggr1)
-        TrmSrc(aggr1.SeqAggr)
+        TrmSrc(aggr1.SeqQry)
 
-        If aggr1.CndAggr IsNot Nothing Then
+        If aggr1.CndQry IsNot Nothing Then
 
             WordAdd(EToken.eWhere, EFigType.eResFig, aggr1)
-            TrmSrc(aggr1.CndAggr)
+            TrmSrc(aggr1.CndQry)
         End If
 
         WordAdd(EToken.eInto, EFigType.eResFig, aggr1)

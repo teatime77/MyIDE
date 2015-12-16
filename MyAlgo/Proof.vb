@@ -855,7 +855,7 @@ Public Class TDataflow
     ' 集計の代入文の子のフィールドを返す
     Function AsnAggregateChildrenFld(asn1 As TAssignment) As TField
         Dim aggr1 As TAggregate = asn1.RelAsn.ArgApp(1)
-        Dim dot1 As TDot = CType(aggr1.SeqAggr, TDot)
+        Dim dot1 As TDot = CType(aggr1.SeqQry, TDot)
 
         Debug.Assert(dot1.TrmDot Is Nothing)
 
@@ -1778,9 +1778,9 @@ Public Class Sys
     Public Shared Function CopyFrom(from1 As TFrom, cpy As TCopy) As TFrom
         Dim from2 As New TFrom
 
-        from2.SeqFrom = CopyTrm(from1.SeqFrom, cpy)
-        from2.VarFrom = CopyVar(from1.VarFrom, cpy)
-        from2.CndFrom = CopyTrm(from1.CndFrom, cpy)
+        from2.SeqQry = CopyTrm(from1.SeqQry, cpy)
+        from2.VarQry = CopyVar(from1.VarQry, cpy)
+        from2.CndQry = CopyTrm(from1.CndQry, cpy)
         from2.SelFrom = CopyTrm(from1.SelFrom, cpy)
         from2.TakeFrom = CopyTrm(from1.TakeFrom, cpy)
         from2.InnerFrom = CopyTrm(from1.InnerFrom, cpy)
@@ -1791,9 +1791,9 @@ Public Class Sys
     Public Shared Function CopyAggregate(agg1 As TAggregate, cpy As TCopy) As TAggregate
         Dim agg2 As New TAggregate
 
-        agg2.SeqAggr = CopyTrm(agg1.SeqAggr, cpy)
-        agg2.VarAggr = CopyVar(agg1.VarAggr, cpy)
-        agg2.CndAggr = CopyTrm(agg1.CndAggr, cpy)
+        agg2.SeqQry = CopyTrm(agg1.SeqQry, cpy)
+        agg2.VarQry = CopyVar(agg1.VarQry, cpy)
+        agg2.CndQry = CopyTrm(agg1.CndQry, cpy)
         agg2.IntoAggr = CopyTrm(agg1.IntoAggr, cpy)
 
         agg2.FunctionAggr = agg1.FunctionAggr

@@ -214,18 +214,18 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviFrom(frm1 As TFrom, arg1 As Object)
-        NaviTerm(frm1.SeqFrom, arg1)
-        NaviLocalVariable(frm1.VarFrom, arg1)
-        NaviTerm(frm1.CndFrom, arg1)
+        NaviTerm(frm1.SeqQry, arg1)
+        NaviLocalVariable(frm1.VarQry, arg1)
+        NaviTerm(frm1.CndQry, arg1)
         NaviTerm(frm1.SelFrom, arg1)
         NaviTerm(frm1.TakeFrom, arg1)
         NaviTerm(frm1.InnerFrom, arg1)
     End Sub
 
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate, arg1 As Object)
-        NaviTerm(aggr1.SeqAggr, arg1)
-        NaviLocalVariable(aggr1.VarAggr, arg1)
-        NaviTerm(aggr1.CndAggr, arg1)
+        NaviTerm(aggr1.SeqQry, arg1)
+        NaviLocalVariable(aggr1.VarQry, arg1)
+        NaviTerm(aggr1.CndQry, arg1)
         NaviTerm(aggr1.IntoAggr, arg1)
     End Sub
 

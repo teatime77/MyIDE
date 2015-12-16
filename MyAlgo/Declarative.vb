@@ -187,18 +187,18 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviFrom(frm1 As TFrom)
-        NaviTerm(frm1.SeqFrom)
-        NaviLocalVariable(frm1.VarFrom)
-        NaviTerm(frm1.CndFrom)
+        NaviTerm(frm1.SeqQry)
+        NaviLocalVariable(frm1.VarQry)
+        NaviTerm(frm1.CndQry)
         NaviTerm(frm1.SelFrom)
         NaviTerm(frm1.TakeFrom)
         NaviTerm(frm1.InnerFrom)
     End Sub
 
     Public Overridable Sub NaviAggregate(aggr1 As TAggregate)
-        NaviTerm(aggr1.SeqAggr)
-        NaviLocalVariable(aggr1.VarAggr)
-        NaviTerm(aggr1.CndAggr)
+        NaviTerm(aggr1.SeqQry)
+        NaviLocalVariable(aggr1.VarQry)
+        NaviTerm(aggr1.CndQry)
         NaviTerm(aggr1.IntoAggr)
     End Sub
 
@@ -587,7 +587,7 @@ Public Class TSetRefDeclarative
                         .TypeTrm = .InnerFrom.TypeTrm
                     Else
                         If .SelFrom Is Nothing Then
-                            cla1 = .SeqFrom.TypeTrm
+                            cla1 = .SeqQry.TypeTrm
                             Debug.Assert(cla1 IsNot Nothing)
                             cla2 = .ProjectTrm.ElementType(cla1)
                             .TypeTrm = .ProjectTrm.GetIEnumerableClass(cla2)
@@ -860,17 +860,17 @@ Public Class TSetRefDeclarative
 
                 If TypeOf obj Is TFrom Then
                     Dim frm1 As TFrom = CType(obj, TFrom)
-                    Debug.Assert(self Is frm1.VarFrom)
+                    Debug.Assert(self Is frm1.VarQry)
 
-                    Dim type1 As TClass = frm1.SeqFrom.TypeTrm
+                    Dim type1 As TClass = frm1.SeqQry.TypeTrm
                     .TypeVar = frm1.ProjectTrm.ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
                 ElseIf TypeOf obj Is TAggregate Then
                     Dim aggr1 As TAggregate = CType(obj, TAggregate)
-                    Debug.Assert(self Is aggr1.VarAggr)
+                    Debug.Assert(self Is aggr1.VarQry)
 
-                    Dim type1 As TClass = aggr1.SeqAggr.TypeTrm
+                    Dim type1 As TClass = aggr1.SeqQry.TypeTrm
                     .TypeVar = aggr1.ProjectTrm.ElementType(type1)
                     Debug.Assert(.TypeVar IsNot Nothing)
 
@@ -1387,6 +1387,8 @@ Public Class TNaviSetRefPath
                         End Select
                     End With
 
+                ElseIf TypeOf self Is TQuery Then
+
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
 
@@ -1439,15 +1441,15 @@ Public Class TNaviSetRefPath
                             Debug.Print("----------------------------------------- UpVar List {0}", up_obj.GetType())
                         End If
 
-                    ElseIf TypeOf .UpVar Is TFrom Then
-                        Dim from1 As TFrom = CType(.UpVar, TFrom)
+                    ElseIf TypeOf .UpVar Is TQuery Then
+                        Dim qry1 As TQuery = CType(.UpVar, TQuery)
 
-                        Select Case from1.SelFrom.RefPathTrm.RefPathType
+                        Select Case qry1.SeqQry.RefPathTrm.RefPathType
                             Case ERefPathType.SelfField
-                                from1.VarFrom.RefPathVar.RefPathType = ERefPathType.SelfFieldChild
+                                qry1.VarQry.RefPathVar.RefPathType = ERefPathType.SelfFieldChild
 
                             Case ERefPathType.SelfFieldChildField
-                                from1.VarFrom.RefPathVar.RefPathType = ERefPathType.SelfFieldChildFieldChild
+                                qry1.VarQry.RefPathVar.RefPathType = ERefPathType.SelfFieldChildFieldChild
 
                             Case Else
                                 Debug.Assert(False)

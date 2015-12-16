@@ -1983,15 +1983,15 @@ Public Class TBasicParser
         GetTkn(EToken.eFrom)
 
         Dim id1 As TToken = GetTkn(EToken.eId)
-        from1.VarFrom = New TVariable(id1, Nothing)
+        from1.VarQry = New TVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
-        from1.SeqFrom = TermExpression()
+        from1.SeqQry = TermExpression()
 
         If CurTkn.TypeTkn = EToken.eWhere Then
 
             GetTkn(EToken.eWhere)
-            from1.CndFrom = TermExpression()
+            from1.CndQry = TermExpression()
         End If
 
         If CurTkn.TypeTkn = EToken.eSelect Then
@@ -2020,15 +2020,15 @@ Public Class TBasicParser
 
         GetTkn(EToken.eAggregate)
         id1 = GetTkn(EToken.eId)
-        aggr1.VarAggr = New TVariable(id1, Nothing)
+        aggr1.VarQry = New TVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
-        aggr1.SeqAggr = TermExpression()
+        aggr1.SeqQry = TermExpression()
 
         If CurTkn.TypeTkn = EToken.eWhere Then
 
             GetTkn(EToken.eWhere)
-            aggr1.CndAggr = TermExpression()
+            aggr1.CndQry = TermExpression()
         End If
 
         GetTkn(EToken.eInto)

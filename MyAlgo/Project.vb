@@ -415,15 +415,15 @@ Public Class TProject
         For Each obj In TNaviUp.AncestorList(term)
             If TypeOf obj Is TFrom Then
                 With CType(obj, TFrom)
-                    If .VarFrom.NameVar = name1 Then
-                        Return .VarFrom
+                    If .VarQry.NameVar = name1 Then
+                        Return .VarQry
                     End If
                 End With
 
             ElseIf TypeOf obj Is TAggregate Then
                 With CType(obj, TAggregate)
-                    If .VarAggr.NameVar = name1 Then
-                        Return .VarAggr
+                    If .VarQry.NameVar = name1 Then
+                        Return .VarQry
                     End If
                 End With
 

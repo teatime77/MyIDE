@@ -993,13 +993,17 @@ Public Class TDot
     End Function
 End Class
 
+Public Class TQuery
+    Inherits TTerm
+    Public VarQry As TVariable
+    Public SeqQry As TTerm
+    Public CndQry As TTerm
+End Class
+
 ' -------------------------------------------------------------------------------- TFrom
 ' From i In v1 Where i Mod 2 = 0 Select AA(i)
 Public Class TFrom
-    Inherits TTerm
-    Public VarFrom As TVariable
-    Public SeqFrom As TTerm
-    Public CndFrom As TTerm
+    Inherits TQuery
     Public SelFrom As TTerm
     Public TakeFrom As TTerm
     Public InnerFrom As TFrom
@@ -1008,10 +1012,7 @@ End Class
 ' -------------------------------------------------------------------------------- TAggregate
 ' Aggregate x In v Into Sum(x.Value)
 Public Class TAggregate
-    Inherits TTerm
-    Public VarAggr As TVariable
-    Public SeqAggr As TTerm
-    Public CndAggr As TTerm
+    Inherits TQuery
     Public FunctionAggr As EAggregateFunction
     Public IntoAggr As TTerm
 End Class
