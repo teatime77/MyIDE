@@ -353,7 +353,20 @@ Public Class TBasicCodeGenerator
 
     Public Sub IfBlcSrc(if_blc As TIfBlock, tab1 As Integer)
         IfBlcHeadSrc(if_blc, tab1)
-        BlcSrc(if_blc, EToken.eUnknown, if_blc.BlcIf, tab1)
+        If if_blc.TermWith IsNot Nothing Then
+            NL(if_blc)
+            Tab(tab1)
+            WordAdd(EToken.eWith, EFigType.eResFig, if_blc)
+            TrmSrc(if_blc.TermWith)
+
+            BlcSrc(if_blc, EToken.eUnknown, if_blc.BlcIf, tab1)
+
+            Tab(tab1)
+            WordAdd("End With", EFigType.eResFig, if_blc)
+            NL(if_blc)
+        Else
+            BlcSrc(if_blc, EToken.eUnknown, if_blc.BlcIf, tab1)
+        End If
     End Sub
 
     '  ifのソースを作る
@@ -489,19 +502,6 @@ Public Class TBasicCodeGenerator
         NL(try1)
     End Sub
 
-    '  TWithのソースを作る
-    Public Overrides Sub WithSrc(with1 As TWith, tab1 As Integer)
-        Tab(tab1)
-        WordAdd(EToken.eWith, EFigType.eResFig, with1)
-        TrmSrc(with1.TermWith)
-
-        BlcSrc(with1, EToken.eWith, with1.BlcWith, tab1)
-
-        Tab(tab1)
-        WordAdd("End With", EFigType.eResFig, with1)
-        NL(with1)
-    End Sub
-
     '  TStatementのソースを作る
     Public Overrides Sub StmtSrc(stmt1 As TStatement, tab1 As Integer)
         Dim ret1 As TReturn
@@ -559,9 +559,6 @@ Public Class TBasicCodeGenerator
 
         ElseIf TypeOf stmt1 Is TTry Then
             TrySrc(CType(stmt1, TTry), tab1)
-
-        ElseIf TypeOf stmt1 Is TWith Then
-            WithSrc(CType(stmt1, TWith), tab1)
 
         ElseIf TypeOf stmt1 Is TFor Then
             ForSrc(CType(stmt1, TFor), tab1)

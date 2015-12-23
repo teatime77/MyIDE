@@ -107,46 +107,48 @@ Public Class TNaviMakeSourceCode
     End Sub
 
     Public Sub VariableTypeInitializer(self As Object, tw As TTokenWriter)
-        With CType(self, TVariable)
-            Dim as_new As Boolean = False, app1 As TApply
+        If TypeOf self Is TVariable Then
+            With CType(self, TVariable)
+                Dim as_new As Boolean = False, app1 As TApply
 
-            If .InitVar IsNot Nothing AndAlso .InitVar.TokenList Is Nothing Then
-                ' 生成された初期化関数が、まだ呼ばれていない場合
+                If .InitVar IsNot Nothing AndAlso .InitVar.TokenList Is Nothing Then
+                    ' 生成された初期化関数が、まだ呼ばれていない場合
 
-                NaviTerm(.InitVar)
-            End If
-
-            If .TypeVar IsNot Nothing AndAlso Not .NoType Then
-                tw.Fmt(EToken.eAs)
-                If .InitVar IsNot Nothing AndAlso .InitVar.IsApp() AndAlso CType(.InitVar, TApply).TypeApp = EToken.eNew Then
-                    as_new = True
-
-                    app1 = CType(.InitVar, TApply)
-                    If app1.ArgApp.Count = 0 Then
-                        ' 引数がない場合
-
-                        tw.Fmt(EToken.eNew)
-                        tw.Fmt(app1.NewApp.TokenListVar)
-                    Else
-                        ' 引数がある場合
-                        tw.Fmt(app1.TokenList)
-                    End If
-
-                    If app1.IniApp IsNot Nothing Then
-
-                        tw.Fmt(EToken.eFrom, app1.IniApp.TokenList)
-                    End If
-                Else
-                    PrjMK.SetClassNameList(.TypeVar, ParserMK)
-                    tw.Fmt(.TypeVar.TokenListVar)
+                    NaviTerm(.InitVar)
                 End If
-            End If
 
-            If Not as_new AndAlso .InitVar IsNot Nothing Then
-                tw.Fmt(EToken.eASN, .InitVar.TokenList)
-            End If
+                If .TypeVar IsNot Nothing AndAlso Not .NoType Then
+                    tw.Fmt(EToken.eAs)
+                    If .InitVar IsNot Nothing AndAlso .InitVar.IsApp() AndAlso CType(.InitVar, TApply).TypeApp = EToken.eNew Then
+                        as_new = True
 
-        End With
+                        app1 = CType(.InitVar, TApply)
+                        If app1.ArgApp.Count = 0 Then
+                            ' 引数がない場合
+
+                            tw.Fmt(EToken.eNew)
+                            tw.Fmt(app1.NewApp.TokenListVar)
+                        Else
+                            ' 引数がある場合
+                            tw.Fmt(app1.TokenList)
+                        End If
+
+                        If app1.IniApp IsNot Nothing Then
+
+                            tw.Fmt(EToken.eFrom, app1.IniApp.TokenList)
+                        End If
+                    Else
+                        PrjMK.SetClassNameList(.TypeVar, ParserMK)
+                        tw.Fmt(.TypeVar.TokenListVar)
+                    End If
+                End If
+
+                If Not as_new AndAlso .InitVar IsNot Nothing Then
+                    tw.Fmt(EToken.eASN, .InitVar.TokenList)
+                End If
+
+            End With
+        End If
     End Sub
 
     ' コメントのソースを作る
@@ -204,32 +206,34 @@ Public Class TNaviMakeSourceCode
                             Case EClass.eDelegateCla
                                 ' デリゲートの場合
 
-                                With CType(self, TDelegate)
-                                    tw.Fmt(EToken.ePublic, EToken.eDelegate)
+                                If TypeOf self Is TDelegate Then
+                                    With CType(self, TDelegate)
+                                        tw.Fmt(EToken.ePublic, EToken.eDelegate)
 
-                                    Select Case ParserMK.LanguageSP
-                                        Case ELanguage.Basic
-                                            If .RetDlg Is Nothing Then
-                                                tw.Fmt(EToken.eSub)
-                                            Else
-                                                tw.Fmt(EToken.eFunction)
-                                            End If
-                                        Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                    End Select
+                                        Select Case ParserMK.LanguageSP
+                                            Case ELanguage.Basic
+                                                If .RetDlg Is Nothing Then
+                                                    tw.Fmt(EToken.eSub)
+                                                Else
+                                                    tw.Fmt(EToken.eFunction)
+                                                End If
+                                            Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                        End Select
 
-                                    tw.Fmt(.NameVar)
+                                        tw.Fmt(.NameVar)
 
-                                    tw.Fmt(EToken.eLP)
-                                    tw.Fmt(Laminate((From var1 In .ArgDlg Select var1.TokenListVar), New TToken(EToken.eComma, self)))
-                                    tw.Fmt(EToken.eRP)
+                                        tw.Fmt(EToken.eLP)
+                                        tw.Fmt(Laminate((From var1 In .ArgDlg Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+                                        tw.Fmt(EToken.eRP)
 
-                                    If .RetDlg IsNot Nothing Then
-                                        PrjMK.SetClassNameList(.RetDlg, ParserMK)
-                                        tw.Fmt(EToken.eAs, .RetDlg.TokenListVar)
-                                    End If
+                                        If .RetDlg IsNot Nothing Then
+                                            PrjMK.SetClassNameList(.RetDlg, ParserMK)
+                                            tw.Fmt(EToken.eAs, .RetDlg.TokenListVar)
+                                        End If
 
-                                    tw.Fmt(EToken.eEOL)
-                                End With
+                                        tw.Fmt(EToken.eEOL)
+                                    End With
+                                End If
                             Case Else
 
                                 '  クラスの場合
@@ -793,7 +797,14 @@ Public Class TNaviMakeSourceCode
                                 End If
                         End Select
 
-                        tw.Fmt(.BlcIf.TokenListStmt)
+                        If .TermWith IsNot Nothing Then
+                            tw.Fmt(EToken.eWith, .TermWith.TokenList, EToken.eNL)
+                            tw.Fmt(.BlcIf.TokenListStmt)
+                            tw.Fmt(EToken.eEndWith, EToken.eNL)
+                        Else
+                            tw.Fmt(.BlcIf.TokenListStmt)
+                        End If
+
 
                         If ParserMK.LanguageSP <> ELanguage.Basic Then
                             tw.Fmt(EToken.eRC, EToken.eNL)
@@ -881,13 +892,6 @@ Public Class TNaviMakeSourceCode
                                 tw.Fmt(EToken.eRC, EToken.eNL)
                         End Select
 
-                    End With
-
-                ElseIf TypeOf self Is TWith Then
-                    With CType(self, TWith)
-                        tw.Fmt(EToken.eWith, .TermWith.TokenList, EToken.eNL)
-                        tw.Fmt(.BlcWith.TokenListStmt)
-                        tw.Fmt(EToken.eEndWith, EToken.eNL)
                     End With
 
                 ElseIf TypeOf self Is TFor Then
@@ -1093,15 +1097,19 @@ Public Class TNaviMakeSourceCode
     End Function
 
     Public Function AppArgTokenList(self As Object) As List(Of TToken)
-        With CType(self, TApply)
-            Dim vtkn As New List(Of TToken)
+        If TypeOf self Is TApply Then
+            With CType(self, TApply)
+                Dim vtkn As New List(Of TToken)
 
-            vtkn.Add(New TToken(EToken.eLP, self))
-            vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
-            vtkn.Add(New TToken(EToken.eRP, self))
+                vtkn.Add(New TToken(EToken.eLP, self))
+                vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
+                vtkn.Add(New TToken(EToken.eRP, self))
 
-            Return vtkn
-        End With
+                Return vtkn
+            End With
+        End If
+        Debug.Assert(False)
+        Return Nothing
     End Function
 
     Public Sub ModifierSrc(mod1 As TModifier)

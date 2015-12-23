@@ -1630,53 +1630,50 @@ Public Class TProject
 
     Public Sub SetClassNameList(cla1 As TClass, parser As TSourceParser)
         Dim tw As New TTokenWriter(cla1, parser)
+        Dim i1 As Integer
 
-        With CType(cla1, TClass)
-            Dim i1 As Integer
+        If cla1.TokenListVar IsNot Nothing Then
+            Exit Sub
+        End If
 
-            If .TokenListVar IsNot Nothing Then
-                Exit Sub
-            End If
+        If cla1 Is Nothing Then
+            tw.Fmt("型不明")
+        Else
 
-            If cla1 Is Nothing Then
-                tw.Fmt("型不明")
+            If cla1.DimCla <> 0 Then
+                ' 配列の場合
+
+                Debug.Assert(cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = 1)
+                SetClassNameList(cla1.GenCla(0), parser)
+                tw.Fmt(cla1.GenCla(0).TokenListVar, EToken.eLP)
+
+                For i1 = 0 To cla1.DimCla - 1
+                    If i1 <> 0 Then
+                        tw.Fmt(EToken.eComma)
+                    End If
+                Next
+                tw.Fmt(EToken.eRP)
             Else
+                ' 配列でない場合
+                tw.Fmt(cla1.NameVar)
+                If cla1.GenCla IsNot Nothing Then
+                    ' 総称型の場合
 
-                If .DimCla <> 0 Then
-                    ' 配列の場合
-
-                    Debug.Assert(.GenCla IsNot Nothing AndAlso .GenCla.Count = 1)
-                    SetClassNameList(.GenCla(0), parser)
-                    tw.Fmt(.GenCla(0).TokenListVar, EToken.eLP)
-
-                    For i1 = 0 To .DimCla - 1
+                    tw.Fmt(EToken.eLP, EToken.eOf)
+                    For i1 = 0 To cla1.GenCla.Count - 1
                         If i1 <> 0 Then
                             tw.Fmt(EToken.eComma)
                         End If
+
+                        SetClassNameList(cla1.GenCla(i1), parser)
+                        tw.Fmt(cla1.GenCla(i1).TokenListVar)
                     Next
                     tw.Fmt(EToken.eRP)
-                Else
-                    ' 配列でない場合
-                    tw.Fmt(.NameVar)
-                    If .GenCla IsNot Nothing Then
-                        ' 総称型の場合
-
-                        tw.Fmt(EToken.eLP, EToken.eOf)
-                        For i1 = 0 To .GenCla.Count - 1
-                            If i1 <> 0 Then
-                                tw.Fmt(EToken.eComma)
-                            End If
-
-                            SetClassNameList(.GenCla(i1), parser)
-                            tw.Fmt(.GenCla(i1).TokenListVar)
-                        Next
-                        tw.Fmt(EToken.eRP)
-                    End If
                 End If
             End If
+        End If
 
-            .TokenListVar = tw.GetTokenList()
-        End With
+        cla1.TokenListVar = tw.GetTokenList()
 
     End Sub
 

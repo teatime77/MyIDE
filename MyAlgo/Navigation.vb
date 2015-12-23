@@ -230,18 +230,16 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviFor(for1 As TFor, arg1 As Object)
-        With for1
-            NaviTerm(.IdxFor, arg1)
-            NaviTerm(.InTrmFor, arg1)
-            NaviLocalVariable(.InVarFor, arg1)
-            NaviTerm(.FromFor, arg1)
-            NaviTerm(.ToFor, arg1)
-            NaviTerm(.StepFor, arg1)
-            NaviStatement(.IniFor, arg1)
-            NaviTerm(.CndFor, arg1)
-            NaviStatement(.StepStmtFor, arg1)
-            NaviStatement(.BlcFor, arg1)
-        End With
+        NaviTerm(for1.IdxFor, arg1)
+        NaviTerm(for1.InTrmFor, arg1)
+        NaviLocalVariable(for1.InVarFor, arg1)
+        NaviTerm(for1.FromFor, arg1)
+        NaviTerm(for1.ToFor, arg1)
+        NaviTerm(for1.StepFor, arg1)
+        NaviStatement(for1.IniFor, arg1)
+        NaviTerm(for1.CndFor, arg1)
+        NaviStatement(for1.StepStmtFor, arg1)
+        NaviStatement(for1.BlcFor, arg1)
     End Sub
 
     Public Overridable Sub NaviCase(cas1 As TCase, arg1 As Object)
@@ -277,6 +275,7 @@ Public Class TNavi
 
     Public Overridable Sub NaviIfBlock(if_blc As TIfBlock, arg1 As Object)
         NaviTerm(if_blc.CndIf, arg1)
+        NaviTerm(if_blc.TermWith, arg1)
         NaviStatement(if_blc.BlcIf, arg1)
     End Sub
 
@@ -284,11 +283,6 @@ Public Class TNavi
         NaviStatement(try1.BlcTry, arg1)
         NaviLocalVariableList(try1.VarCatch, arg1)
         NaviStatement(try1.BlcCatch, arg1)
-    End Sub
-
-    Public Overridable Sub NaviWith(with1 As TWith, arg1 As Object)
-        NaviTerm(with1.TermWith, arg1)
-        NaviStatement(with1.BlcWith, arg1)
     End Sub
 
     Public Overridable Sub NaviVariableDeclaration(dcl1 As TVariableDeclaration, arg1 As Object)
@@ -331,8 +325,6 @@ Public Class TNavi
                 NaviCase(CType(stmt1, TCase), arg1)
             ElseIf TypeOf stmt1 Is TTry Then
                 NaviTry(CType(stmt1, TTry), arg1)
-            ElseIf TypeOf stmt1 Is TWith Then
-                NaviWith(CType(stmt1, TWith), arg1)
             ElseIf TypeOf stmt1 Is TFor Then
                 NaviFor(CType(stmt1, TFor), arg1)
             ElseIf TypeOf stmt1 Is TBlock Then
@@ -360,15 +352,12 @@ Public Class TNavi
     End Sub
 
     Public Overridable Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
-        With fnc1
-            arg1 = StartFunction(fnc1, arg1)
+        arg1 = StartFunction(fnc1, arg1)
 
-            NaviLocalVariableList(fnc1.ArgFnc, arg1)
-            If fnc1.BlcFnc IsNot Nothing Then
-                NaviStatement(.BlcFnc, arg1)
-            End If
-
-        End With
+        NaviLocalVariableList(fnc1.ArgFnc, arg1)
+        If fnc1.BlcFnc IsNot Nothing Then
+            NaviStatement(fnc1.BlcFnc, arg1)
+        End If
     End Sub
 
     Public Overridable Sub NaviClass(cla1 As TClass, arg1 As Object)

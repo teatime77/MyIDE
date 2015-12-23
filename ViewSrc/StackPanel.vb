@@ -185,17 +185,15 @@ Public Class TNaviView
                 .Left = .Width
 
                 For Each ctrl In .Children
-                    With ctrl
-                        If IsFirst(ctrl) Then
-                            ' 最初の場合
+                    If IsFirst(ctrl) Then
+                        ' 最初の場合
 
-                            .Left = ._ParentControl.Left
-                        Else
-                            ' 最初でない場合
+                        ctrl.Left = ctrl._ParentControl.Left
+                    Else
+                        ' 最初でない場合
 
-                            .Left = ._Prev.Left + ._Prev.Width + 10
-                        End If
-                    End With
+                        ctrl.Left = ctrl._Prev.Left + ctrl._Prev.Width + 10
+                    End If
                 Next
             End With
 

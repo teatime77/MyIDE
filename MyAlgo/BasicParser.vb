@@ -719,7 +719,8 @@ Public Class TBasicParser
 
         stmt1.TypeStmt = EToken.eWith
         GetTkn(EToken.eWith)
-        stmt1.TermWith = TermExpression()
+
+        stmt1.TermWith = DotExpression()
 
         Return stmt1
     End Function

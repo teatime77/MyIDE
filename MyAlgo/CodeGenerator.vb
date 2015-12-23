@@ -242,7 +242,6 @@ Public MustInherit Class TCodeGenerator
     Public MustOverride Sub SimpleStmtSrc(stmt1 As TStatement, tab1 As Integer)
     Public MustOverride Sub SelectSrc(swt1 As TSelect, tab1 As Integer)
     Public MustOverride Sub TrySrc(try1 As TTry, tab1 As Integer)
-    Public MustOverride Sub WithSrc(with1 As TWith, tab1 As Integer)
 
     ' コメントのソースを作る
     Public Sub ComSrc(com1 As TComment, tab1 As Integer, obj1 As Object)

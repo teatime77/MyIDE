@@ -140,35 +140,6 @@ Public Class TDataflow
         End If
     End Function
 
-    Public Shared Function UpNotWithStmt(obj1 As Object) As TStatement
-        Dim up_obj As Object
-
-        up_obj = UpStmt(obj1)
-        If TypeOf up_obj Is TStatement Then
-            If TypeOf up_obj Is TWith Then
-                Return UpNotWithStmt(CType(up_obj, TStatement).ParentStmt)
-            Else
-                Return CType(up_obj, TStatement)
-            End If
-        Else
-            Return Nothing
-        End If
-    End Function
-
-    Public Shared Function UpWith(obj1 As Object) As TWith
-        Dim stmt1 As TStatement
-
-        stmt1 = UpStmtProper(obj1)
-        Do While stmt1 IsNot Nothing
-            If TypeOf stmt1 Is TWith Then
-                Return CType(stmt1, TWith)
-            End If
-            stmt1 = UpStmtProper(stmt1.ParentStmt)
-        Loop
-
-        Return Nothing
-    End Function
-
     Public Shared Function UpFor(obj1 As Object) As TFor
         Dim stmt1 As TStatement
 
@@ -664,10 +635,9 @@ Public Class TDataflow
 
                     Dim fld1 As TField = CType(dot1.VarRef, TField)
 
-                    Dim with1 As TWith = UpWith(x.ParentStmt)
-                    Debug.Assert(with1 IsNot Nothing)
+                    Dim if_blc = CType((From o In TNaviUp.AncestorList(x) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).TermWith IsNot Nothing).First(), TIfBlock)
 
-                    Dim with_cls As TClass = with1.TermWith.TypeTrm
+                    Dim with_cls As TClass = if_blc.TermWith.TypeTrm
                     Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm)())
                     If set_fnc IsNot Nothing Then
 
@@ -773,7 +743,7 @@ Public Class TDataflow
                                 If up_stmt.ValidStmt Then
                                     ' 有効の場合
 
-                                    If Not (TypeOf up_stmt Is TIf OrElse TypeOf up_stmt Is TIfBlock OrElse TypeOf up_stmt Is TSelect OrElse TypeOf up_stmt Is TCase OrElse TypeOf up_stmt Is TWith) Then
+                                    If Not (TypeOf up_stmt Is TIf OrElse TypeOf up_stmt Is TIfBlock OrElse TypeOf up_stmt Is TSelect OrElse TypeOf up_stmt Is TCase) Then
 
                                         Debug.WriteLine("sync set {0}", up_stmt.GetType())
                                         Debug.Assert(False)
@@ -996,7 +966,6 @@ Public Class TDataflow
             case1 = CType(stmt1, TCase)
 
         ElseIf TypeOf up_stmt Is TCase Then
-        ElseIf TypeOf up_stmt Is TWith Then
         ElseIf TypeOf up_stmt Is TFor Then
         End If
     End Sub
@@ -1025,7 +994,6 @@ Public Class TDataflow
         ElseIf TypeOf stmt1 Is TIfBlock Then
         ElseIf TypeOf stmt1 Is TSelect Then
         ElseIf TypeOf stmt1 Is TCase Then
-        ElseIf TypeOf stmt1 Is TWith Then
         ElseIf TypeOf stmt1 Is TFor Then
         Else
             Debug.Assert(False)
@@ -1918,6 +1886,7 @@ Public Class Sys
 
         if_blc2.BlcIf = CopyBlc(if_blc.BlcIf, cpy)
         if_blc2.CndIf = CopyTrm(if_blc.CndIf, cpy)
+        if_blc2.TermWith = CopyTrm(if_blc.TermWith, cpy)
 
         Return if_blc2
     End Function
@@ -1943,15 +1912,6 @@ Public Class Sys
         case2.BlcCase = CopyBlc(case1.BlcCase, cpy)
 
         Return case2
-    End Function
-
-    Public Shared Function CopyWith(with1 As TWith, cpy As TCopy) As TWith
-        Dim with2 As New TWith
-
-        with2.TermWith = CopyTrm(with1.TermWith, cpy)
-        with2.BlcWith = CopyBlc(with1.BlcWith, cpy)
-
-        Return with2
     End Function
 
     Public Shared Function CopyFor(for1 As TFor, cpy As TCopy) As TFor
@@ -2031,8 +1991,6 @@ Public Class Sys
             Return CopySelect(CType(stmt1, TSelect), cpy)
         ElseIf TypeOf stmt1 Is TCase Then
             Return CopyCase(CType(stmt1, TCase), cpy)
-        ElseIf TypeOf stmt1 Is TWith Then
-            Return CopyWith(CType(stmt1, TWith), cpy)
         ElseIf TypeOf stmt1 Is TFor Then
             Return CopyFor(CType(stmt1, TFor), cpy)
         ElseIf TypeOf stmt1 Is TComment Then

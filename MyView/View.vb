@@ -35,13 +35,11 @@ Public Class 販売管理
                 .合計 = Aggregate 子 In .売上明細リスト Into Sum(子.小計)
 
                 For Each 子 In .売上明細リスト
-                    With CType(子, 売上明細)
-                        If 先頭(子) Then
-                            .明細番号 = 1
-                        Else
-                            .明細番号 = .兄.明細番号 + 1
-                        End If
-                    End With
+                    If 先頭(子) Then
+                        子.明細番号 = 1
+                    Else
+                        子.明細番号 = 子.兄.明細番号 + 1
+                    End If
                 Next
             End With
         End If
@@ -131,20 +129,17 @@ Public Class マイアプリケーション
                 End If
 
                 For Each 子 In .子ノード
-                    With CType(子, ノード)
+                    If 先頭(子) Then
+                        ' 先頭の子の場合
 
-                        If 先頭(子) Then
-                            ' 先頭の子の場合
+                        ' X座標は親のX座標から親の境界ボックスの幅の半分を引いた値です。
+                        子.X座標 = 子.親.X座標
+                    Else
+                        ' 先頭の子でない場合
 
-                            ' X座標は親のX座標から親の境界ボックスの幅の半分を引いた値です。
-                            .X座標 = .親.X座標
-                        Else
-                            ' 先頭の子でない場合
-
-                            ' X座標は兄のX座標に兄の境界ボックスの幅を足した値です。
-                            .X座標 = .兄.X座標 + .兄.境界ボックスの幅
-                        End If
-                    End With
+                        ' X座標は兄のX座標に兄の境界ボックスの幅を足した値です。
+                        子.X座標 = 子.兄.X座標 + 子.兄.境界ボックスの幅
+                    End If
                 Next
             End With
         End If
@@ -615,17 +610,15 @@ Public Class TNaviStackPanel
                 .ActualWidth = Aggregate _child In .Children Into Sum(_child.DesiredWidth)
 
                 For Each ctrl In .Children
-                    With ctrl
-                        If IsFirst Then
-                            ' 最初の場合
+                    If IsFirst Then
+                        ' 最初の場合
 
-                            .Left = ._ParentControl.Left
-                        Else
-                            ' 最初でない場合
+                        ctrl.Left = ctrl._ParentControl.Left
+                    Else
+                        ' 最初でない場合
 
-                            .Left = ._Prev.Left + ._Prev.ActualWidth + 10
-                        End If
-                    End With
+                        ctrl.Left = ctrl._Prev.Left + ctrl._Prev.ActualWidth + 10
+                    End If
                 Next
             End With
 
@@ -649,67 +642,69 @@ Public Class TNaviView
     Public BoundaryPosition As EBoundaryPosition
 
     Public Sub GetBorderByPos(view As TView, ParamArray args As Object())
-        With view
-            Dim x As Integer, y As Integer
-            x = CType(args(0), Integer)
-            y = CType(args(1), Integer)
+        If TypeOf view Is TView Then
+            With view
+                Dim x As Integer, y As Integer
+                x = CType(args(0), Integer)
+                y = CType(args(1), Integer)
 
-            If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin AndAlso .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
+                If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin AndAlso .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
 
-                If .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + Margin Then
-                    ' 上辺にある場合
+                    If .AbsoluteY - Margin <= y AndAlso y < .AbsoluteY + Margin Then
+                        ' 上辺にある場合
 
-                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-                        ' 左辺にある場合
+                        If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                            ' 左辺にある場合
 
-                        BoundaryPosition = EBoundaryPosition.eTopLeft
-                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-                        ' 右辺にある場合
+                            BoundaryPosition = EBoundaryPosition.eTopLeft
+                        ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                            ' 右辺にある場合
 
-                        BoundaryPosition = EBoundaryPosition.eTopMiddle
+                            BoundaryPosition = EBoundaryPosition.eTopMiddle
+                        Else
+                            ' 左辺や右辺にない場合
+
+                            BoundaryPosition = EBoundaryPosition.eTopRight
+                        End If
+                    ElseIf .AbsoluteY + .ActualHeight - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
+                        ' 下辺にある場合
+
+                        If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                            ' 左辺にある場合
+
+                            BoundaryPosition = EBoundaryPosition.eBottomLeft
+                        ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                            ' 右辺にある場合
+
+                            BoundaryPosition = EBoundaryPosition.eBottomRight
+                        Else
+                            ' 左辺や右辺にない場合
+
+                            BoundaryPosition = EBoundaryPosition.eBottomMiddle
+                        End If
                     Else
-                        ' 左辺や右辺にない場合
+                        ' 上辺や下辺にない場合
 
-                        BoundaryPosition = EBoundaryPosition.eTopRight
+                        If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
+                            ' 左辺にある場合
+
+                            BoundaryPosition = EBoundaryPosition.eMiddleLeft
+                        ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
+                            ' 右辺にある場合
+
+                            BoundaryPosition = EBoundaryPosition.eMiddleRight
+                        Else
+                            ' 左辺や右辺にない場合
+
+                            BoundaryPosition = EBoundaryPosition.eMiddleMiddle
+                        End If
                     End If
-                ElseIf .AbsoluteY + .ActualHeight - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
-                    ' 下辺にある場合
 
-                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-                        ' 左辺にある場合
-
-                        BoundaryPosition = EBoundaryPosition.eBottomLeft
-                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-                        ' 右辺にある場合
-
-                        BoundaryPosition = EBoundaryPosition.eBottomRight
-                    Else
-                        ' 左辺や右辺にない場合
-
-                        BoundaryPosition = EBoundaryPosition.eBottomMiddle
-                    End If
-                Else
-                    ' 上辺や下辺にない場合
-
-                    If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
-                        ' 左辺にある場合
-
-                        BoundaryPosition = EBoundaryPosition.eMiddleLeft
-                    ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
-                        ' 右辺にある場合
-
-                        BoundaryPosition = EBoundaryPosition.eMiddleRight
-                    Else
-                        ' 左辺や右辺にない場合
-
-                        BoundaryPosition = EBoundaryPosition.eMiddleMiddle
-                    End If
+                    Result = view
+                    StopNavi = True
                 End If
-
-                Result = view
-                StopNavi = True
-            End If
-        End With
+            End With
+        End If
     End Sub
 
     ' 描画を定義する
@@ -778,54 +773,51 @@ Public Class TNaviView
                             With CType(_current, TCanvas)
 
                                 For Each ctrl In .Children
-                                    With ctrl
+                                    If Not Double.IsNaN(.MarginLeft) Then
+                                        ' 左のマージンが有効の場合
 
-                                        If Not Double.IsNaN(.MarginLeft) Then
-                                            ' 左のマージンが有効の場合
+                                        ctrl.Left = ctrl.MarginLeft
 
-                                            .Left = .MarginLeft
+                                        If Not Double.IsNaN(ctrl.MarginRight) Then
+                                            ' 右のマージンが有効の場合
 
-                                            If Not Double.IsNaN(.MarginRight) Then
-                                                ' 右のマージンが有効の場合
-
-                                                .ActualWidth = ._ParentControl.Width - .MarginRight - .Left
-                                            Else
-                                                ' 右のマージンが無効の場合
-
-                                                .ActualWidth = .DesiredWidth
-                                            End If
+                                            ctrl.ActualWidth = ctrl._ParentControl.Width - ctrl.MarginRight - ctrl.Left
                                         Else
-                                            ' 左のマージンが無効の場合
+                                            ' 右のマージンが無効の場合
 
-                                            Debug.Assert(Not Double.IsNaN(.MarginRight))
-
-                                            .ActualWidth = .DesiredWidth
-                                            .Left = ._ParentControl.ActualWidth - .MarginRight - .ActualWidth
+                                            ctrl.ActualWidth = ctrl.DesiredWidth
                                         End If
+                                    Else
+                                        ' 左のマージンが無効の場合
 
-                                        If Not Double.IsNaN(.MarginTop) Then
-                                            ' 上のマージンが有効の場合
+                                        Debug.Assert(Not Double.IsNaN(ctrl.MarginRight))
 
-                                            .Top = .MarginTop
+                                        ctrl.ActualWidth = ctrl.DesiredWidth
+                                        ctrl.Left = ctrl._ParentControl.ActualWidth - ctrl.MarginRight - ctrl.ActualWidth
+                                    End If
 
-                                            If Not Double.IsNaN(.MarginBottom) Then
-                                                ' 下のマージンが有効の場合
+                                    If Not Double.IsNaN(ctrl.MarginTop) Then
+                                        ' 上のマージンが有効の場合
 
-                                                .ActualHeight = ._ParentControl.Height - .MarginBottom - .Top
-                                            Else
-                                                ' 下のマージンが無効の場合
+                                        ctrl.Top = ctrl.MarginTop
 
-                                                .ActualHeight = .DesiredHeight
-                                            End If
+                                        If Not Double.IsNaN(ctrl.MarginBottom) Then
+                                            ' 下のマージンが有効の場合
+
+                                            ctrl.ActualHeight = ctrl._ParentControl.Height - ctrl.MarginBottom - ctrl.Top
                                         Else
-                                            ' 上のマージンが無効の場合
+                                            ' 下のマージンが無効の場合
 
-                                            Debug.Assert(Not Double.IsNaN(.MarginBottom))
-
-                                            .ActualHeight = .DesiredHeight
-                                            .Top = ._ParentControl.ActualHeight - .MarginBottom - .ActualHeight
+                                            ctrl.ActualHeight = ctrl.DesiredHeight
                                         End If
-                                    End With
+                                    Else
+                                        ' 上のマージンが無効の場合
+
+                                        Debug.Assert(Not Double.IsNaN(ctrl.MarginBottom))
+
+                                        ctrl.ActualHeight = ctrl.DesiredHeight
+                                        ctrl.Top = ctrl._ParentControl.ActualHeight - ctrl.MarginBottom - ctrl.ActualHeight
+                                    End If
                                 Next
                             End With
 
@@ -849,9 +841,7 @@ Public Class TNaviView
                                                     interval = (.ClientWidth - children_width_sum) / (.Children.Count - 1)
 
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualWidth = .DesiredWidth
-                                                        End With
+                                                        ctrl.ActualWidth = ctrl.DesiredWidth
                                                     Next
                                                 Else
 
@@ -859,30 +849,24 @@ Public Class TNaviView
 
                                                     scale = .ClientWidth / children_width_sum
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualWidth = scale * .DesiredWidth
-                                                        End With
+                                                        ctrl.ActualWidth = scale * ctrl.DesiredWidth
                                                     Next
                                                 End If
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        If IsFirst Then
-                                                            ' 最初の場合
+                                                    If IsFirst Then
+                                                        ' 最初の場合
 
-                                                            .Left = ._ParentControl.ClientLeft
-                                                        Else
-                                                            ' 最初でない場合
+                                                        ctrl.Left = ctrl._ParentControl.ClientLeft
+                                                    Else
+                                                        ' 最初でない場合
 
-                                                            .Left = ._Prev.Left + ._Prev.ActualWidth + interval
-                                                        End If
-                                                    End With
+                                                        ctrl.Left = ctrl._Prev.Left + ctrl._Prev.ActualWidth + interval
+                                                    End If
                                                 Next
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        .ActualHeight = .DesiredHeight
-                                                    End With
+                                                    ctrl.ActualHeight = ctrl.DesiredHeight
                                                 Next
 
                                             Case EOrientation.eVertical
@@ -895,9 +879,7 @@ Public Class TNaviView
                                                     interval = (.ClientHight - children_height_sum) / (.Children.Count - 1)
 
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualHeight = .DesiredHeight
-                                                        End With
+                                                        ctrl.ActualHeight = ctrl.DesiredHeight
                                                     Next
                                                 Else
 
@@ -905,30 +887,24 @@ Public Class TNaviView
 
                                                     scale = .ClientHight / children_height_sum
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualHeight = scale * .DesiredHeight
-                                                        End With
+                                                        ctrl.ActualHeight = scale * ctrl.DesiredHeight
                                                     Next
                                                 End If
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        If IsFirst Then
-                                                            ' 最初の場合
+                                                    If IsFirst Then
+                                                        ' 最初の場合
 
-                                                            .Top = ._ParentControl.ClientTop
-                                                        Else
-                                                            ' 最初でない場合
+                                                        ctrl.Top = ctrl._ParentControl.ClientTop
+                                                    Else
+                                                        ' 最初でない場合
 
-                                                            .Top = ._Prev.Top + ._Prev.ActualHeight + interval
-                                                        End If
-                                                    End With
+                                                        ctrl.Top = ctrl._Prev.Top + ctrl._Prev.ActualHeight + interval
+                                                    End If
                                                 Next
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        .ActualWidth = .DesiredWidth
-                                                    End With
+                                                    ctrl.ActualWidth = ctrl.DesiredWidth
                                                 Next
                                         End Select
                                 End Select
@@ -1154,54 +1130,51 @@ Public Class TNaviView
                             With CType(_current, TCanvas)
 
                                 For Each ctrl In .Children
-                                    With ctrl
+                                    If Not Double.IsNaN(ctrl.MarginLeft) Then
+                                        ' 左のマージンが有効の場合
 
-                                        If Not Double.IsNaN(.MarginLeft) Then
-                                            ' 左のマージンが有効の場合
+                                        ctrl.Left = ctrl.MarginLeft
 
-                                            .Left = .MarginLeft
+                                        If Not Double.IsNaN(ctrl.MarginRight) Then
+                                            ' 右のマージンが有効の場合
 
-                                            If Not Double.IsNaN(.MarginRight) Then
-                                                ' 右のマージンが有効の場合
-
-                                                .ActualWidth = ._ParentControl.Width - .MarginRight - .Left
-                                            Else
-                                                ' 右のマージンが無効の場合
-
-                                                .ActualWidth = .DesiredWidth
-                                            End If
+                                            ctrl.ActualWidth = ctrl._ParentControl.Width - ctrl.MarginRight - ctrl.Left
                                         Else
-                                            ' 左のマージンが無効の場合
+                                            ' 右のマージンが無効の場合
 
-                                            Debug.Assert(Not Double.IsNaN(.MarginRight))
-
-                                            .ActualWidth = .DesiredWidth
-                                            .Left = ._ParentControl.ActualWidth - .MarginRight - .ActualWidth
+                                            ctrl.ActualWidth = ctrl.DesiredWidth
                                         End If
+                                    Else
+                                        ' 左のマージンが無効の場合
 
-                                        If Not Double.IsNaN(.MarginTop) Then
-                                            ' 上のマージンが有効の場合
+                                        Debug.Assert(Not Double.IsNaN(ctrl.MarginRight))
 
-                                            .Top = .MarginTop
+                                        ctrl.ActualWidth = ctrl.DesiredWidth
+                                        ctrl.Left = ctrl._ParentControl.ActualWidth - ctrl.MarginRight - ctrl.ActualWidth
+                                    End If
 
-                                            If Not Double.IsNaN(.MarginBottom) Then
-                                                ' 下のマージンが有効の場合
+                                    If Not Double.IsNaN(ctrl.MarginTop) Then
+                                        ' 上のマージンが有効の場合
 
-                                                .ActualHeight = ._ParentControl.Height - .MarginBottom - .Top
-                                            Else
-                                                ' 下のマージンが無効の場合
+                                        ctrl.Top = ctrl.MarginTop
 
-                                                .ActualHeight = .DesiredHeight
-                                            End If
+                                        If Not Double.IsNaN(ctrl.MarginBottom) Then
+                                            ' 下のマージンが有効の場合
+
+                                            ctrl.ActualHeight = ctrl._ParentControl.Height - ctrl.MarginBottom - ctrl.Top
                                         Else
-                                            ' 上のマージンが無効の場合
+                                            ' 下のマージンが無効の場合
 
-                                            Debug.Assert(Not Double.IsNaN(.MarginBottom))
-
-                                            .ActualHeight = .DesiredHeight
-                                            .Top = ._ParentControl.ActualHeight - .MarginBottom - .ActualHeight
+                                            ctrl.ActualHeight = ctrl.DesiredHeight
                                         End If
-                                    End With
+                                    Else
+                                        ' 上のマージンが無効の場合
+
+                                        Debug.Assert(Not Double.IsNaN(ctrl.MarginBottom))
+
+                                        ctrl.ActualHeight = ctrl.DesiredHeight
+                                        ctrl.Top = ctrl._ParentControl.ActualHeight - ctrl.MarginBottom - ctrl.ActualHeight
+                                    End If
                                 Next
                             End With
 
@@ -1225,9 +1198,7 @@ Public Class TNaviView
                                                     interval = (.ClientWidth - children_width_sum) / (.Children.Count - 1)
 
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualWidth = .DesiredWidth
-                                                        End With
+                                                        ctrl.ActualWidth = ctrl.DesiredWidth
                                                     Next
                                                 Else
 
@@ -1235,30 +1206,24 @@ Public Class TNaviView
 
                                                     scale = .ClientWidth / children_width_sum
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualWidth = scale * .DesiredWidth
-                                                        End With
+                                                        ctrl.ActualWidth = scale * ctrl.DesiredWidth
                                                     Next
                                                 End If
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        If IsFirst Then
-                                                            ' 最初の場合
+                                                    If IsFirst Then
+                                                        ' 最初の場合
 
-                                                            .Left = ._ParentControl.ClientLeft
-                                                        Else
-                                                            ' 最初でない場合
+                                                        ctrl.Left = ctrl._ParentControl.ClientLeft
+                                                    Else
+                                                        ' 最初でない場合
 
-                                                            .Left = ._Prev.Left + ._Prev.ActualWidth + interval
-                                                        End If
-                                                    End With
+                                                        ctrl.Left = ctrl._Prev.Left + ctrl._Prev.ActualWidth + interval
+                                                    End If
                                                 Next
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        .ActualHeight = .DesiredHeight
-                                                    End With
+                                                    ctrl.ActualHeight = ctrl.DesiredHeight
                                                 Next
 
                                             Case EOrientation.eVertical
@@ -1271,9 +1236,7 @@ Public Class TNaviView
                                                     interval = (.ClientHight - children_height_sum) / (.Children.Count - 1)
 
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualHeight = .DesiredHeight
-                                                        End With
+                                                        ctrl.ActualHeight = ctrl.DesiredHeight
                                                     Next
                                                 Else
 
@@ -1281,30 +1244,24 @@ Public Class TNaviView
 
                                                     scale = .ClientHight / children_height_sum
                                                     For Each ctrl In .Children
-                                                        With ctrl
-                                                            .ActualHeight = scale * .DesiredHeight
-                                                        End With
+                                                        ctrl.ActualHeight = scale * ctrl.DesiredHeight
                                                     Next
                                                 End If
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        If IsFirst Then
-                                                            ' 最初の場合
+                                                    If IsFirst Then
+                                                        ' 最初の場合
 
-                                                            .Top = ._ParentControl.ClientTop
-                                                        Else
-                                                            ' 最初でない場合
+                                                        ctrl.Top = ctrl._ParentControl.ClientTop
+                                                    Else
+                                                        ' 最初でない場合
 
-                                                            .Top = ._Prev.Top + ._Prev.ActualHeight + interval
-                                                        End If
-                                                    End With
+                                                        ctrl.Top = ctrl._Prev.Top + ctrl._Prev.ActualHeight + interval
+                                                    End If
                                                 Next
 
                                                 For Each ctrl In .Children
-                                                    With ctrl
-                                                        .ActualWidth = .DesiredWidth
-                                                    End With
+                                                    ctrl.ActualWidth = ctrl.DesiredWidth
                                                 Next
                                         End Select
                                 End Select

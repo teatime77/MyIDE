@@ -1144,6 +1144,7 @@ Public Class TIfBlock
     Inherits TStatement
     Public BlcIf As TBlock
     Public CndIf As TTerm
+    Public TermWith As TTerm
 
     Public Sub New()
         TypeStmt = EToken.eIfBlock
@@ -1152,7 +1153,20 @@ Public Class TIfBlock
     Public Sub New(cnd As TTerm, blc As TBlock)
         TypeStmt = EToken.eIfBlock
         CndIf = cnd
-        BlcIf = blc
+        Dim vidx = From i In TNaviUp.IndexList(blc.StmtBlc) Where TypeOf blc.StmtBlc(i) Is TWith
+        If vidx.Any() Then
+            Debug.Assert(vidx.Count() = 1)
+            If blc.StmtBlc.Count <> 1 Then
+                Debug.Assert((From x In blc.StmtBlc Where TypeOf x Is TComment).Count() = blc.StmtBlc.Count - 1)
+            End If
+
+            Dim with1 As TWith = CType(blc.StmtBlc(vidx.First()), TWith)
+            TermWith = with1.TermWith
+
+            BlcIf = with1.BlcWith
+        Else
+            BlcIf = blc
+        End If
     End Sub
 End Class
 

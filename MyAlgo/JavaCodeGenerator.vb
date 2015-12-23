@@ -875,10 +875,6 @@ Public Class TJavaCodeGenerator
         WordAdd("Java Try 未実装", EFigType.eResFig, try1)
     End Sub
 
-    Public Overrides Sub WithSrc(with1 As TWith, tab1 As Integer)
-        WordAdd("Java With 未実装", EFigType.eResFig, with1)
-    End Sub
-
     '  TStatementのソースを作る
     Public Overrides Sub StmtSrc(stmt1 As TStatement, tab1 As Integer)
         Dim ret1 As TReturn
@@ -907,9 +903,6 @@ Public Class TJavaCodeGenerator
 
         ElseIf TypeOf stmt1 Is TTry Then
             TrySrc(CType(stmt1, TTry), tab1)
-
-        ElseIf TypeOf stmt1 Is TWith Then
-            WithSrc(CType(stmt1, TWith), tab1)
 
         ElseIf TypeOf stmt1 Is TFor Then
             ForSrc(CType(stmt1, TFor), tab1)
