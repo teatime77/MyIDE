@@ -2128,7 +2128,7 @@ Public Class TProject
         If ref1.VarRef Is Nothing Then
             Debug.Assert(CurSrc IsNot Nothing)
             fname = TPath.GetFileNameWithoutExtension(CurSrc.FileSrc)
-            Debug.Assert(fname = "@lib" OrElse fname = "System" OrElse fname = "sys")
+            Debug.Assert(fname = "@lib" OrElse fname = "System" OrElse fname = "sys" OrElse fname = "web")
         End If
     End Sub
 End Class

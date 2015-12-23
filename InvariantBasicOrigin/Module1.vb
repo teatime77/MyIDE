@@ -3,6 +3,7 @@
     Sub Main()
         Dim builder As New TBuilder
 
+        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\App1.xml")
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\CSharp.xml")
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\FormalScript.xml")
 

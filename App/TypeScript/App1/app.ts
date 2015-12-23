@@ -143,6 +143,18 @@ class TMyApplication extends TApplication {
                     self.Size.Y = app.CircleR + 20 * Math.cos(Math.PI * app.cnt / 180);
                 }
             }
+            
+            
+            
+            /*
+
+            if (self instanceof TGroup) {
+                var vshape = this.from(self.Children).where(x => x instanceof TImage);
+            }
+
+            Enumerable.range(1, 10)
+                .where(x => x % 2 == 0)
+                .select(x => x * x);
 
             if (self instanceof TGroup) {
                 var vshape = from x in self.Children where x instanceof TImage;
@@ -155,6 +167,15 @@ class TMyApplication extends TApplication {
 
                 self.BoundingRectangle.Position.X = aggregate img in self.Children where img instanceof TImage into Min(img.BoundingRectangle.Position.X);
             }
+
+
+    from(v) {
+        return this;
+    }
+    where(p) {
+        return this;
+    }
+*/
         }
     }
 }

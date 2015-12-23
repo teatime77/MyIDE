@@ -140,6 +140,21 @@ Public Class TDataflow
         End If
     End Function
 
+    Public Shared Function UpNotWithStmt(obj1 As Object) As TStatement
+        Dim up_obj As Object
+
+        up_obj = UpStmt(obj1)
+        If TypeOf up_obj Is TStatement Then
+            If TypeOf up_obj Is TWith Then
+                Return UpNotWithStmt(CType(up_obj, TStatement).ParentStmt)
+            Else
+                Return CType(up_obj, TStatement)
+            End If
+        Else
+            Return Nothing
+        End If
+    End Function
+
     Public Shared Function UpWith(obj1 As Object) As TWith
         Dim stmt1 As TStatement
 

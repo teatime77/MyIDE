@@ -1056,13 +1056,20 @@ Public Class TNaviSetClassifiedIf
             With CType(self, TIf)
                 Dim may_be_classified_if As Boolean = False
 
-                Dim up_stmt As TStatement = TDataflow.UpStmtProper(.ParentStmt)
+                Dim up_stmt As TStatement = TDataflow.UpNotWithStmt(.ParentStmt)
 
                 If up_stmt Is Nothing Then
                     may_be_classified_if = True
                 Else
                     If TypeOf up_stmt Is TIfBlock Then
                         may_be_classified_if = CType(CType(up_stmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
+                        'ElseIf TypeOf up_stmt Is TWith Then
+                        '    Dim up_up_stmt As TStatement = TDataflow.UpStmtProper(up_stmt.ParentStmt)
+                        '    If TypeOf up_up_stmt Is TIfBlock Then
+                        '        may_be_classified_if = CType(CType(up_up_stmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
+                        '    Else
+                        '        may_be_classified_if = False
+                        '    End If
                     Else
                         may_be_classified_if = False
                     End If
@@ -1109,7 +1116,7 @@ Public Class TNaviMakeClassifiedIfMethod
             ' メソッドの直下のブロックでない場合
 
             ' １つ上のIf文を得る。
-            Dim if_blc As TIfBlock = CType(up_blc.ParentStmt, TIfBlock)
+            Dim if_blc As TIfBlock = CType(TDataflow.UpNotWithStmt(up_blc.ParentStmt), TIfBlock)
             Dim if2 As TIf = CType(if_blc.ParentStmt, TIf)
 
             ' １つ上のif文を囲むブロックをコピーする。
