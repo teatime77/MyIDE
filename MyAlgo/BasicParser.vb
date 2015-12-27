@@ -2,8 +2,10 @@
 
 Public MustInherit Class TSourceParser
     Public LanguageSP As ELanguage
+    Public PrjParse As TProject
     Public vTknName As Dictionary(Of EToken, String)
     Public ThisName As String
+    Public TranslationTable As New Dictionary(Of String, String)
 
     Public MustOverride Function Lex(src_text As String) As TList(Of TToken)
     Public Overridable Sub ReadAllStatement(src1 As TSourceFile)
@@ -11,6 +13,20 @@ Public MustInherit Class TSourceParser
     Public MustOverride Sub Parse(src1 As TSourceFile)
     Public MustOverride Sub ClearParse()
     Public MustOverride Sub RegAllClass(prj1 As TProject, src1 As TSourceFile)
+
+
+    Public Function TranslageReferenceName(ref1 As TReference) As String
+        If TypeOf ref1.VarRef Is TField OrElse TypeOf ref1.VarRef Is TFunction Then
+
+            Dim long_name As String = ref1.VarRef.GetClassVar().NameVar + "." + ref1.NameRef
+
+            If TranslationTable.ContainsKey(long_name) Then
+                Return TranslationTable(long_name)
+            End If
+        End If
+
+        Return ref1.NameRef
+    End Function
 End Class
 
 '-------------------------------------------------------------------------------- TBasicParser
@@ -18,7 +34,6 @@ End Class
 Public Class TBasicParser
     Inherits TSourceParser
 
-    Public PrjParse As TProject
 
     Public vTkn As New Dictionary(Of String, EToken)
     Public CurBlc As TBlock

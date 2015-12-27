@@ -32,7 +32,7 @@ Public Class TBuilder
 
         prj1.Compile()
 
-        If prj1.Language <> ELanguage.Basic AndAlso prj1.Language <> ELanguage.FormalScript Then
+        If prj1.Language <> ELanguage.Basic AndAlso prj1.Language <> ELanguage.TypeScript Then
             Exit Sub
         End If
 
@@ -64,12 +64,21 @@ Public Class TBuilder
             '            vSrc(PrjIdx) = sw.ToString()
         Else
 
-            Dim basic_parser As New TBasicParser(prj1)
-            Dim formal_parser As New TScriptParser(prj1, ELanguage.FormalScript)
+            For Each lang In prj1.OutputLanguageList
+                Debug.WriteLine("ソース 生成 {0} --------------------------------------------------------------------------------------------", lang)
+                Select Case lang
+                    Case ELanguage.Basic
+                        Dim basic_parser As New TBasicParser(prj1)
+                        prj1.MakeAllSourceCode(basic_parser)
 
-            Debug.WriteLine("Basic ソース 生成")
-            prj1.MakeAllSourceCode(formal_parser)
-            prj1.MakeAllSourceCode(basic_parser)
+                    Case ELanguage.JavaScript, ELanguage.TypeScript
+                        Dim script_parser As New TScriptParser(prj1, lang)
+                        prj1.MakeAllSourceCode(script_parser)
+
+                    Case Else
+                        Debug.Assert(False)
+                End Select
+            Next
 
             Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
             'prj1.MakeAllHtml()

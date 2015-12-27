@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Language>Basic</Language>
+  <OutputLanguageList>
+    <ELanguage>Basic</ELanguage>
+  </OutputLanguageList>
   <OutputDirectory>C:\usr\prj\MyIDE\MyAlgo\out\Miyu</OutputDirectory>
   <LibraryList>
     <TLibrary>

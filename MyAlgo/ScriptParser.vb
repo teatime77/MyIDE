@@ -6,8 +6,6 @@ Imports InvariantBasicOrigin
 Public Class TScriptParser
     Inherits TSourceParser
 
-    Public PrjParse As TProject
-
     Public vTkn As New Dictionary(Of String, EToken)
     Public CurBlc As TBlock
     Public CurPos As Integer
@@ -23,6 +21,18 @@ Public Class TScriptParser
         ThisName = "this"
         PrjParse = prj1
         RegTkn()
+
+        TranslationTable.Add("System.True", "true")
+        TranslationTable.Add("System.False", "false")
+        TranslationTable.Add("Math.Ceiling", "ceiling")
+        TranslationTable.Add("Math.Max", "max")
+        TranslationTable.Add("Math.Min", "min")
+        TranslationTable.Add("Math.Sqrt", "sqrt")
+        TranslationTable.Add("Math.Abs", "abs")
+        TranslationTable.Add("Math.Floor", "floor")
+        TranslationTable.Add("Math.Round", "round")
+        TranslationTable.Add("Math.Cos", "cos")
+        TranslationTable.Add("Math.Sin", "sin")
     End Sub
 
     Public Overrides Sub ClearParse()
@@ -236,7 +246,7 @@ Public Class TScriptParser
             Case ELanguage.CSharp
                 dic1.Add("imports", EToken.eImports)
 
-            Case ELanguage.FormalScript, ELanguage.JavaScript, ELanguage.Java
+            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.Java
                 dic1.Add("import", EToken.eImports)
         End Select
 
@@ -244,7 +254,6 @@ Public Class TScriptParser
         dic1.Add("instanceof", EToken.eInstanceof)
         dic1.Add("interface", EToken.eInterface)
         dic1.Add("into", EToken.eInto)
-        dic1.Add("is", EToken.eIs)
         dic1.Add("loop", EToken.eLoop)
         dic1.Add("namespace", EToken.eNamespace)
         dic1.Add("new", EToken.eNew)
@@ -362,6 +371,7 @@ Public Class TScriptParser
         If LanguageSP <> ELanguage.CSharp Then
             vTknName.Add(EToken.eAs, ":")
         End If
+        vTknName.Add(EToken.eIs, "==")
         vTknName.Add(EToken.ePublic, "")
     End Sub
 

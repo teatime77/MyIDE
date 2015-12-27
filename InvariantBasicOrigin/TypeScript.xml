@@ -1,6 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Language>FormalScript</Language>
+  <Language>TypeScript</Language>
+  <OutputLanguageList>
+    <ELanguage>Basic</ELanguage>
+    <ELanguage>JavaScript</ELanguage>
+    <ELanguage>TypeScript</ELanguage>
+  </OutputLanguageList>
   <OutputDirectory>C:\usr\prj\MyIDE\App\TypeScript\App1\out</OutputDirectory>
   <LibraryList>
     <TLibrary>

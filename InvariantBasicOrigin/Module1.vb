@@ -5,7 +5,7 @@
 
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\App1.xml")
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\CSharp.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\FormalScript.xml")
+        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\TypeScript.xml")
 
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\StackPanel.xml")
         builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\Circle.xml")

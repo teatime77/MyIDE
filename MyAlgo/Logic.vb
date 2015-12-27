@@ -1,7 +1,7 @@
 ﻿Imports System.Diagnostics
 
 Public Enum ELanguage
-    FormalScript
+    TypeScript
     CSharp
     JavaScript
     Java
@@ -628,6 +628,9 @@ End Class
 ' -------------------------------------------------------------------------------- TFunction
 Public Class TFunction
     Inherits TVariable
+    Public Const ClassInitializerName As String = "Class$Initializer"
+    Public Const InstanceInitializerName As String = "Instance$Initializer"
+    Public Const ImplicitNewName As String = "Implicit$New"
     Public TypeFnc As EToken
     Public IsNew As Boolean = False
     Public OpFnc As EToken = EToken.eUnknown
@@ -708,7 +711,7 @@ Public Class TFunction
     End Function
 
     Public Function IsGenerated() As Boolean
-        Return NameFnc() = "Class@Initializer" OrElse NameFnc() = "Instance@Initializer" OrElse NameFnc() = "Implicit@New"
+        Return NameFnc() = ClassInitializerName OrElse NameFnc() = InstanceInitializerName OrElse NameFnc() = ImplicitNewName
     End Function
 End Class
 

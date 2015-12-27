@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Language>Basic</Language>
+  <OutputLanguageList>
+    <ELanguage>Basic</ELanguage>
+    <ELanguage>JavaScript</ELanguage>
+    <ELanguage>TypeScript</ELanguage>
+  </OutputLanguageList>
+  <OutputDirectory>C:\usr\prj\MyIDE\App\Basic\App1\out</OutputDirectory>
+  <LibraryList>
+    <TLibrary>
+      <LibraryDirectory>C:\usr\prj\MyIDE\App\Basic\lib</LibraryDirectory>
+      <SourceFileNameList>
+        <string>sys.vb</string>
+        <string>web.vb</string>
+        <string>lib.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+    <TLibrary>
+      <LibraryDirectory>C:\usr\prj\MyIDE\App\Basic\App1</LibraryDirectory>
+      <SourceFileNameList>
+        <string>app.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+  </LibraryList>
+  <MainClassName>TMyApplication</MainClassName>
+  <MainFunctionName>GlobalRule</MainFunctionName>
+  <OutputNotUsed>true</OutputNotUsed>
+  <UseReferenceGraph>false</UseReferenceGraph>
+  <ClassNameTablePath />
+  <Dataflow>false</Dataflow>
+</TProject>

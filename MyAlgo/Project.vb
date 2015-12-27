@@ -22,6 +22,7 @@ Public Class TProject
     <XmlIgnoreAttribute()> Public Shared Prj As TProject
 
     Public Language As ELanguage = ELanguage.Basic
+    Public OutputLanguageList As New List(Of ELanguage)
     Public OutputDirectory As String
     Public LibraryList As TLibrary()
     Public MainClassName As String
@@ -697,11 +698,11 @@ Public Class TProject
             If is_shared Then
                 ' クラスの初期化の場合
 
-                ini_fnc = New TFunction("Class@Initializer", Nothing)
+                ini_fnc = New TFunction(TFunction.ClassInitializerName, Nothing)
             Else
                 ' インスタンスの初期化の場合
 
-                ini_fnc = New TFunction("Instance@Initializer", Nothing)
+                ini_fnc = New TFunction(TFunction.InstanceInitializerName, Nothing)
             End If
             cls1.FncCla.Add(ini_fnc)
 
@@ -756,11 +757,12 @@ Public Class TProject
         ' すべての単純クラスとパラメータ化クラスに対し
         For Each cls1 In SimpleParameterizedClassList
             Dim vnew = (From fnc1 In cls1.FncCla Where fnc1.IsNew).ToList()
+
             If vnew.Count = 0 Then
                 ' コンストラクターが１つもない場合
 
                 ' 暗黙のコンストラクターを作る。
-                Dim new_fnc As New TFunction("Implicit@New", Nothing)
+                Dim new_fnc As New TFunction(TFunction.ImplicitNewName, Nothing)
 
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
@@ -769,7 +771,9 @@ Public Class TProject
                 new_fnc.BlcFnc = New TBlock()
                 new_fnc.IsNew = True
 
-                cls1.FncCla.Add(new_fnc)
+                ' コンストラクターが最初になるようにする。
+                cls1.FncCla.Insert(0, new_fnc)
+
                 vnew.Add(new_fnc)
             End If
 
@@ -808,7 +812,7 @@ Public Class TProject
         Select Case Language
             Case ELanguage.Basic
                 ParsePrj = New TBasicParser(Me)
-            Case ELanguage.FormalScript, ELanguage.CSharp
+            Case ELanguage.TypeScript, ELanguage.CSharp
                 ParsePrj = New TScriptParser(Me, Language)
             Case Else
                 Debug.Assert(False)
@@ -1690,6 +1694,7 @@ Public Class TProject
             Dim txt As String = ""
 
             Select Case tkn.TypeTkn
+                Case EToken.eInt
                 Case EToken.eNL
                 Case EToken.eUnknown
                 Case EToken.eComment
@@ -1707,11 +1712,18 @@ Public Class TProject
             End Select
 
             Select Case tkn.TypeTkn
+                Case EToken.eInt
+                    sw.Write(tkn.StrTkn)
+
                 Case EToken.eNL
                     sw.WriteLine("")
 
                 Case EToken.eComment
-                    sw.Write("'" + tkn.StrTkn)
+                    If parser.LanguageSP = ELanguage.Basic Then
+                        sw.Write("'" + tkn.StrTkn)
+                    Else
+                        sw.Write("//" + tkn.StrTkn)
+                    End If
 
                 Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
                     sw.Write(" " + txt + " ")
@@ -1722,13 +1734,13 @@ Public Class TProject
                 Case EToken.eUnknown
                     If TypeOf tkn.ObjTkn Is TDot Then
                         With CType(tkn.ObjTkn, TDot)
-                            sw.Write(".{0}", .NameRef)
+                            sw.Write(".{0}", parser.TranslageReferenceName(CType(tkn.ObjTkn, TDot)))
 
                         End With
 
                     ElseIf TypeOf tkn.ObjTkn Is TReference Then
                         With CType(tkn.ObjTkn, TReference)
-                            sw.Write(.NameRef)
+                            sw.Write(parser.TranslageReferenceName(CType(tkn.ObjTkn, TReference)))
                         End With
 
                     ElseIf TypeOf tkn.ObjTkn Is TClass Then
@@ -1774,7 +1786,7 @@ Public Class TProject
         Select Case lang
             Case ELanguage.Basic
                 Return ".vb"
-            Case ELanguage.FormalScript
+            Case ELanguage.TypeScript
                 Return ".ts"
             Case ELanguage.JavaScript
                 Return ".js"
@@ -1801,8 +1813,8 @@ Public Class TProject
                 src_f.FigSrc.OutputBasicTextHTML(src_f, OutputDirectory + "\")
             End If
 
-            Dim navi_make_basic_source As New TNaviMakeSourceCode(Me, parser)
-            navi_make_basic_source.NaviSourceFile(src_f)
+            Dim navi_make_source_code As New TNaviMakeSourceCode(Me, parser)
+            navi_make_source_code.NaviSourceFile(src_f)
 
             Dim out_dir2 As String = String.Format("{0}\{1}", OutputDirectory, parser.LanguageSP)
             TDirectory.CreateDirectory(out_dir2)
