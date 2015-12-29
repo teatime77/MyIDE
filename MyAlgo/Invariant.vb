@@ -760,51 +760,98 @@ Public Class TNaviMakeSourceCode
                     End With
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
-                        tw.Fmt(EToken.eFrom, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
+                        If ParserMK.LanguageSP = ELanguage.JavaScript Then
+                            '            var vx = $Query(self.Children, function (x) { return true; }, function (x) { return x.BoundingRectangle.Position.X });
+                            tw.Fmt("$Query(", .SeqQry.TokenList)
 
-                        If .CndQry IsNot Nothing Then
+                            If .CndQry IsNot Nothing Then
 
-                            tw.Fmt(EToken.eWhere, .CndQry.TokenList)
-                        End If
+                                tw.Fmt(", function(", .VarQry.NameVar, "){ return ", .CndQry.TokenList, "; }")
+                            Else
+                                tw.Fmt(", undefined")
+                            End If
 
-                        If .SelFrom IsNot Nothing Then
+                            If .SelFrom IsNot Nothing Then
 
-                            tw.Fmt(EToken.eSelect, .SelFrom.TokenList)
-                        End If
+                                tw.Fmt(", function(", .VarQry.NameVar, "){ return ", .SelFrom.TokenList, "; }")
+                            Else
+                                tw.Fmt(", undefined")
+                            End If
 
-                        If .TakeFrom IsNot Nothing Then
+                            tw.Fmt(")")
+                        Else
+                            tw.Fmt(EToken.eFrom, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
 
-                            tw.Fmt(EToken.eTake, .TakeFrom.TokenList)
-                        End If
+                            If .CndQry IsNot Nothing Then
 
-                        If .InnerFrom IsNot Nothing Then
+                                tw.Fmt(EToken.eWhere, .CndQry.TokenList)
+                            End If
 
-                            tw.Fmt(.InnerFrom.TokenList)
+                            If .SelFrom IsNot Nothing Then
+
+                                tw.Fmt(EToken.eSelect, .SelFrom.TokenList)
+                            End If
+
+                            If .TakeFrom IsNot Nothing Then
+
+                                tw.Fmt(EToken.eTake, .TakeFrom.TokenList)
+                            End If
+
+                            If .InnerFrom IsNot Nothing Then
+
+                                tw.Fmt(.InnerFrom.TokenList)
+                            End If
                         End If
                     End With
 
                 ElseIf TypeOf self Is TAggregate Then
                     With CType(self, TAggregate)
-                        tw.Fmt(EToken.eAggregate, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
+                        If ParserMK.LanguageSP = ELanguage.JavaScript Then
+                            '            var vx = $Query(self.Children, function (x) { return true; }, function (x) { return x.BoundingRectangle.Position.X });
+                            tw.Fmt("$Query(", .SeqQry.TokenList)
 
-                        If .CndQry IsNot Nothing Then
+                            If .CndQry IsNot Nothing Then
 
-                            tw.Fmt(EToken.eWhere, .CndQry.TokenList)
+                                tw.Fmt(", function(", .VarQry.NameVar, "){ return ", .CndQry.TokenList, "; }")
+                            Else
+                                tw.Fmt(", undefined")
+                            End If
+
+                            tw.Fmt(")")
+
+                            Select Case .FunctionAggr
+                                Case EAggregateFunction.eSum
+                                    tw.Fmt(".Sum()")
+                                Case EAggregateFunction.eMax
+                                    tw.Fmt(".Max()")
+                                Case EAggregateFunction.eMin
+                                    tw.Fmt(".Min()")
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+
+                        Else
+                            tw.Fmt(EToken.eAggregate, .VarQry.NameVar, EToken.eIn, .SeqQry.TokenList)
+
+                            If .CndQry IsNot Nothing Then
+
+                                tw.Fmt(EToken.eWhere, .CndQry.TokenList)
+                            End If
+
+                            tw.Fmt(EToken.eInto)
+
+                            Select Case .FunctionAggr
+                                Case EAggregateFunction.eSum
+                                    tw.Fmt("Sum")
+                                Case EAggregateFunction.eMax
+                                    tw.Fmt("Max")
+                                Case EAggregateFunction.eMin
+                                    tw.Fmt("Min")
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+                            tw.Fmt(EToken.eLP, .IntoAggr.TokenList, EToken.eRP)
                         End If
-
-                        tw.Fmt(EToken.eInto)
-
-                        Select Case .FunctionAggr
-                            Case EAggregateFunction.eSum
-                                tw.Fmt("Sum")
-                            Case EAggregateFunction.eMax
-                                tw.Fmt("Max")
-                            Case EAggregateFunction.eMin
-                                tw.Fmt("Min")
-                            Case Else
-                                Debug.Assert(False)
-                        End Select
-                        tw.Fmt(EToken.eLP, .IntoAggr.TokenList, EToken.eRP)
 
                     End With
                 Else
