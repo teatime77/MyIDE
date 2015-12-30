@@ -275,6 +275,7 @@ Public Class TTerm
     Public TypeTrm As TClass
     Public ProjectTrm As TProject
     Public RefPathTrm As TRefPath
+    Public CastType As TClass
 
     Public Sub New()
     End Sub
@@ -884,16 +885,6 @@ Public Class TApply
         app1.AddInArg(trm1)
         app1.AddInArg(trm2)
         app1.AddInArg(trm3)
-        Return app1
-    End Function
-
-    Public Shared Function MakeAppCastClass(type1 As TClass) As TApply
-        Dim app1 As TApply
-
-        app1 = New TApply()
-        app1.TypeApp = EToken.eCast
-        app1.ClassApp = type1
-
         Return app1
     End Function
 

@@ -542,6 +542,11 @@ Public Class TNaviMakeSourceCode
         If TypeOf self Is TTerm Then
             With CType(self, TTerm)
 
+                If .CastType IsNot Nothing Then
+
+                    tw.Fmt(EToken.eCType, EToken.eLP)
+                End If
+
                 If TypeOf self Is TConstant Then
                     With CType(self, TConstant)
                         Select Case .TypeAtm
@@ -856,6 +861,11 @@ Public Class TNaviMakeSourceCode
                     End With
                 Else
                     Debug.Assert(False)
+                End If
+
+                If .CastType IsNot Nothing Then
+
+                    tw.Fmt(EToken.eComma, .CastType.TokenListVar, EToken.eRP)
                 End If
 
                 .TokenList = tw.GetTokenList()

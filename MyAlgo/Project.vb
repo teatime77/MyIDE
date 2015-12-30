@@ -1335,6 +1335,10 @@ Public Class TProject
         Dim v1 As New TList(Of TFunction), v2 As New TList(Of TFunction), fnc1 As TFunction
         Dim sw As TStringWriter
 
+        If theMain Is Nothing Then
+            Exit Sub
+        End If
+
         sw = New TStringWriter()
         sw.WriteLine(TCodeGenerator.HTMLHead)
 

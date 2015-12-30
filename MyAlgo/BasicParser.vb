@@ -2149,12 +2149,10 @@ Public Class TBasicParser
                 GetTkn(EToken.eLP)
                 trm1 = AdditiveExpression()
                 GetTkn(EToken.eComma)
-                type1 = ReadType(False)
+                trm1.CastType = ReadType(False)
                 GetTkn(EToken.eRP)
 
-                app1 = TApply.MakeAppCastClass(type1)
-                app1.AddInArg(trm1)
-                Return app1
+                Return trm1
 
             Case EToken.eAddressOf
                 GetTkn(EToken.eAddressOf)

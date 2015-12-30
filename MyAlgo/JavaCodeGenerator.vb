@@ -381,7 +381,17 @@ Public Class TJavaCodeGenerator
 
             Case EToken.eINC, EToken.eDEC
                 TrmSrc(app1.ArgApp(0))
-                WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+                If ParserCG.vTknName.ContainsKey(app1.TypeApp) Then
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+                Else
+                    Select Case app1.TypeApp
+                        Case EToken.eINC
+                            WordAdd(ParserCG.vTknName(EToken.eADDEQ), EFigType.eSymFig, app1)
+                        Case EToken.eDEC
+                            WordAdd(ParserCG.vTknName(EToken.eSUBEQ), EFigType.eSymFig, app1)
+                    End Select
+                    WordAdd("1", EFigType.eNumFig, app1)
+                End If
 
             Case EToken.eAppCall
                 Select Case app1.KndApp
@@ -591,10 +601,10 @@ Public Class TJavaCodeGenerator
         Dim is_enum As Boolean, dic1 As Dictionary(Of String, String) = Nothing, mem_name As String = Nothing, class_mem1 As String, class_mem2 As String
 
         is_enum = dot1.IsEnumDot()
-        Debug.Assert(dot1.TrmDot IsNot Nothing AndAlso (is_enum OrElse dot1.TypeDot IsNot Nothing))
         If True Then
             Return
         End If
+        Debug.Assert(dot1.TrmDot IsNot Nothing AndAlso (is_enum OrElse dot1.TypeDot IsNot Nothing))
         If dot1.UpTrm IsNot Nothing AndAlso TypeOf dot1.UpTrm Is TCase AndAlso is_enum Then
 
             Fmt(dot1)

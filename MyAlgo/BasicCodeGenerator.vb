@@ -82,6 +82,7 @@ Public Class TBasicCodeGenerator
                     End If
                     TrmSrc(app1.IniApp)
                 End If
+
             Case EToken.eAs, EToken.eCast
                 WordAdd("CType", EFigType.eResFig, app1)
                 WordAdd("(", EFigType.eSymFig, app1)

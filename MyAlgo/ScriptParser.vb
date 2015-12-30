@@ -948,10 +948,9 @@ Public Class TScriptParser
                 type1 = ReadType(False)
                 GetTkn(EToken.eGT)
                 trm1 = AdditiveExpression()
+                trm1.CastType = type1
 
-                app1 = TApply.MakeAppCastClass(type1)
-                app1.AddInArg(trm1)
-                Return app1
+                Return trm1
 
             Case EToken.eAddressOf
                 GetTkn(EToken.eAddressOf)
