@@ -1149,7 +1149,21 @@ Public Class TBasicParser
         If cla1 Is Nothing OrElse cla1.KndCla <> EClass.eInterfaceCla Then
             ' インターフェイスでない場合
 
-            fnc2.BlcFnc = BlcParse(fnc2)
+            Dim blc1 As TBlock = BlcParse(fnc2)
+            If blc1.StmtBlc.Count = 1 AndAlso TypeOf blc1.StmtBlc(0) Is TWith Then
+                Dim with1 As TWith = CType(blc1.StmtBlc(0), TWith)
+                Dim ref1 As TReference = CType(with1.TermWith, TReference)
+                Debug.Assert(ref1.NameRef = fnc2.ArgFnc(0).NameVar)
+                If ref1.CastType IsNot Nothing Then
+                    fnc2.WithFnc = ref1.CastType
+                Else
+                    fnc2.WithFnc = fnc2.ArgFnc(0).TypeVar
+                End If
+
+                fnc2.BlcFnc = with1.BlcWith
+            Else
+                fnc2.BlcFnc = blc1
+            End If
             Chk(CurStmt.TypeStmt = EToken.eEndSub OrElse CurStmt.TypeStmt = EToken.eEndFunction OrElse CurStmt.TypeStmt = EToken.eEndOperator)
             GetStatement(EToken.eUnknown)
         End If
@@ -1285,6 +1299,7 @@ Public Class TBasicParser
                     Debug.Assert(CurTkn.TypeTkn = EToken.eGT)
 
                     mod1.isXmlIgnore = True
+                    mod1.isWeak = True
                 Case Else
                     Exit Do
             End Select

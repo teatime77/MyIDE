@@ -220,7 +220,7 @@ Public Class TDeclarative
 
     Public Overridable Sub NaviIfBlock(if_blc As TIfBlock)
         NaviTerm(if_blc.CndIf)
-        NaviTerm(if_blc.TermWith)
+        NaviTerm(if_blc.WithIf)
         NaviStatement(if_blc.BlcIf)
     End Sub
 
@@ -575,6 +575,16 @@ Public Class TSetRefDeclarative
         End If
     End Sub
 
+    Public Function GetWithClass(self As TDot) As TClass
+        Dim if_blc = From o In TNaviUp.AncestorList(self) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing
+
+        If if_blc.Any() Then
+            Return CType(if_blc.First(), TIfBlock).WithIf.TypeTrm
+        End If
+
+        Return self.FunctionTrm.WithFnc
+    End Function
+
     Public Overrides Sub EndCondition(self As Object)
         If TypeOf self Is TTerm Then
             Dim trm1 As TTerm = CType(self, TTerm)
@@ -587,9 +597,9 @@ Public Class TSetRefDeclarative
                     IncRefCnt(self)
 
                     If .TrmDot Is Nothing Then
-                        Dim if_blc = CType((From o In TNaviUp.AncestorList(self) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).TermWith IsNot Nothing).First(), TIfBlock)
 
-                        .TypeDot = if_blc.TermWith.TypeTrm
+                        .TypeDot = GetWithClass(CType(self, TDot))
+                        Debug.Assert(.TypeDot IsNot Nothing)
                     Else
 
                         .TypeDot = .TrmDot.TypeTrm
@@ -1122,6 +1132,9 @@ Public Class TNaviMakeClassifiedIfMethod
                     fnc1.TypeFnc = .FunctionStmt.TypeFnc
                     fnc1.ClaFnc = classified_class
                     fnc1.ClaFnc.FncCla.Add(fnc1)
+                    fnc1.WithFnc = classified_class
+
+                    Debug.Print("Make Rule {0}.{1}", classified_class.NameVar, fnc1.NameVar)
 
                     Dim set_parent_stmt As New TNaviSetParentStmt
                     set_parent_stmt.NaviFunction(fnc1, Nothing)
@@ -1143,6 +1156,34 @@ Public Class TNaviMakeNavigateFunction
     Public Prj As TProject
     Public ClassifiedClassList As List(Of TClass)
     Public NaviFunctionList As New List(Of TFunction)
+
+    Public Function InitNavigateFunction(function_name As String, cla1 As TClass) As TFunction
+        Dim fnc1 As New TFunction(function_name, Prj, cla1)
+
+        Debug.Print("Init Navigate Function {0}.{1}", cla1.NameVar, function_name)
+
+        NaviFunctionList.Add(fnc1)
+
+        Dim self_var As New TVariable("self", Prj.ObjectType)
+        Dim app_var As New TVariable("app", Prj.MainClass)
+        fnc1.ArgFnc.Add(self_var)
+        fnc1.ArgFnc.Add(app_var)
+        fnc1.WithFnc = cla1
+
+        ' RuleのCall文を作る。
+        Dim rule_fnc_list = From c In Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(cla1)) From f In c.FncCla Where f.NameVar = "Rule" Select f
+        If rule_fnc_list.Any() Then
+
+            Dim rule_fnc As TFunction = rule_fnc_list.First()
+            Dim rule_app As TApply = TApply.MakeAppCall(New TDot(Nothing, rule_fnc))
+            rule_app.AddInArg(New TReference(self_var))
+            rule_app.AddInArg(New TReference(app_var))
+
+            fnc1.BlcFnc.AddStmtBlc(New TCall(rule_app))
+        End If
+
+        Return fnc1
+    End Function
 
     Public Overrides Sub StartCondition(self As Object)
         If TypeOf self Is TFunction Then
@@ -1232,51 +1273,43 @@ Public Class TNaviMakeNavigateFunction
                     End If
                 Loop
 
-                Dim sw As New TStringWriter
                 Dim function_name As String = "Navigate_" + .NameVar
-
-                Dim function_table As New Dictionary(Of TClass, TFunction)
-                For Each cla1 In used_field_table.Keys
-                    function_table.Add(cla1, New TFunction(function_name, Prj, cla1))
-                Next
 
                 Dim dummy_function As New TFunction(function_name, Nothing)
                 Dim navi_needed_class_list As New List(Of TClass)
 
                 For Each cla1 In used_field_table.Keys
                     Dim used_field_list As List(Of TField) = used_field_table(cla1)
-                    Dim fnc1 As TFunction = function_table(cla1)
+                    Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
+                    Dim self_var As TVariable = fnc1.ArgFnc(0)
+                    Dim app_var As TVariable = fnc1.ArgFnc(1)
 
                     Debug.Print("Rule {0}", cla1.NameVar)
-                    NaviFunctionList.Add(fnc1)
-
-                    Dim app_var As New TVariable("app", Prj.MainClass)
-                    fnc1.ArgFnc.Add(app_var)
 
                     For Each used_field In used_field_list
                         If used_field.TypeVar.OrgCla IsNot Nothing Then
 
-
                             Dim for1 As New TFor
                             for1.InVarFor = New TVariable("x", Nothing)
-                            for1.InTrmFor = New TDot(New TReference(fnc1.ThisFnc), used_field)
+                            for1.InTrmFor = New TDot(Nothing, used_field)
                             for1.BlcFor = New TBlock()
 
                             Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
-                            'app1.ArgApp.Add(New TReference(self_var))
+                            app1.ArgApp.Add(New TReference(for1.InVarFor))
                             app1.ArgApp.Add(New TReference(app_var))
                             for1.BlcFor.AddStmtBlc(New TCall(app1))
 
                             fnc1.BlcFnc.AddStmtBlc(for1)
 
 
-                            sw.WriteLine(String.Format("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", used_field.NameVar, function_name))
+                            Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", used_field.NameVar, function_name)
                         Else
-                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(New TReference(fnc1.ThisFnc), used_field), dummy_function))
+                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, used_field), dummy_function))
+                            app1.ArgApp.Add(New TDot(Nothing, used_field))
                             app1.ArgApp.Add(New TReference(app_var))
                             fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
 
-                            sw.WriteLine(String.Format(".{0}()", function_name))
+                            Debug.Print(".{0}()", function_name)
                         End If
 
                         Dim navi_needed_class As TClass = If(used_field.TypeVar.OrgCla IsNot Nothing, Prj.ElementType(used_field.TypeVar), used_field.TypeVar)
@@ -1293,12 +1326,8 @@ Public Class TNaviMakeNavigateFunction
                 Next
 
                 For Each cla1 In navi_needed_class_list
-                    Dim fnc1 As New TFunction(function_name, Prj, cla1)
-
-                    fnc1.ArgFnc.Add(New TVariable("app", Prj.MainClass))
+                    InitNavigateFunction(function_name, cla1)
                 Next
-
-                Debug.Print(sw.ToString())
             End With
         End If
     End Sub

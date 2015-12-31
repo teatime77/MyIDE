@@ -275,7 +275,7 @@ Public Class TNavi
 
     Public Overridable Sub NaviIfBlock(if_blc As TIfBlock, arg1 As Object)
         NaviTerm(if_blc.CndIf, arg1)
-        NaviTerm(if_blc.TermWith, arg1)
+        NaviTerm(if_blc.WithIf, arg1)
         NaviStatement(if_blc.BlcIf, arg1)
     End Sub
 

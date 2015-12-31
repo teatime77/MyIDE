@@ -582,9 +582,9 @@ Public Class TDataflow
 
                     Dim fld1 As TField = CType(dot1.VarRef, TField)
 
-                    Dim if_blc = CType((From o In TNaviUp.AncestorList(x) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).TermWith IsNot Nothing).First(), TIfBlock)
+                    Dim if_blc = CType((From o In TNaviUp.AncestorList(x) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing).First(), TIfBlock)
 
-                    Dim with_cls As TClass = if_blc.TermWith.TypeTrm
+                    Dim with_cls As TClass = if_blc.WithIf.TypeTrm
                     Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm)())
                     If set_fnc IsNot Nothing Then
 
@@ -1831,7 +1831,7 @@ Public Class Sys
 
         if_blc2.BlcIf = CopyBlc(if_blc.BlcIf, cpy)
         if_blc2.CndIf = CopyTrm(if_blc.CndIf, cpy)
-        if_blc2.TermWith = CopyTrm(if_blc.TermWith, cpy)
+        if_blc2.WithIf = CopyTrm(if_blc.WithIf, cpy)
 
         Return if_blc2
     End Function

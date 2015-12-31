@@ -89,6 +89,25 @@ Public Class TProject
         Return prj1
     End Function
 
+    Public Sub OutputSourceFile()
+        For Each lang In OutputLanguageList
+            Debug.WriteLine("ソース 生成 {0} --------------------------------------------------------------------------------------------", lang)
+            Select Case lang
+                Case ELanguage.Basic
+                    Dim basic_parser As New TBasicParser(Me)
+                    MakeAllSourceCode(basic_parser)
+
+                Case ELanguage.JavaScript, ELanguage.TypeScript
+                    Dim script_parser As New TScriptParser(Me, lang)
+                    MakeAllSourceCode(script_parser)
+
+                Case Else
+                    Debug.Assert(False)
+            End Select
+        Next
+
+    End Sub
+
     Public Sub chk(b As Boolean)
         If Not b Then
             Debug.Assert(False)

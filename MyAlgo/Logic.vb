@@ -644,6 +644,7 @@ Public Class TFunction
     Public ThisFnc As TVariable
     Public BlcFnc As TBlock
     Public OrgFnc As TFunction
+    Public WithFnc As TClass
 
     Public CallFrom As New TList(Of TFunction)
     Public CallTo As New TList(Of TFunction)
@@ -1115,7 +1116,7 @@ Public Class TIfBlock
     Inherits TStatement
     Public BlcIf As TBlock
     Public CndIf As TTerm
-    Public TermWith As TTerm
+    Public WithIf As TTerm
 
     Public Sub New()
         TypeStmt = EToken.eIfBlock
@@ -1132,7 +1133,7 @@ Public Class TIfBlock
             End If
 
             Dim with1 As TWith = CType(blc.StmtBlc(vidx.First()), TWith)
-            TermWith = with1.TermWith
+            WithIf = with1.TermWith
 
             BlcIf = with1.BlcWith
         Else

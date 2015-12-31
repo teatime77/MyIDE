@@ -432,7 +432,18 @@ Public Class TNaviMakeSourceCode
 
                                 tw.Fmt(EToken.eNL)
                                 If .BlcFnc IsNot Nothing Then
-                                    tw.Fmt(.BlcFnc.TokenListStmt)
+
+                                    If .WithFnc IsNot Nothing Then
+                                        If .WithFnc Is .ArgFnc(0).TypeVar Then
+                                            tw.Fmt(EToken.eWith, .ArgFnc(0).NameVar, EToken.eNL)
+                                        Else
+                                            tw.Fmt(EToken.eWith, EToken.eCType, EToken.eLP, .ArgFnc(0).TokenListVar, EToken.eComma, .WithFnc.TokenListVar, EToken.eRP, EToken.eNL)
+                                        End If
+                                        tw.Fmt(.BlcFnc.TokenListStmt)
+                                        tw.Fmt(EToken.eEndWith, EToken.eNL)
+                                    Else
+                                        tw.Fmt(.BlcFnc.TokenListStmt)
+                                    End If
 
                                     Select Case .TypeFnc
                                         Case EToken.eOperator
@@ -960,8 +971,8 @@ Public Class TNaviMakeSourceCode
                                 End If
                         End Select
 
-                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso .TermWith IsNot Nothing Then
-                            tw.Fmt(EToken.eWith, .TermWith.TokenList, EToken.eNL)
+                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso .WithIf IsNot Nothing Then
+                            tw.Fmt(EToken.eWith, .WithIf.TokenList, EToken.eNL)
                             tw.Fmt(.BlcIf.TokenListStmt)
                             tw.Fmt(EToken.eEndWith, EToken.eNL)
                         Else
@@ -1214,9 +1225,12 @@ Public Class TNaviMakeSourceCode
         ElseIf TypeOf self Is TSourceFile Then
             With CType(self, TSourceFile)
 
-                For Each str_f In .vUsing
-                    tw.Fmt(EToken.eImports, str_f, EToken.eNL)
-                Next
+                Select Case ParserMK.LanguageSP
+                    Case ELanguage.Basic, ELanguage.CSharp
+                        For Each str_f In .vUsing
+                            tw.Fmt(EToken.eImports, str_f, EToken.eNL)
+                        Next
+                End Select
 
                 For Each cla1 In .ClaSrc
                     'If PrjMK.OutputNotUsed OrElse cla1.UsedVar OrElse cla1.KndCla = EClass.eDelegateCla Then

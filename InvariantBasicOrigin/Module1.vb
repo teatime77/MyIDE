@@ -3,7 +3,8 @@
     Sub Main()
         Dim project_name_list As String() = {"App1", "CSharp", "TypeScript", "StackPanel", "Circle", "View", "MyView", "InvariantBasicOrigin"}
         For Each project_name In project_name_list
-            TProject.MakeProject("C:\usr\prj\MyIDE\InvariantBasicOrigin\" + project_name + ".xml")
+            Dim prj1 As TProject = TProject.MakeProject("C:\usr\prj\MyIDE\InvariantBasicOrigin\" + project_name + ".xml")
+            prj1.OutputSourceFile()
         Next
     End Sub
 

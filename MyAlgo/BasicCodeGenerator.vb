@@ -354,11 +354,11 @@ Public Class TBasicCodeGenerator
 
     Public Sub IfBlcSrc(if_blc As TIfBlock, tab1 As Integer)
         IfBlcHeadSrc(if_blc, tab1)
-        If if_blc.TermWith IsNot Nothing Then
+        If if_blc.WithIf IsNot Nothing Then
             NL(if_blc)
             Tab(tab1)
             WordAdd(EToken.eWith, EFigType.eResFig, if_blc)
-            TrmSrc(if_blc.TermWith)
+            TrmSrc(if_blc.WithIf)
 
             BlcSrc(if_blc, EToken.eUnknown, if_blc.BlcIf, tab1)
 
