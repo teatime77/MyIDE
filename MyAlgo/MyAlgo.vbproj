@@ -95,9 +95,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="BasicParser.vb" />
+    <Compile Include="Miscellaneous.vb" />
     <Compile Include="Project.vb" />
     <Compile Include="ProgramTransformation.vb" />
     <Compile Include="Proof.vb" />
+    <Compile Include="ScriptParser.vb" />
     <Compile Include="System.vb" />
     <Compile Include="Navigation.vb" />
     <Compile Include="TWnd.vb" />

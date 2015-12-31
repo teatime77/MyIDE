@@ -35,6 +35,21 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
  	// TODO: ここにコードを挿入してください。
+	TBuilder^ builder = gcnew TBuilder();
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\App1.xml");
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\CSharp.xml");
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\TypeScript.xml");
+
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\StackPanel.xml");
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Circle.xml");
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\View.xml");
+
+	//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Miyu.xml");
+	//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyAlgo.xml");
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyView.xml");
+
+	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\InvariantBasicOrigin.xml");
+
 	MSG msg;
 	HACCEL hAccelTable;
 

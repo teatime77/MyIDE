@@ -7,30 +7,9 @@ Public Class TBuilder
     Public RefSugiyamaGraph As New Dictionary(Of TField, TList(Of TList(Of TNode)))
 
     Public Sub Build(project_path As String)
-        'XmlSerializerオブジェクトを作成
-        Dim serializer As New XmlSerializer(GetType(TProject))
-
-        '読み込むファイルを開く
-        Dim sr As New StreamReader(project_path, Encoding.UTF8)
-
-        'XMLファイルから読み込み、逆シリアル化する
-        Dim prj1 As TProject = CType(serializer.Deserialize(sr), TProject)
-        'ファイルを閉じる
-        sr.Close()
-
-        Dim nav2 As TNaviCSE
-
-        For Each s In From x In prj1.LibraryList From y In x.SourceFileNameList Select y
-            Debug.Print(s)
-        Next
-
-        If prj1.ClassNameTablePath <> "" Then
-            prj1.ClassNameTable = TProgramTransformation.ReadClassNameTable(prj1.ClassNameTablePath, 2)
-        End If
+        Dim prj1 As TProject = TProject.MakeProject(project_path)
 
         WriteObject(project_path, prj1)
-
-        prj1.Compile()
 
         If prj1.Language <> ELanguage.Basic AndAlso prj1.Language <> ELanguage.TypeScript Then
             Exit Sub
@@ -69,6 +48,7 @@ Public Class TBuilder
                 Select Case lang
                     Case ELanguage.Basic
                         Dim basic_parser As New TBasicParser(prj1)
+                        prj1.MakeAllBasicSrc(basic_parser)
                         prj1.MakeAllSourceCode(basic_parser)
 
                     Case ELanguage.JavaScript, ELanguage.TypeScript
@@ -81,15 +61,15 @@ Public Class TBuilder
             Next
 
             Debug.WriteLine("HTML 生成 ---------------------------------------------- 時間がかかるのでコメントアウト")
-            'prj1.MakeAllHtml()
+            prj1.MakeAllHtml()
         End If
 
         ' コード解析
         Debug.WriteLine("コード解析 ---------------------------------------------- 時間がかかるのでコメントアウト")
-        'prj1.CodeAnalysis()
+        prj1.CodeAnalysis()
 
         Debug.WriteLine("共通部分式")
-        nav2 = New TNaviCSE()
+        Dim nav2 As New TNaviCSE
         nav2.NaviProject(prj1, Nothing)
 
         If Not prj1.Dataflow Then

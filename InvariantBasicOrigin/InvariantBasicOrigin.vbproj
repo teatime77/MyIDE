@@ -68,17 +68,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\MyAlgo\BasicCodeGenerator.vb">
-      <Link>BasicCodeGenerator.vb</Link>
-    </Compile>
     <Compile Include="..\MyAlgo\BasicParser.vb">
       <Link>BasicParser.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\Builder.vb">
-      <Link>Builder.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\CodeGenerator.vb">
-      <Link>CodeGenerator.vb</Link>
     </Compile>
     <Compile Include="..\MyAlgo\Declarative.vb">
       <Link>Declarative.vb</Link>
@@ -88,9 +79,6 @@
     </Compile>
     <Compile Include="..\MyAlgo\Invariant.vb">
       <Link>Invariant.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\JavaCodeGenerator.vb">
-      <Link>JavaCodeGenerator.vb</Link>
     </Compile>
     <Compile Include="..\MyAlgo\Logic.vb">
       <Link>Logic.vb</Link>

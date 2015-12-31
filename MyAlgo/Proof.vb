@@ -1,58 +1,6 @@
 ﻿Imports System.IO
 Imports System.Diagnostics
 
-' -------------------------------------------------------------------------------- TNaviCSE
-Public Class TNaviCSE
-    Inherits TNavi
-
-    Public Overrides Sub NaviTerm(trm1 As TTerm, arg1 As Object)
-        Dim dat1 As TNaviCSEDat, s1 As String, s2 As String
-
-        If trm1 Is Nothing OrElse arg1 Is Nothing Then
-            Exit Sub
-        Else
-            If Not TypeOf trm1 Is TDot Then
-                MyBase.NaviTerm(trm1, arg1)
-            Else
-                MyBase.NaviTerm(CType(trm1, TDot).TrmDot, arg1)
-
-                dat1 = CType(arg1, TNaviCSEDat)
-
-                For Each trm2 In dat1.vTrm
-                    If Sys.IsEqTrm(trm1, trm2) Then
-                        s1 = TProject.TrmStr(dat1.BFM, trm1)
-                        s2 = TProject.TrmStr(dat1.BFM, trm2)
-                        Debug.Assert(s1 = s2)
-                        '                        Debug.WriteLine("共通部分式 {0} {1}", dat1.FncCSE.FullName(), s1)
-                        Exit For
-                    End If
-                Next
-
-                dat1.vTrm.Add(trm1)
-            End If
-        End If
-    End Sub
-
-    Public Overrides Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
-        Dim dat1 As New TNaviCSEDat
-
-        If fnc1.BlcFnc IsNot Nothing Then
-            dat1.FncCSE = fnc1
-            NaviBlock(fnc1.BlcFnc, dat1)
-        End If
-    End Sub
-End Class
-
-' -------------------------------------------------------------------------------- TNaviCSEDat
-Public Class TNaviCSEDat
-    Public FncCSE As TFunction
-    Public vTrm As New TList(Of TTerm)
-    Public BFM As TBasicCodeGenerator
-
-    Public Sub New()
-        BFM = New TBasicCodeGenerator(TProject.Prj, TProject.Prj.ParsePrj)
-    End Sub
-End Class
 
 ' -------------------------------------------------------------------------------- TDataflow
 Public Enum EAnalyzeChangeableFld
@@ -88,7 +36,6 @@ Public Class TDataflow
     Public ChangePropagation As TChange
     Public LocalVariableAssignment As TAssignment
     Public SyncFldList As New TList(Of TField)
-    Public RuleCodeGen As TBasicCodeGenerator
     Public SyncClassName As String
     Public SyncClassSrc As String
     Public RuleSW As New StringWriter
@@ -708,8 +655,6 @@ Public Class TDataflow
 
         Dim self_var As TVariable, sync_var As TVariable
 
-        RuleCodeGen = New TBasicCodeGenerator(prj1, prj1.ParsePrj)
-
         self_var = RuleCp.ArgFnc(0)
         sync_var = New TVariable("_sync", New TClass(ProjectDtf, SyncClassName))
 
@@ -785,9 +730,9 @@ Public Class TDataflow
             Next
         Next
 
-        RuleCodeGen.FncSrc(RuleCp)
-
-        RuleSW.WriteLine(RuleCodeGen.MakeSrcText())
+        'Dim RuleCodeGen As TBasicCodeGenerator = New TBasicCodeGenerator(prj1, prj1.ParsePrj)
+        'RuleCodeGen.FncSrc(RuleCp)
+        'RuleSW.WriteLine(RuleCodeGen.MakeSrcText())
 
         RuleCp.ArgFnc.RemoveAt(0)
         RuleCp.ArgFnc.Add(self_var)

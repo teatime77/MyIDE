@@ -1,19 +1,10 @@
 ﻿Module Module1
 
     Sub Main()
-        Dim builder As New TBuilder
-
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\App1.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\CSharp.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\TypeScript.xml")
-
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\StackPanel.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\Circle.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\View.xml")
-
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\Miyu.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyAlgo.xml")
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyView.xml")
+        Dim project_name_list As String() = {"App1", "CSharp", "TypeScript", "StackPanel", "Circle", "View", "MyView", "InvariantBasicOrigin"}
+        For Each project_name In project_name_list
+            TProject.MakeProject("C:\usr\prj\MyIDE\InvariantBasicOrigin\" + project_name + ".xml")
+        Next
     End Sub
 
 End Module

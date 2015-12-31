@@ -256,27 +256,14 @@ Public Class TIDE
         ProofView.RemakeDrawFig()
     End Sub
 
-    Public Sub TestView()
+    Public Sub Test(project_path As String)
         Dim builder As New TBuilder
 
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyView.xml")
+        builder.Build(project_path)
 
         For Each L In builder.RefSugiyamaGraph.Values
             MakeGridGraph(L)
         Next
-    End Sub
-
-    Public Sub Test()
-        Dim builder As New TBuilder
-
-        builder.Build("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyAlgo.xml")
-
-        For Each L In builder.RefSugiyamaGraph.Values
-            MakeGridGraph(L)
-        Next
-    End Sub
-
-    Public Sub TestMiyu()
     End Sub
 
     Public Overrides Sub InitApp()
@@ -331,9 +318,7 @@ Public Class TIDE
         '    Debug.WriteLine("")
         'End Try
 
-        Test()
-        TestView()
-        TestMiyu()
+        'Test("C:\usr\prj\MyIDE\InvariantBasicOrigin\MyAlgo.xml")
 
         SrcBrwsr.SetSrcBrw()
         SrcBrwsr.RemakeDrawFig()

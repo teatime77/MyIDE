@@ -925,29 +925,6 @@ Public Class TApply
 
         Return app1
     End Function
-
-    Public Sub TrmSrcSet(mk As TCodeGenerator, trm1 As TTerm)
-        Select Case KndApp
-
-            Case EApply.eListApp, EApply.eDictionaryApp
-                Debug.Assert(ArgApp.Count = 1)
-
-                mk.TrmSrc(FncApp)
-                mk.WordAdd(".", EFigType.eSymFig, Me)
-                If KndApp = EApply.eListApp Then
-                    mk.WordAdd("set", EFigType.eRefFig, Me)
-                Else
-                    mk.WordAdd("put", EFigType.eRefFig, Me)
-                End If
-                mk.WordAdd("(", EFigType.eSymFig, Me)
-                mk.TrmSrc(ArgApp(0))
-                mk.WordAdd(",", EFigType.eSymFig, Me)
-                mk.TrmSrc(trm1)
-                mk.WordAdd(")", EFigType.eSymFig, Me)
-            Case Else
-                Debug.Assert(False)
-        End Select
-    End Sub
 End Class
 
 ' -------------------------------------------------------------------------------- TDot
@@ -1300,7 +1277,6 @@ Public Class TSourceFile
     Public LineTkn As TList(Of TList(Of TToken))
     Public InputTokenList As TList(Of TToken)
     Public StmtSrc As TList(Of TStatement)
-    Public FigSrc As TBasicCodeGenerator
     Public TokenListSrc As List(Of TToken)
 
     Public Sub New(lib1 As TLibrary, path1 As String)

@@ -1,5 +1,5 @@
 ﻿Imports System.Diagnostics
-Imports InvariantBasicOrigin
+'Imports InvariantBasicOrigin
 
 '-------------------------------------------------------------------------------- TScriptParser
 ' C#の構文解析
