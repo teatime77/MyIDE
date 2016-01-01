@@ -3,7 +3,14 @@ Imports System.Xml.Serialization
 Imports System.Text
 Imports System.Diagnostics
 
-Public Class TAttribute
+Public Class TWeak
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
+Public Class TInvariant
     Inherits Attribute
 
     Public Sub New()
@@ -30,7 +37,7 @@ Public Class TProject
     Public ClassNameTablePath As String = ""
     Public Dataflow As Boolean = False
 
-    <XmlIgnoreAttribute(), TAttribute()> Public ClassNameTable As Dictionary(Of String, String)
+    <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
@@ -1009,7 +1016,7 @@ Public Class TProject
         set_up_trm.NaviProject(Me, Nothing)
 
         If MainClass IsNot Nothing Then
-            Dim vrule = (From fnc In MainClass.FncCla Where fnc.NameVar.StartsWith("Rule")).ToList()
+            Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
             For Each rule In vrule
                 ' 参照パスをセットする。
                 'Dim set_ref_path As New TNaviSetRefPath

@@ -1129,6 +1129,7 @@ Public Class TNaviMakeClassifiedIfMethod
 
                     fnc1.NameVar = .FunctionStmt.NameVar
                     fnc1.ModVar = New TModifier()
+                    fnc1.ModVar.isInvariant = True
                     fnc1.TypeFnc = .FunctionStmt.TypeFnc
                     fnc1.ClaFnc = classified_class
                     fnc1.ClaFnc.FncCla.Add(fnc1)
@@ -1171,7 +1172,7 @@ Public Class TNaviMakeNavigateFunction
         fnc1.WithFnc = cla1
 
         ' RuleのCall文を作る。
-        Dim rule_fnc_list = From c In Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(cla1)) From f In c.FncCla Where f.NameVar = "Rule" Select f
+        Dim rule_fnc_list = From c In Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(cla1)) From f In c.FncCla Where f.ModVar.isInvariant Select f
         If rule_fnc_list.Any() Then
 
             Dim rule_fnc As TFunction = rule_fnc_list.First()

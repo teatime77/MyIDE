@@ -109,6 +109,8 @@ class TMyApplication extends TApplication {
         grp.Children.push(txt2);
     }
     cnt: number = 0;
+
+    @invariant
     Rule(self: Object, app:TMyApplication) {
         if (self instanceof TShape) {
             if (self.Parent == null) {

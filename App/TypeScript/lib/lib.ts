@@ -114,6 +114,10 @@ function weak(x) {
     return x;
 }
 
+function invariant(x) {
+    return x;
+}
+
 class TShape {
     @weak
     Parent: TShape = null;

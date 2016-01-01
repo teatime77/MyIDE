@@ -1286,7 +1286,16 @@ Public Class TBasicParser
                         Dim id1 As TToken
 
                         id1 = GetTkn(EToken.eId)
-                        Debug.Assert(id1.StrTkn = "XmlIgnoreAttribute" OrElse id1.StrTkn = "TAttribute")
+                        If id1.StrTkn = "XmlIgnoreAttribute" Then
+                            mod1.isXmlIgnore = True
+                            mod1.isWeak = True
+                        ElseIf id1.StrTkn = "TWeak" Then
+                            mod1.isWeak = True
+                        ElseIf id1.StrTkn = "TInvariant" Then
+                            mod1.isInvariant = True
+                        Else
+                            Debug.Assert(False)
+                        End If
                         GetTkn(EToken.eLP)
                         GetTkn(EToken.eRP)
 
@@ -1298,8 +1307,6 @@ Public Class TBasicParser
                     Loop
                     Debug.Assert(CurTkn.TypeTkn = EToken.eGT)
 
-                    mod1.isXmlIgnore = True
-                    mod1.isWeak = True
                 Case Else
                     Exit Do
             End Select

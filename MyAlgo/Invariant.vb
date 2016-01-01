@@ -185,10 +185,14 @@ Public Class TNaviMakeSourceCode
                     Case EClass.eStructCla, EClass.eClassCla
                         ' 構造体かクラスの場合
 
-                        '  すべてのメソッドに対し
-                        For Each fnc1 In .FncCla
-                            tw.Fmt(fnc1.TokenListVar)
-                        Next
+                        If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0).NameVar = "Attribute" Then
+                        Else
+                            '  すべてのメソッドに対し
+                            For Each fnc1 In .FncCla
+                                tw.Fmt(fnc1.TokenListVar)
+                            Next
+                        End If
+
                 End Select
             End With
         End If
@@ -269,8 +273,8 @@ Public Class TNaviMakeSourceCode
                                         End With
                                     End If
                                 Case Else
-
                                     '  クラスの場合
+
                                     If .ModCla().isPartial Then
                                         tw.Fmt(EToken.ePartial)
                                     End If

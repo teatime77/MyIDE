@@ -261,6 +261,7 @@ Public Class TModifier
     Public isVirtual As Boolean
     Public isIterator As Boolean
     Public isWeak As Boolean
+    Public isInvariant As Boolean
 
     Public isXmlIgnore As Boolean
 
