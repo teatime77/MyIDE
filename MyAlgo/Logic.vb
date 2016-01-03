@@ -267,6 +267,11 @@ Public Class TModifier
     Public isXmlIgnore As Boolean
 
     Public TokenListMod As List(Of TToken)
+
+    Public Function isStrong() As Boolean
+        Return Not isWeak AndAlso Not isParent
+    End Function
+
 End Class
 
 ' -------------------------------------------------------------------------------- TTerm

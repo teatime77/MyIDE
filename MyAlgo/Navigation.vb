@@ -528,6 +528,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartLocalVariable(var1 As TVariable, arg1 As Object) As Object
         If var1 IsNot Nothing Then
+            'Debug.Assert(var1.UpVar Is arg1)
             var1.UpVar = arg1
         End If
 
@@ -536,6 +537,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartTerm(trm1 As TTerm, arg1 As Object) As Object
         If trm1 IsNot Nothing Then
+            'Debug.Assert(trm1.UpTrm Is arg1)
             trm1.UpTrm = arg1
         End If
 
@@ -544,6 +546,11 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
+            If TypeOf stmt1 Is TIfBlock Then
+                'Debug.Assert(stmt1.ParentStmt Is CType(arg1, TIf).IfBlc)
+            Else
+                'Debug.Assert(stmt1.ParentStmt Is arg1)
+            End If
             stmt1.ParentStmt = arg1
         End If
 
@@ -552,6 +559,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartIf(if1 As TIf, arg1 As Object) As Object
         If if1 IsNot Nothing Then
+            'Debug.Assert(if1.IfBlc.UpList Is if1)
             if1.IfBlc.UpList = if1
         End If
 
@@ -564,6 +572,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartLocalVariableList(list1 As TList(Of TVariable), arg1 As Object) As Object
         If list1 IsNot Nothing Then
+            'Debug.Assert(list1.UpList Is arg1)
             list1.UpList = arg1
         End If
 
@@ -572,6 +581,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartTermList(list1 As TList(Of TTerm), arg1 As Object) As Object
         If list1 IsNot Nothing Then
+            'Debug.Assert(list1.UpList Is arg1)
             list1.UpList = arg1
         End If
 
@@ -580,6 +590,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartCaseList(list1 As TList(Of TCase), arg1 As Object) As Object
         If list1 IsNot Nothing Then
+            'Debug.Assert(list1.UpList Is arg1)
             list1.UpList = arg1
         End If
 
@@ -588,6 +599,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartStatementList(list1 As TList(Of TStatement), arg1 As Object) As Object
         If list1 IsNot Nothing Then
+            'Debug.Assert(list1.UpList Is arg1)
             list1.UpList = arg1
         End If
 
@@ -596,6 +608,7 @@ Public Class TNaviSetParentStmt
 
     Public Overrides Function StartBlockList(list1 As TList(Of TBlock), arg1 As Object) As Object
         If list1 IsNot Nothing Then
+            'Debug.Assert(list1.UpList Is arg1)
             list1.UpList = arg1
         End If
 

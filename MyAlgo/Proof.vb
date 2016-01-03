@@ -1997,6 +1997,7 @@ Public Class Sys
         fnc2.BlcFnc = CopyBlc(fnc1.BlcFnc, cpy)
         fnc2.OrgFnc = fnc1.OrgFnc
 
+        'fnc2.__SetParent(fnc2, fnc2.ClaFnc.FncCla)
         set_parent_stmt = New TNaviSetParentStmt()
         set_parent_stmt.NaviFunction(fnc2, Nothing)
 

@@ -102,6 +102,11 @@
                     End If
                     .Center.X += .Velocity.X
                     .Center.Y += .Velocity.Y
+
+                    .Test.Position = New TPoint()
+                Else
+
+                    Dim p As Double = .Parent.Test.Position.X
                 End If
 
                 If .AbsCenter.Distance(app.MousePosition) <= .Radius Then
@@ -129,7 +134,6 @@
                     With CType(self, TGroup)
                         Dim v1 = (From x In .Children Select x.Center.X).ToArray()
                         'console.log("Center X:" + v1)
-
 
                         Dim vshape = From x In .Children Where TypeOf x Is TImage
                         .BoundingRectangle.Position.X = Aggregate img In vshape Into Min(img.BoundingRectangle.Position.X)

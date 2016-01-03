@@ -97,7 +97,7 @@ Public Class TRect
 End Class
 
 Public Class TShape
-    <_Weak()> Public Parent As TShape = Nothing
+    <_Parent()> Public Parent As TShape = Nothing
     Public Center As New TPoint
     Public Radius As Double
     Public AbsCenter As New TPoint
@@ -105,6 +105,7 @@ Public Class TShape
     Public Rotation As Double = 0
     Public Velocity As New TPoint
     Public BoundingRectangle As New TRect
+    Public Test As New TRect
 
     Sub SetBoundingRectangle(x As Double, y As Double, w As Double, h As Double)
         Center.X = x
