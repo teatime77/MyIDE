@@ -110,16 +110,20 @@ class TRect {
     Size: TPoint = new TPoint();
 }
 
-function weak(x) {
+function _Weak(x) {
     return x;
 }
 
-function invariant(x) {
+function _Parent(x) {
+    return x;
+}
+
+function _Invariant(x) {
     return x;
 }
 
 class TShape {
-    @weak
+    @_Weak
     Parent: TShape = null;
     Center: TPoint = new TPoint();
     Radius: number;

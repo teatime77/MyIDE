@@ -1,10 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Language>Basic</Language>
+  <OutputDirectory>C:\usr\prj\MyIDE\ViewSrc\out\MyView</OutputDirectory>
+  <MainClassName>TNaviView</MainClassName>
+  <MainFunctionName>GlobalRule</MainFunctionName>
+  <OutputNotUsed>true</OutputNotUsed>
+  <UseReferenceGraph>false</UseReferenceGraph>
+  <ClassNameTablePath />
+  <Dataflow>true</Dataflow>
   <OutputLanguageList>
     <ELanguage>Basic</ELanguage>
   </OutputLanguageList>
-  <OutputDirectory>C:\usr\prj\MyIDE\ViewSrc\out\MyView</OutputDirectory>
   <LibraryList>
     <TLibrary>
       <LibraryDirectory>C:\usr\prj\MyIDE\ViewSrc</LibraryDirectory>
@@ -15,10 +21,4 @@
       </SourceFileNameList>
     </TLibrary>
   </LibraryList>
-  <MainClassName>TNaviView</MainClassName>
-  <MainFunctionName>GlobalRule</MainFunctionName>
-  <OutputNotUsed>true</OutputNotUsed>
-  <UseReferenceGraph>false</UseReferenceGraph>
-  <ClassNameTablePath />
-  <Dataflow>true</Dataflow>
 </TProject>

@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="BasicCodeGenerator.vb" />
     <Compile Include="Builder.vb" />
+    <Compile Include="Compile.vb" />
     <Compile Include="Declarative.vb" />
     <Compile Include="Graph.vb" />
     <Compile Include="IDE.vb" />
@@ -96,6 +97,7 @@
     </Compile>
     <Compile Include="BasicParser.vb" />
     <Compile Include="Miscellaneous.vb" />
+    <Compile Include="out2\Basic\Generated.vb" />
     <Compile Include="Project.vb" />
     <Compile Include="ProgramTransformation.vb" />
     <Compile Include="Proof.vb" />

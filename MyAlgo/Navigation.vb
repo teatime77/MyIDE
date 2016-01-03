@@ -634,6 +634,8 @@ Public Class TNaviUp
     Public Shared Function UpObj(obj As Object) As Object
         If TypeOf obj Is TFunction Then
             Return CType(obj, TFunction).ClaFnc
+        ElseIf TypeOf obj Is TList(Of TField) Then
+            Return CType(obj, TList(Of TField)).UpList
         ElseIf TypeOf obj Is TClass Then
             Return CType(obj, TClass).ProjectCla
         ElseIf TypeOf obj Is TProject Then
@@ -654,6 +656,8 @@ Public Class TNaviUp
             Return CType(obj, TList(Of TStatement)).UpList
         ElseIf TypeOf obj Is TList(Of TBlock) Then
             Return CType(obj, TList(Of TBlock)).UpList
+        ElseIf TypeOf obj Is TList(Of TIfBlock) Then
+            Return CType(obj, TList(Of TIfBlock)).UpList
         Else
             Debug.Assert(False)
             Return Nothing
@@ -714,6 +718,12 @@ Public Class TNaviUp
             For Each cla3 In AncestorSuperClassList(cla2)
                 Yield cla3
             Next
+        Next
+    End Function
+
+    Public Shared Iterator Function DistinctThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In Enumerable.Distinct(ThisAncestorSuperClassList(cla1))
+            Yield cla2
         Next
     End Function
 

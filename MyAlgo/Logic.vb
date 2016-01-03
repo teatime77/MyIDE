@@ -261,6 +261,7 @@ Public Class TModifier
     Public isVirtual As Boolean
     Public isIterator As Boolean
     Public isWeak As Boolean
+    Public isParent As Boolean
     Public isInvariant As Boolean
 
     Public isXmlIgnore As Boolean
@@ -270,13 +271,13 @@ End Class
 
 ' -------------------------------------------------------------------------------- TTerm
 Public Class TTerm
-    Public UpTrm As Object
-    Public TokenList As List(Of TToken)
-    Public FunctionTrm As TFunction
-    Public TypeTrm As TClass
-    Public ProjectTrm As TProject
-    Public RefPathTrm As TRefPath
-    Public CastType As TClass
+    <_Parent()> Public UpTrm As Object
+    <_Weak()> Public TokenList As List(Of TToken)
+    <_Weak()> Public FunctionTrm As TFunction
+    <_Weak()> Public TypeTrm As TClass
+    <_Weak()> Public ProjectTrm As TProject
+    <_Weak()> Public RefPathTrm As TRefPath
+    <_Weak()> Public CastType As TClass
 
     Public Sub New()
     End Sub
@@ -328,23 +329,24 @@ End Class
 ' -------------------------------------------------------------------------------- TVariable
 Public Class TVariable
     Public Shared VarCnt As Integer
-    Public UpVar As Object
+    <_Parent()> Public UpVar As Object
+
     Public IdxVar As Integer
     Public ModVar As TModifier
     Public NameVar As String
-    Public TypeVar As TClass
+    <_Weak()> Public TypeVar As TClass
     Public InitVar As TTerm
-    Public RefVar As New TList(Of TReference)
+    <_Weak()> Public RefVar As New TList(Of TReference)
     Public ByRefVar As Boolean = False
     Public ParamArrayVar As Boolean = False
     Public ComVar As TComment
     Public NoType As Boolean = False
     Public UsedVar As Boolean = False
-    Public RefPathVar As TRefPath
+    <_Weak()> Public RefPathVar As TRefPath
     ' public List<TReference> UseVar = new List<TReference>();
     ' public List<TReference> DefVar = new List<TReference>();
 
-    Public TokenListVar As List(Of TToken)
+    <_Weak()> Public TokenListVar As List(Of TToken)
 
     Public Sub CopyVarMem(var1 As TVariable)
         var1.ModVar = ModVar
@@ -399,24 +401,28 @@ End Class
 ' -------------------------------------------------------------------------------- TClass
 Public Class TClass
     Inherits TVariable
-    Public ProjectCla As TProject
-    Public KndCla As EClass = EClass.eClassCla
-    Public OrgCla As TClass
-    Public GenCla As TList(Of TClass)
-    Public SuperClassList As New TList(Of TClass)
-    Public SubClassList As New TList(Of TClass)
-    Public AllSuperClassList As TList(Of TClass)
-    Public InterfaceList As New TList(Of TClass)
+
     Public FldCla As New TList(Of TField)
     Public FncCla As New TList(Of TFunction)
+
+    <_Weak()> Public ProjectCla As TProject
+    <_Weak()> Public OrgCla As TClass
+    <_Weak()> Public GenCla As TList(Of TClass)
+    <_Weak()> Public SuperClassList As New TList(Of TClass)
+    <_Weak()> Public SubClassList As New TList(Of TClass)
+    <_Weak()> Public AllSuperClassList As TList(Of TClass)
+    <_Weak()> Public InterfaceList As New TList(Of TClass)
+    <_Weak()> Public SrcCla As TSourceFile
+    <_Weak()> Public TokenListCls As List(Of TToken)
+    <_Weak()> Public GenTokenListCls As List(Of TToken)
+
     Public DimCla As Integer = 0
-    Public SrcCla As TSourceFile
+    Public KndCla As EClass = EClass.eClassCla
     Public IsParamCla As Boolean = False
     Public ContainsArgumentClass As Boolean = False
     Public GenericType As EGeneric
     Public Parsed As Boolean = False
 
-    Public TokenListCls As List(Of TToken)
 
     Public Sub New()
         Debug.WriteLine("@a")
@@ -572,7 +578,7 @@ End Class
 ' -------------------------------------------------------------------------------- TDelegate
 Public Class TDelegate
     Inherits TClass
-    Public RetDlg As TClass
+    <_Weak()> Public RetDlg As TClass
     Public ArgDlg As New TList(Of TVariable)
 
     Public Sub New(prj1 As TProject, name1 As String)
@@ -590,9 +596,10 @@ End Class
 ' -------------------------------------------------------------------------------- TField
 Public Class TField
     Inherits TVariable
-    Public ClaFld As TClass
+    <_Weak()> Public ClaFld As TClass
+    <_Weak()> Public OrgFld As TField
+
     Public TailCom As String
-    Public OrgFld As TField
 
     Public Sub New()
     End Sub
@@ -630,31 +637,32 @@ End Class
 ' -------------------------------------------------------------------------------- TFunction
 Public Class TFunction
     Inherits TVariable
-    Public Const ClassInitializerName As String = "Class$Initializer"
-    Public Const InstanceInitializerName As String = "Instance$Initializer"
-    Public Const ImplicitNewName As String = "Implicit$New"
+    Public Const ClassInitializerName As String = "__ClassInitializer"
+    Public Const InstanceInitializerName As String = "__InstanceInitializer"
+    Public Const ImplicitNewName As String = "__ImplicitNew"
     Public TypeFnc As EToken
     Public IsNew As Boolean = False
+    Public IsTreeWalker As Boolean = False
     Public OpFnc As EToken = EToken.eUnknown
-    Public ClaFnc As TClass
-    Public RetType As TClass
-    Public InterfaceFnc As TClass
-    Public ImplFnc As TReference
-    Public ArgumentClassFnc As TList(Of TClass)
+    <_Weak()> Public ClaFnc As TClass
+    <_Weak()> Public RetType As TClass
+    <_Weak()> Public InterfaceFnc As TClass
+    <_Weak()> Public ImplFnc As TReference
+    <_Weak()> Public ArgumentClassFnc As TList(Of TClass)
     Public ArgFnc As New TList(Of TVariable)
     Public ThisFnc As TVariable
     Public BlcFnc As TBlock
-    Public OrgFnc As TFunction
-    Public WithFnc As TClass
+    <_Weak()> Public OrgFnc As TFunction
+    <_Weak()> Public WithFnc As TClass
 
-    Public CallFrom As New TList(Of TFunction)
-    Public CallTo As New TList(Of TFunction)
-    Public CallToAll As New TList(Of TFunction)
-    Public OvrFnc As TFunction
-    Public OvredFnc As New TList(Of TFunction)
-    Public EqOvredFncAll As New TList(Of TFunction)
+    <_Weak()> Public CallFrom As New TList(Of TFunction)
+    <_Weak()> Public CallTo As New TList(Of TFunction)
+    <_Weak()> Public CallToAll As New TList(Of TFunction)
+    <_Weak()> Public OvrFnc As TFunction
+    <_Weak()> Public OvredFnc As New TList(Of TFunction)
+    <_Weak()> Public EqOvredFncAll As New TList(Of TFunction)
     Public Reachable As Boolean
-    Public RefFnc As New TList(Of TReference)
+    <_Weak()> Public RefFnc As New TList(Of TReference)
     Public LabelCount As Integer
 
     Public Sub CopyFncMem(fnc1 As TFunction)
@@ -713,7 +721,7 @@ Public Class TFunction
         Return "_OP_" + OpFnc.ToString().Substring(1)
     End Function
 
-    Public Function IsGenerated() As Boolean
+    Public Function IsInitializer() As Boolean
         Return NameFnc() = ClassInitializerName OrElse NameFnc() = InstanceInitializerName OrElse NameFnc() = ImplicitNewName
     End Function
 End Class
@@ -754,7 +762,7 @@ End Class
 ' -------------------------------------------------------------------------------- TReference
 Public Class TReference
     Inherits TAtom
-    Public VarRef As TVariable
+    <_Weak()> Public VarRef As TVariable
     Public DefRef As Boolean = False
     Public IsAddressOf As Boolean = False
 
@@ -803,9 +811,10 @@ Public Class TApply
     Public ArgApp As New TList(Of TTerm)
     Public KndApp As EApply = EApply.eUnknownApp
     Public FncApp As TTerm
-    Public ClassApp As TClass
-    Public NewApp As TClass
     Public IniApp As TArray
+
+    <_Weak()> Public ClassApp As TClass
+    <_Weak()> Public NewApp As TClass
 
     Public Sub AddInArg(trm1 As TTerm)
         ArgApp.Add(trm1)
@@ -933,7 +942,7 @@ End Class
 Public Class TDot
     Inherits TReference
     Public TrmDot As TTerm
-    Public TypeDot As TClass
+    <_Weak()> Public TypeDot As TClass
 
     Public Sub New(trm1 As TTerm, name1 As String)
         MyBase.New(name1)
@@ -968,8 +977,8 @@ End Class
 
 Public Class TQuery
     Inherits TTerm
-    Public VarQry As TVariable
     Public SeqQry As TTerm
+    Public VarQry As TVariable
     Public CndQry As TTerm
 End Class
 
@@ -1002,22 +1011,22 @@ End Class
 ' -------------------------------------------------------------------------------- TStatement
 Public Class TStatement
     Shared StmtCnt As Integer
-    Public ParentStmt As Object
-    Public ComStmt As TList(Of TToken)
-    Public TailCom As String
-    Public vTknStmt As TList(Of TToken)
+    <_Parent()> Public ParentStmt As Object
+    <_Weak()> Public ComStmt As TList(Of TToken)
+    <_Weak()> Public TailCom As String
+    <_Weak()> Public vTknStmt As TList(Of TToken)
     Public StmtIdx As Integer
     Public TypeStmt As EToken
-    Public RefStmt As New TList(Of TReference)
+    <_Weak()> Public RefStmt As New TList(Of TReference)
     Public IsGenerated As Boolean
     Public UsedStmt As Boolean
     Public ValidStmt As Boolean = True
     Public BeforeSrc As String
     Public AfterSrc As String = ""
 
-    Public TokenListStmt As List(Of TToken)
+    <_Weak()> Public TokenListStmt As List(Of TToken)
     Public TabStmt As Integer
-    Public FunctionStmt As TFunction
+    <_Weak()> Public FunctionStmt As TFunction
 
     Public ClassifiedIf As Boolean
 
@@ -1046,7 +1055,7 @@ End Class
 Public Class TVariableDeclaration
     Inherits TStatement
     Public ModDecl As TModifier
-    Public TypeDecl As TClass
+    <_Weak()> Public TypeDecl As TClass
     Public VarDecl As New TList(Of TVariable)
 
     Public Sub New()
@@ -1061,7 +1070,7 @@ End Class
 ' -------------------------------------------------------------------------------- TBlock
 Public Class TBlock
     Inherits TStatement
-    Public VarBlc As New TList(Of TVariable)
+    <_Weak()> Public VarBlc As New TList(Of TVariable)
     Public StmtBlc As New TList(Of TStatement)
 
     Public Sub AddStmtBlc(stmt1 As TStatement)
@@ -1115,9 +1124,9 @@ End Class
 ' -------------------------------------------------------------------------------- TIfBlock
 Public Class TIfBlock
     Inherits TStatement
-    Public BlcIf As TBlock
     Public CndIf As TTerm
     Public WithIf As TTerm
+    Public BlcIf As TBlock
 
     Public Sub New()
         TypeStmt = EToken.eIfBlock
@@ -1182,12 +1191,12 @@ End Class
 Public Class TFor
     Inherits TStatement
     Public IdxVarFor As TVariable
+    Public InTrmFor As TTerm
     Public InVarFor As TVariable
     Public IdxFor As TReference
     Public FromFor As TTerm
     Public ToFor As TTerm
     Public StepFor As TTerm
-    Public InTrmFor As TTerm
     Public IniFor As TStatement
     Public CndFor As TTerm
     Public StepStmtFor As TStatement
@@ -1213,8 +1222,8 @@ End Class
 Public Class TWith
     Inherits TStatement
 
-    Public TermWith As TTerm
-    Public BlcWith As TBlock
+    <_Weak()> Public TermWith As TTerm
+    <_Weak()> Public BlcWith As TBlock
 
     Public Sub New()
         TypeStmt = EToken.eWith
@@ -1225,7 +1234,7 @@ End Class
 Public Class TWithStmt
     Inherits TStatement
 
-    Public TermWith As TTerm
+    <_Weak()> Public TermWith As TTerm
 End Class
 
 ' -------------------------------------------------------------------------------- TAssignment
@@ -1270,16 +1279,17 @@ End Class
 
 ' -------------------------------------------------------------------------------- TSourceFile
 Public Class TSourceFile
-    Public LibSrc As TLibrary
+    Public IsSystem As Boolean = False
+    <_Weak()> Public LibSrc As TLibrary
     Public vUsing As New TList(Of String)
-    Public ClaSrc As New TList(Of TClass)
+    <_Weak()> Public ClaSrc As New TList(Of TClass)
     Public vTextSrc As String()
     Public FileDir As String
     Public FileSrc As String
-    Public LineTkn As TList(Of TList(Of TToken))
-    Public InputTokenList As TList(Of TToken)
-    Public StmtSrc As TList(Of TStatement)
-    Public TokenListSrc As List(Of TToken)
+    <_Weak()> Public LineTkn As TList(Of TList(Of TToken))
+    <_Weak()> Public InputTokenList As TList(Of TToken)
+    <_Weak()> Public StmtSrc As TList(Of TStatement)
+    <_Weak()> Public TokenListSrc As List(Of TToken)
 
     Public Sub New(lib1 As TLibrary, path1 As String)
         LibSrc = lib1

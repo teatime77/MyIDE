@@ -110,7 +110,7 @@ class TMyApplication extends TApplication {
     }
     cnt: number = 0;
 
-    @invariant
+    @_Invariant
     Rule(self: Object, app:TMyApplication) {
         if (self instanceof TShape) {
             if (self.Parent == null) {

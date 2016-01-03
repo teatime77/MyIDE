@@ -211,6 +211,7 @@ Public Class TNaviMakeSourceCode
             With CType(self, TVariable)
                 If TypeOf self Is TClass Then
                     With CType(self, TClass)
+                        Dim gen_tw As New TTokenWriter(self, ParserMK)
 
                         ComSrc(CType(.ComCla(), TComment), 0, tw)
                         If ParserMK.LanguageSP = ELanguage.JavaScript Then
@@ -331,9 +332,11 @@ Public Class TNaviMakeSourceCode
 
                                     '  すべてのメソッドに対し
                                     For Each fnc1 In .FncCla
-                                        'If Not fnc1.IsGenerated() AndAlso (fnc1.ModFnc().isMustOverride OrElse fnc1.NameVar = "New@TList") Then
-                                        'End If
-                                        tw.Fmt(fnc1.TokenListVar)
+                                        If fnc1.IsTreeWalker OrElse fnc1.IsInitializer() Then
+                                            gen_tw.Fmt(fnc1.TokenListVar)
+                                        Else
+                                            tw.Fmt(fnc1.TokenListVar)
+                                        End If
                                     Next
 
                                     If ParserMK.LanguageSP = ELanguage.Basic Then
@@ -352,12 +355,16 @@ Public Class TNaviMakeSourceCode
                         End If
 
                         .TokenListCls = tw.GetTokenList()
+
+                        If gen_tw.TokenListTW.Count <> 0 Then
+                            .GenTokenListCls = gen_tw.GetTokenList()
+                        End If
                     End With
 
                 ElseIf TypeOf self Is TFunction Then
                     With CType(self, TFunction)
 
-                        If Not .IsGenerated() OrElse ParserMK.LanguageSP = ELanguage.JavaScript Then
+                        If Not .IsInitializer() OrElse ParserMK.LanguageSP = ELanguage.JavaScript Then
                             If .ComVar IsNot Nothing Then
 
                                 tw.Fmt(.ComVar.TokenListStmt)
@@ -441,7 +448,7 @@ Public Class TNaviMakeSourceCode
                                         If .WithFnc Is .ArgFnc(0).TypeVar Then
                                             tw.Fmt(EToken.eWith, .ArgFnc(0).NameVar, EToken.eNL)
                                         Else
-                                            tw.Fmt(EToken.eWith, EToken.eCType, EToken.eLP, .ArgFnc(0).TokenListVar, EToken.eComma, .WithFnc.TokenListVar, EToken.eRP, EToken.eNL)
+                                            tw.Fmt(EToken.eWith, EToken.eCType, EToken.eLP, .ArgFnc(0).NameVar, EToken.eComma, .WithFnc.TokenListVar, EToken.eRP, EToken.eNL)
                                         End If
                                         tw.Fmt(.BlcFnc.TokenListStmt)
                                         tw.Fmt(EToken.eEndWith, EToken.eNL)
@@ -1201,6 +1208,35 @@ Public Class TNaviMakeSourceCode
 
         ElseIf TypeOf self Is TModifier Then
             With CType(self, TModifier)
+                If .isXmlIgnore OrElse .isWeak OrElse .isParent OrElse .isInvariant Then
+                    tw.Fmt(EToken.eLT)
+
+                    If .isXmlIgnore Then
+                        tw.Fmt("XmlIgnoreAttribute", EToken.eLP, EToken.eRP)
+                    End If
+
+                    If .isWeak Then
+                        If .isXmlIgnore Then
+                            tw.Fmt(EToken.eComma)
+                        End If
+
+                        tw.Fmt("_Weak", EToken.eLP, EToken.eRP)
+                    End If
+
+                    If .isParent Then
+                        If .isXmlIgnore OrElse .isWeak Then
+                            tw.Fmt(EToken.eComma)
+                        End If
+
+                        tw.Fmt("_Parent", EToken.eLP, EToken.eRP)
+                    End If
+
+                    If .isInvariant Then
+                        tw.Fmt("_Invariant", EToken.eLP, EToken.eRP)
+                    End If
+
+                    tw.Fmt(EToken.eGT)
+                End If
                 If .isPublic Then
                     tw.Fmt(EToken.ePublic)
                 End If

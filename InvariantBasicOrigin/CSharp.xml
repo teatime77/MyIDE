@@ -1,10 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Language>CSharp</Language>
+  <OutputDirectory>C:\usr\prj\MyIDE\etc\TEST\out</OutputDirectory>
+  <MainClassName>TNaviView</MainClassName>
+  <MainFunctionName>GlobalRule</MainFunctionName>
+  <OutputNotUsed>true</OutputNotUsed>
+  <UseReferenceGraph>false</UseReferenceGraph>
+  <ClassNameTablePath />
+  <Dataflow>true</Dataflow>
   <OutputLanguageList>
     <ELanguage>Basic</ELanguage>
   </OutputLanguageList>
-  <OutputDirectory>C:\usr\prj\MyIDE\etc\TEST\out</OutputDirectory>
   <LibraryList>
     <TLibrary>
       <LibraryDirectory>C:\usr\prj\MyIDE\etc\TEST</LibraryDirectory>
@@ -13,10 +19,4 @@
       </SourceFileNameList>
     </TLibrary>
   </LibraryList>
-  <MainClassName>TNaviView</MainClassName>
-  <MainFunctionName>GlobalRule</MainFunctionName>
-  <OutputNotUsed>true</OutputNotUsed>
-  <UseReferenceGraph>false</UseReferenceGraph>
-  <ClassNameTablePath />
-  <Dataflow>true</Dataflow>
 </TProject>

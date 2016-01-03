@@ -3,14 +3,21 @@ Imports System.Xml.Serialization
 Imports System.Text
 Imports System.Diagnostics
 
-Public Class TWeak
+Public Class _Weak
     Inherits Attribute
 
     Public Sub New()
     End Sub
 End Class
 
-Public Class TInvariant
+Public Class _Invariant
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
+Public Class _Parent
     Inherits Attribute
 
     Public Sub New()
@@ -24,12 +31,10 @@ End Class
 
 ' -------------------------------------------------------------------------------- TProject
 Public Class TProject
-    <XmlIgnoreAttribute()> Public Shared Prj As TProject
+    <XmlIgnoreAttribute(), _Weak()> Public Shared Prj As TProject
 
     Public Language As ELanguage = ELanguage.Basic
-    Public OutputLanguageList As New List(Of ELanguage)
     Public OutputDirectory As String
-    Public LibraryList As TLibrary()
     Public MainClassName As String
     Public MainFunctionName As String
     Public OutputNotUsed As Boolean = True
@@ -37,64 +42,44 @@ Public Class TProject
     Public ClassNameTablePath As String = ""
     Public Dataflow As Boolean = False
 
-    <XmlIgnoreAttribute()> Public ClassNameTable As Dictionary(Of String, String)
+    <_Weak()> Public OutputLanguageList As New List(Of ELanguage)
+    <_Weak()> Public LibraryList As TLibrary()
+
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public SpecializedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public PendingSpecializedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
-    <XmlIgnoreAttribute()> Public SimpleFieldList As List(Of TField)    ' 単純クラスのフィールドのリスト
-    <XmlIgnoreAttribute()> Public vAllFnc As New TList(Of TFunction)
-    <XmlIgnoreAttribute()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
-    <XmlIgnoreAttribute()> Public CurSrc As TSourceFile ' 現在のソース
-    <XmlIgnoreAttribute()> Public TypeType As TClass
-    <XmlIgnoreAttribute()> Public SystemType As TClass
-    <XmlIgnoreAttribute()> Public BoolType As TClass
-    <XmlIgnoreAttribute()> Public ObjectType As TClass
-    <XmlIgnoreAttribute()> Public DoubleType As TClass
-    <XmlIgnoreAttribute()> Public CharType As TClass
-    <XmlIgnoreAttribute()> Public IntType As TClass
-    <XmlIgnoreAttribute()> Public StringType As TClass
-    <XmlIgnoreAttribute()> Public WaitHandleType As TClass
-    <XmlIgnoreAttribute()> Public MainClass As TClass
-    <XmlIgnoreAttribute()> Public SimpleParameterizedClassTable As New Dictionary(Of String, TClass) ' クラス辞書
-    <XmlIgnoreAttribute()> Public dicGenCla As New Dictionary(Of String, TClass)
-    <XmlIgnoreAttribute()> Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
-    <XmlIgnoreAttribute()> Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
-    <XmlIgnoreAttribute()> Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
-    <XmlIgnoreAttribute()> Public dicClassMemName As Dictionary(Of String, String)
-    <XmlIgnoreAttribute()> Public SrcPrj As New TList(Of TSourceFile)
-    <XmlIgnoreAttribute()> Public ParsePrj As TSourceParser
-    <XmlIgnoreAttribute()> Public theMain As TFunction
-    <XmlIgnoreAttribute()> Public ArrayMaker As TFunction
+
+    <XmlIgnoreAttribute(), _Weak()> Public ApplicationClassList As TList(Of TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public SrcPrj As New TList(Of TSourceFile)
+    <XmlIgnoreAttribute(), _Weak()> Public ClassNameTable As Dictionary(Of String, String)
+    <XmlIgnoreAttribute(), _Weak()> Public SpecializedClassList As New TList(Of TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public PendingSpecializedClassList As New TList(Of TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public SimpleFieldList As List(Of TField)    ' 単純クラスのフィールドのリスト
+    <XmlIgnoreAttribute(), _Weak()> Public vAllFnc As New TList(Of TFunction)
+    <XmlIgnoreAttribute(), _Weak()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
+    <XmlIgnoreAttribute(), _Weak()> Public CurSrc As TSourceFile ' 現在のソース
+    <XmlIgnoreAttribute(), _Weak()> Public TypeType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public SystemType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public BoolType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public ObjectType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public DoubleType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public CharType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public IntType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public StringType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public WaitHandleType As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public MainClass As TClass
+    <XmlIgnoreAttribute(), _Weak()> Public SimpleParameterizedClassTable As New Dictionary(Of String, TClass) ' クラス辞書
+    <XmlIgnoreAttribute(), _Weak()> Public dicGenCla As New Dictionary(Of String, TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public dicCmpCla As New Dictionary(Of TClass, TList(Of TClass))
+    <XmlIgnoreAttribute(), _Weak()> Public dicArrCla As New Dictionary(Of TClass, TList(Of TClass))
+    <XmlIgnoreAttribute(), _Weak()> Public dicMemName As Dictionary(Of String, Dictionary(Of String, String))
+    <XmlIgnoreAttribute(), _Weak()> Public dicClassMemName As Dictionary(Of String, String)
+    <XmlIgnoreAttribute(), _Weak()> Public ParsePrj As TSourceParser
+    <XmlIgnoreAttribute(), _Weak()> Public theMain As TFunction
+    <XmlIgnoreAttribute(), _Weak()> Public ArrayMaker As TFunction
 
     Public Sub New()
         Prj = CType(Me, TProject)
     End Sub
-
-    Public Shared Function MakeProject(project_path As String) As TProject
-        'XmlSerializerオブジェクトを作成
-        Dim serializer As New XmlSerializer(GetType(TProject))
-
-        '読み込むファイルを開く
-        Dim sr As New StreamReader(project_path, Encoding.UTF8)
-
-        'XMLファイルから読み込み、逆シリアル化する
-        Dim prj1 As TProject = CType(serializer.Deserialize(sr), TProject)
-        'ファイルを閉じる
-        sr.Close()
-
-        For Each s In From x In prj1.LibraryList From y In x.SourceFileNameList Select y
-            Debug.Print(s)
-        Next
-
-        If prj1.ClassNameTablePath <> "" Then
-            prj1.ClassNameTable = TProgramTransformation.ReadClassNameTable(prj1.ClassNameTablePath, 2)
-        End If
-
-        prj1.Compile()
-
-        Return prj1
-    End Function
 
     Public Sub OutputSourceFile()
         For Each lang In OutputLanguageList
@@ -585,9 +570,9 @@ Public Class TProject
         Else
             param_array = (fnc1.ArgFnc.Count <> 0 AndAlso fnc1.ArgFnc(fnc1.ArgFnc.Count - 1).ParamArrayVar)
 
-            If fnc1.ArgFnc.Count = varg.Count OrElse param_array AndAlso fnc1.ArgFnc.Count <= varg.Count Then
+            If fnc1.ArgFnc.Count = varg.Count OrElse param_array AndAlso fnc1.ArgFnc.Count - 1 <= varg.Count Then
                 For i1 = 0 To fnc1.ArgFnc.Count - 1
-                    If param_array AndAlso i1 = fnc1.ArgFnc.Count - 1 Then
+                    If fnc1.ArgFnc(i1).ParamArrayVar Then
                         Return True
                     End If
 
@@ -631,7 +616,8 @@ Public Class TProject
     Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
         Dim variable_list = From var1 In (From cla2 In Concatenate(Prj.SystemType, cla1, TNaviUp.AncestorSuperClassList(cla1), TNaviUp.AncestorInterfaceList(cla1)) Select FindFieldFunctionSub(CType(cla2, TClass), name1, varg)) Where var1 IsNot Nothing
 
-        If variable_list.Any() Then
+        If variable_list.Any() _
+            Then
             Return variable_list.First()
         Else
             Return Nothing
@@ -857,199 +843,197 @@ Public Class TProject
         set_up_trm.NaviFunction(fnc1, Nothing)
     End Sub
 
-    Public Sub Compile()
-        Dim set_call As TNaviSetCall, nav_test As TNaviTest, set_parent_stmt As TNaviSetParentStmt, set_up_trm As TNaviSetUpTrm
+    Public Function MakeSetParentSub(set_parent_name As String, cls1 As TClass) As TFunction
+        Dim fnc1 As New TFunction(set_parent_name, Nothing)
+        fnc1.ClaFnc = cls1
+        fnc1.ModVar = New TModifier()
+        fnc1.ModVar.isPublic = True
+        fnc1.TypeFnc = EToken.eSub
+        fnc1.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
+        fnc1.BlcFnc = New TBlock()
+        fnc1.IsNew = False
+        fnc1.IsTreeWalker = True
+        fnc1.WithFnc = cls1
 
-        SrcPrj = New TList(Of TSourceFile)(From lib1 In LibraryList From fname In lib1.SourceFileNameList Select New TSourceFile(lib1, fname))
+        Dim self_var As New TVariable("self", ObjectType)
+        fnc1.ArgFnc.Add(self_var)
 
-        Select Case Language
-            Case ELanguage.Basic
-                ParsePrj = New TBasicParser(Me)
-            Case ELanguage.TypeScript, ELanguage.CSharp
-                ParsePrj = New TScriptParser(Me, Language)
-            Case Else
-                Debug.Assert(False)
-        End Select
+        Dim parent_var As New TVariable("_Parent", ObjectType)
+        fnc1.ArgFnc.Add(parent_var)
 
-        ' for ???
-        For Each src_f In SrcPrj
-            Debug.Assert(src_f.vTextSrc Is Nothing)
-            If Language = ELanguage.Basic Then
-                src_f.vTextSrc = TFile.ReadAllLines(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
-                src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
+        Return fnc1
+    End Function
 
-            Else
-                Dim src_text As String = TFile.ReadAllText(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
-                src_f.InputTokenList = ParsePrj.Lex(src_text)
-            End If
+    Public Function MakeNotNullIf(cnd As TTerm) As TIf
+        Dim if1 As New TIf
+        if1.IfBlc.Add(New TIfBlock(cnd, New TBlock()))
 
-            If Language <> ELanguage.CSharp Then
-                ParsePrj.RegAllClass(Me, src_f)
-            End If
-        Next
+        Return if1
+    End Function
 
-        If Language = ELanguage.CSharp Then
+    Public Sub MakeSetParent()
+        If MainClass Is Nothing Then
             Exit Sub
         End If
 
-        If Language = ELanguage.Basic Then
-            For Each src_f In SrcPrj
-                Debug.WriteLine("ソース:{0}", src_f.FileSrc)
-                CurSrc = src_f
-                ParsePrj.ClearParse()
+        Dim set_parent_name As String = "__SetParent"
+        Dim dummy_function As New TFunction(set_parent_name, Nothing)
 
-                ParsePrj.ReadAllStatement(src_f)
-                CurSrc = Nothing
-            Next
-        End If
+        Dim pending_class_list As New TList(Of TClass)
+        pending_class_list.Add(MainClass)
 
-        ' for Call
-        For Each src_f In SrcPrj
-            CurSrc = src_f
-            ParsePrj.Parse(src_f)
-            CurSrc = Nothing
-        Next
+        Dim processed_class_list As New TList(Of TClass)
 
-        ' SetMemberOfSpecializedClassの中でPendingSpecializedClassListは変化せず、以降PendingSpecializedClassListを参照しない。
-        For Each gen_cla In PendingSpecializedClassList
-            SetMemberOfSpecializedClass(gen_cla)
-        Next
-        PendingSpecializedClassList = Nothing
+        Dim must_implement_class_list As New TList(Of TClass)
 
-        For Each cls1 In SimpleParameterizedClassList
-            If cls1.NameCla() = MainClassName Then
-                MainClass = cls1
+        Dim function_list As New List(Of TFunction)
+        Do While pending_class_list.Count <> 0
+            Dim cls1 As TClass = pending_class_list(0)
+            pending_class_list.RemoveAt(0)
+
+            processed_class_list.Add(cls1)
+
+            Dim fnc1 As TFunction = MakeSetParentSub(set_parent_name, cls1)
+            Dim self_var As TVariable = fnc1.ArgFnc(0)
+            Dim parent_var As TVariable = fnc1.ArgFnc(1)
+
+            function_list.Add(fnc1)
+
+            Debug.Print("make set parent : {0}", cls1.NameVar)
+
+
+            ' 親フィールドを得る。
+            Dim parent_field_list = From f In cls1.FldCla Where f.ModVar.isParent
+            If parent_field_list.Any() Then
+                ' 親フィールドがある場合
+
+                Dim parent_field As TField = parent_field_list.First()
+
+                ' 親フィールドに親の値を代入する。
+                fnc1.BlcFnc.AddStmtBlc(New TAssignment(New TDot(Nothing, parent_field), New TReference(parent_var)))
             End If
 
-            For Each fnc1 In cls1.FncCla
-                If cls1.NameCla() = MainClassName AndAlso fnc1.NameFnc() = MainFunctionName Then
-                    theMain = fnc1
+            Dim strong_field_list = From f In cls1.FldCla Where Not f.ModVar.isWeak AndAlso f.TypeVar.KndCla = EClass.eClassCla
+            For Each fld In strong_field_list
+                If ApplicationClassList.Contains(fld.TypeVar) Then
+                    ' フィールドの型が単純クラスの場合
+
+                    ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
+                    Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+
+                    ' 未処理のクラスのリストに追加する。
+                    pending_class_list.AddRange(pending_this_descendant_sub_class_list)
+
+                    ' SetParentのCall文を作る。
+                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, fld), dummy_function))
+                    app1.AddInArg(New TDot(Nothing, fld))
+                    app1.AddInArg(New TReference(self_var))
+
+                    Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+                    if1.IfBlc(0).BlcIf.StmtBlc.Add(New TCall(app1))
+
+                    fnc1.BlcFnc.AddStmtBlc(if1)
+
+                    If Not must_implement_class_list.Contains(fld.TypeVar) Then
+                        must_implement_class_list.Add(fld.TypeVar)
+                    End If
+
+                    Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
+
+                ElseIf fld.TypeVar.NameVar = "TList" Then
+                    ' フィールドの型がリストの場合
+
+                    Dim element_type = ElementType(fld.TypeVar)
+
+                    If ApplicationClassList.Contains(element_type) Then
+
+                        ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
+                        Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+
+                        ' 未処理のクラスのリストに追加する。
+                        pending_class_list.AddRange(pending_this_descendant_sub_class_list)
+
+                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+
+                        ' リストの親フィールドに親の値を代入する。
+                        Dim list_parent_field As TField = (From f In fld.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
+                        if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, fld), list_parent_field), New TReference(self_var)))
+
+                        Dim for1 As New TFor
+                        for1.InVarFor = New TVariable("x", element_type)
+                        for1.InTrmFor = New TDot(Nothing, fld)
+                        for1.BlcFor = New TBlock()
+
+                        Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
+                        app1.ArgApp.Add(New TReference(for1.InVarFor))
+                        app1.ArgApp.Add(New TDot(Nothing, fld))
+                        for1.BlcFor.AddStmtBlc(New TCall(app1))
+                        if1.IfBlc(0).BlcIf.AddStmtBlc(for1)
+
+                        fnc1.BlcFnc.AddStmtBlc(if1)
+
+                        If Not must_implement_class_list.Contains(element_type) Then
+                            must_implement_class_list.Add(element_type)
+                        End If
+
+                        Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
+                    End If
+                Else
                 End If
-                If cls1.NameCla() = "Array" AndAlso fnc1.NameFnc() = "CreateInstance" Then
-                    ArrayMaker = fnc1
+            Next
+        Loop
+
+        ' 実装されたクラスのリスト
+        Dim implemented_class_list = From f In function_list Select f.ClaFnc
+
+        ' 実装が必要で未実装のクラスのリスト
+        Dim not_implemented_class_list = From c In must_implement_class_list Where Not implemented_class_list.Contains(c)
+
+        ' 実装が必要で未実装のクラスでメソッドを実装する。
+        function_list.AddRange((From c In not_implemented_class_list Select MakeSetParentSub(set_parent_name, c)).ToList())
+
+        ' 実装されたクラスのリストを再計算する。
+        Dim implemented_class_list_2 = From f In function_list Select f.ClaFnc
+
+        Dim i As Integer
+        For i = function_list.Count - 1 To 0 Step -1
+            Dim fnc1 As TFunction = function_list(i)
+            If TNaviUp.AncestorSuperClassList(fnc1.ClaFnc).Intersect(implemented_class_list_2).Any() Then
+                ' 先祖のクラスで実装されている場合
+
+                If fnc1.BlcFnc.StmtBlc.Count = 0 Then
+                    ' 実行文がない場合
+
+                    function_list.RemoveAt(i)
+                Else
+                    ' 実行文がある場合
+
+                    fnc1.ModVar.isOverride = True
+
+                    ' Baseを呼ぶ
+                    Dim app1 As New TApply
+                    app1.TypeApp = EToken.eBaseCall
+                    app1.FncApp = New TReference(set_parent_name)
+
+                    app1.AddInArg(New TReference(fnc1.ArgFnc(0)))
+                    app1.AddInArg(New TReference(fnc1.ArgFnc(1)))
+
+                    fnc1.BlcFnc.StmtBlc.Insert(0, New TCall(app1))
                 End If
-            Next
-        Next
-        If theMain Is Nothing Then
-            Debug.Print("Mainがないですよ。")
-        End If
+            Else
+                ' 先祖のクラスで実装されていない場合
 
-        For Each cla1 In SimpleParameterizedClassList
-            Debug.Assert(cla1.GenericType = EGeneric.SimpleClass OrElse cla1.GenericType = EGeneric.ParameterizedClass)
+                fnc1.ModVar.isVirtual = True
+            End If
         Next
 
-        Dim sw As New TStringWriter
-        For Each cla1 In SimpleParameterizedClassList
-            DumpClass(cla1, sw)
-            cla1.SetAllSuperClass()
+        For Each fnc1 In function_list
+            fnc1.ClaFnc.FncCla.Add(fnc1)
         Next
 
-
-        sw.WriteLine("--------------------------------------------------------------------------------------------")
-        For Each cla1 In SpecializedClassList
-            DumpClass(cla1, sw)
-            cla1.SetAllSuperClass()
+        For Each fnc1 In function_list
+            EnsureFunctionIntegrity(fnc1)
         Next
-        TFile.WriteAllText("C:\usr\prj\MyIDE\MyAlgo\a.txt", sw.ToString())
-
-        ' すべての単純クラスとパラメータ化クラスに対し、クラスの初期化メソッドとインスタンスの初期化メソッドを作る。
-        MakeInstanceClassInitializer()
-
-        set_parent_stmt = New TNaviSetParentStmt()
-        set_parent_stmt.NaviProject(Me, Nothing)
-
-        ' 関数内の参照をセットする
-        Dim set_function As New TNaviSetFunction
-        set_function.NaviProject(Me, Nothing)
-
-        Dim set_project_trm As New TNaviSetProjectTrm
-        set_project_trm.NaviProject(Me)
-
-        ' 変数参照を解決する
-        Dim set_ref As New TSetRefDeclarative
-        set_ref.NaviProject(Me)
-
-        ' ForのLabelForをセットする。
-        Dim navi_set_label = New TNaviSetLabel()
-        navi_set_label.NaviProject(Me)
-
-        ' DefRefをセットする。
-        Dim set_def_ref = New TNaviSetDefRef()
-        set_def_ref.NaviProject(Me, Nothing)
-
-        Dim set_var_ref As New TNaviSetVarRef
-        set_var_ref.NaviProject(Me, Nothing)
-        Debug.Assert(set_ref.RefCnt = set_var_ref.RefCnt)
-
-        set_call = New TNaviSetCall()
-        set_call.NaviProject(Me, Nothing)
-
-        Debug.Assert(set_ref.RefCnt = set_call.RefCnt)
-
-        nav_test = New TNaviTest()
-        nav_test.NaviProject(Me, Nothing)
-        Debug.Assert(set_ref.RefCnt = nav_test.RefCnt)
-
-        For Each cla1 In SimpleParameterizedClassList
-            Debug.Assert(Not SpecializedClassList.Contains(cla1))
-        Next
-        For Each cla1 In SpecializedClassList
-            Debug.Assert(Not SimpleParameterizedClassList.Contains(cla1) AndAlso cla1.GenericType = EGeneric.SpecializedClass)
-        Next
-        SimpleParameterizedSpecializedClassList = New TList(Of TClass)(SimpleParameterizedClassList)
-        SimpleParameterizedSpecializedClassList.AddRange(SpecializedClassList)
-
-        ' サブクラスをセットする
-        For Each cls1 In SimpleParameterizedSpecializedClassList
-            For Each super_class In cls1.SuperClassList
-                super_class.SubClassList.Add(cls1)
-            Next
-        Next
-
-        ' 単純クラスのフィールドのリスト
-        SimpleFieldList = (From cla1 In SimpleParameterizedClassList Where cla1.GenericType = EGeneric.SimpleClass From fld In cla1.FldCla Select fld).ToList()
-
-        set_parent_stmt = New TNaviSetParentStmt()
-        set_parent_stmt.NaviProject(Me, Nothing)
-
-        set_up_trm = New TNaviSetUpTrm()
-        set_up_trm.NaviProject(Me, Nothing)
-
-        If MainClass IsNot Nothing Then
-            Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
-            For Each rule In vrule
-                ' 参照パスをセットする。
-                'Dim set_ref_path As New TNaviSetRefPath
-                'set_ref_path.NaviFunction(rule)
-
-                ' クラスの場合分けのIf文を探す。
-                Dim set_classified_if As New TNaviSetClassifiedIf
-                set_classified_if.NaviFunction(rule)
-
-                ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
-                Dim make_classified_if_method As New TNaviMakeClassifiedIfMethod
-                make_classified_if_method.NaviFunction(rule)
-
-                ' ナビゲート関数を作る。
-                Dim set_reachable_field As New TNaviMakeNavigateFunction
-                set_reachable_field.Prj = Me
-                set_reachable_field.ClassifiedClassList = make_classified_if_method.ClassifiedClassList
-                set_reachable_field.NaviFunction(rule)
-
-                For Each fnc1 In set_reachable_field.NaviFunctionList
-                    EnsureFunctionIntegrity(fnc1)
-                Next
-            Next
-        End If
-
-        ' オーバーロード関数をセットする
-        SetOvrFnc()
-
-        If theMain IsNot Nothing Then
-
-            ' 間接呼び出しをセットする
-            SetCallAll()
-        End If
     End Sub
 
     Public Function ElementType(type1 As TClass) As TClass
@@ -1751,15 +1735,15 @@ Public Class TProject
     Public Sub MakeAllSourceCode(parser As TSourceParser)
         SetTokenListClsAll(parser)
 
+        Dim out_dir2 As String = String.Format("{0}\{1}", OutputDirectory, parser.LanguageSP)
+        TDirectory.CreateDirectory(out_dir2)
+
         '  すべてのソースに対し
         For Each src_f In SrcPrj
             CurSrc = src_f
 
             Dim navi_make_source_code As New TNaviMakeSourceCode(Me, parser)
             navi_make_source_code.NaviSourceFile(src_f)
-
-            Dim out_dir2 As String = String.Format("{0}\{1}", OutputDirectory, parser.LanguageSP)
-            TDirectory.CreateDirectory(out_dir2)
 
             Dim src_path As String = String.Format("{0}\{1}{2}", out_dir2, TPath.GetFileNameWithoutExtension(src_f.FileSrc), FileExtension(parser.LanguageSP))
             Dim src_txt2 As String = TokenListToString(parser, src_f.TokenListSrc)
@@ -1768,6 +1752,33 @@ Public Class TProject
 
             CurSrc = Nothing
         Next
+
+        If ApplicationClassList IsNot Nothing Then
+
+            Dim class_list = From c In ApplicationClassList Where c.GenTokenListCls IsNot Nothing
+            If class_list.Any() Then
+
+                Dim sw As New StringWriter
+
+                For Each cls1 In class_list
+                    Select Case parser.LanguageSP
+                        Case ELanguage.Basic
+                            sw.WriteLine("Partial Public Class {0}", cls1.NameVar)
+                            sw.WriteLine(TokenListToString(parser, cls1.GenTokenListCls))
+                            sw.WriteLine("End Class")
+                            sw.WriteLine()
+
+                        Case ELanguage.JavaScript
+                            sw.WriteLine(TokenListToString(parser, cls1.GenTokenListCls))
+
+                    End Select
+                Next
+
+                Dim src_path As String = String.Format("{0}\{1}{2}", out_dir2, "Generated", FileExtension(parser.LanguageSP))
+                TFile.WriteAllText(src_path, sw.ToString())
+            End If
+        End If
+
     End Sub
 
     Public Function WriteInheritanceHierarchy(class_sw As StringWriter, cls1 As TClass) As Integer

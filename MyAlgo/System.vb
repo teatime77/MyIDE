@@ -137,7 +137,7 @@ Public Class TList(Of T)
     Inherits List(Of T)
     Implements IUpList
 
-    Public UpList As Object
+    <_Parent()> Public UpList As Object
 
     Public Sub New()
         MyBase.New()

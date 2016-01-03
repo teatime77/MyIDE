@@ -90,7 +90,7 @@
         grp.Children.push(txt2)
     End Sub
 
-    <TInvariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
+    <_Invariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
         If TypeOf self Is TShape Then
             With CType(self, TShape)
                 If .Parent Is Nothing Then

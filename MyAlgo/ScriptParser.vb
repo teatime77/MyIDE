@@ -45,6 +45,10 @@ Public Class TScriptParser
         CurLineStr = ""
     End Sub
 
+    Public Overrides Function NullName() As String
+        Return "null"
+    End Function
+
     Public Function GetTkn(type1 As EToken) As TToken
         Dim tkn1 As TToken
 
@@ -56,8 +60,7 @@ Public Class TScriptParser
                 CurPos += 1
             Loop
 
-            If CurPos < CurVTkn.Count _
-                Then
+            If CurPos < CurVTkn.Count Then
                 If CurVTkn(CurPos).TypeTkn = EToken.eLowLine Then
 
                     CurLineIdx += 1
@@ -561,13 +564,14 @@ Public Class TScriptParser
                 cur1 = k1 + 2
 
             ElseIf ch1 = "@"c Then
-                If src_text.IndexOf("@weak", cur1) = cur1 Then
-                    str1 = src_text.Substring(cur1, 5)
-                ElseIf src_text.IndexOf("@invariant", cur1) = cur1 Then
-                    str1 = src_text.Substring(cur1, 10)
-                Else
-                    Debug.Assert(False)
-                End If
+                For k1 = cur1 + 1 To src_text.Length - 1
+                    ch2 = src_text(k1)
+                    If Not Char.IsLetterOrDigit(ch2) AndAlso ch2 <> "_"c Then
+                        Exit For
+                    End If
+                Next
+                str1 = src_text.Substring(cur1, k1 - cur1)
+                Debug.Assert(str1 = "@_Weak" OrElse str1 = "@_Invariant" OrElse str1 = "@_Parent")
 
                 tkn1 = New TToken(EToken.Attribute, str1, cur1)
                 cur1 += str1.Length
@@ -1824,10 +1828,12 @@ Public Class TScriptParser
                     mod1.isIterator = True
                 Case EToken.eProtected, EToken.eFriend, EToken.ePrivate
                 Case EToken.Attribute
-                    If CurTkn.StrTkn = "@weak" Then
+                    If CurTkn.StrTkn = "@_Weak" Then
                         mod1.isWeak = True
-                    ElseIf CurTkn.StrTkn = "@invariant" Then
+                    ElseIf CurTkn.StrTkn = "@_Invariant" Then
                         mod1.isInvariant = True
+                    ElseIf CurTkn.StrTkn = "@_Parent" Then
+                        mod1.isParent = True
                     Else
                         Debug.Assert(False)
                     End If
@@ -1840,10 +1846,11 @@ Public Class TScriptParser
                         id1 = GetTkn(EToken.eId)
                         If id1.StrTkn = "XmlIgnoreAttribute" Then
                             mod1.isXmlIgnore = True
+                        ElseIf id1.StrTkn = "_Weak" Then
                             mod1.isWeak = True
-                        ElseIf id1.StrTkn = "TWeak" Then
-                            mod1.isWeak = True
-                        ElseIf id1.StrTkn = "TInvariant" Then
+                        ElseIf id1.StrTkn = "_Parent" Then
+                            mod1.isParent = True
+                        ElseIf id1.StrTkn = "_Invariant" Then
                             mod1.isInvariant = True
                         Else
                             Debug.Assert(False)
@@ -1930,7 +1937,7 @@ Public Class TScriptParser
                 Case EToken.eFunction
                     GetTkn(EToken.eFunction)
                     Dim fnc1 As TFunction = ReadFunction(Nothing, mod1)
-                    Debug.Assert(fnc1.NameVar = "weak" OrElse fnc1.NameVar = "invariant")
+                    Debug.Assert(fnc1.NameVar = "_Weak" OrElse fnc1.NameVar = "_Parent" OrElse fnc1.NameVar = "_Invariant")
 
                 Case Else
                     Exit Do

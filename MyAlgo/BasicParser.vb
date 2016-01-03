@@ -13,6 +13,7 @@ Public MustInherit Class TSourceParser
     Public MustOverride Sub Parse(src1 As TSourceFile)
     Public MustOverride Sub ClearParse()
     Public MustOverride Sub RegAllClass(prj1 As TProject, src1 As TSourceFile)
+    Public MustOverride Function NullName() As String
 
 
     Public Function TranslageReferenceName(ref1 As TReference) As String
@@ -65,14 +66,17 @@ Public Class TBasicParser
         CurLineStr = ""
     End Sub
 
+    Public Overrides Function NullName() As String
+        Return "Nothing"
+    End Function
+
     Public Function GetTkn(type1 As EToken) As TToken
         Dim tkn1 As TToken
 
         If type1 = CurTkn.TypeTkn OrElse type1 = EToken.eUnknown Then
             tkn1 = CurTkn
             CurPos = CurPos + 1
-            If CurPos < CurVTkn.Count _
-                Then
+            If CurPos < CurVTkn.Count Then
                 If CurVTkn(CurPos).TypeTkn = EToken.eLowLine Then
 
                     CurLineIdx += 1
@@ -1288,10 +1292,11 @@ Public Class TBasicParser
                         id1 = GetTkn(EToken.eId)
                         If id1.StrTkn = "XmlIgnoreAttribute" Then
                             mod1.isXmlIgnore = True
+                        ElseIf id1.StrTkn = "_Weak" Then
                             mod1.isWeak = True
-                        ElseIf id1.StrTkn = "TWeak" Then
-                            mod1.isWeak = True
-                        ElseIf id1.StrTkn = "TInvariant" Then
+                        ElseIf id1.StrTkn = "_Parent" Then
+                            mod1.isParent = True
+                        ElseIf id1.StrTkn = "_Invariant" Then
                             mod1.isInvariant = True
                         Else
                             Debug.Assert(False)
@@ -2470,6 +2475,7 @@ End Class
 Public Class TThrow
     Inherits TStatement
     Public TrmThrow As TTerm
+
     Public Sub New(trm1 As TTerm)
         TypeStmt = EToken.eThrow
         TrmThrow = trm1

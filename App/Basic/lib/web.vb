@@ -1,4 +1,18 @@
-﻿Public Class TWeak
+﻿Public Class _Weak
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
+Public Class _Invariant
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
+Public Class _Parent
     Inherits Attribute
 
     Public Sub New()
@@ -7,6 +21,8 @@ End Class
 
 Public Class TList(Of T)
     Inherits List(Of T)
+
+    <_Parent()> Public UpList As Object
 
     Public Sub push(x As T)
         Add(x)

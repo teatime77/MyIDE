@@ -1,12 +1,5 @@
 ﻿Imports System.Xml.Serialization
 
-Public Class TInvariant
-    Inherits Attribute
-
-    Public Sub New()
-    End Sub
-End Class
-
 Public Class TPoint
     Public X As Double = 0
     Public Y As Double = 0
@@ -104,7 +97,7 @@ Public Class TRect
 End Class
 
 Public Class TShape
-    <TWeak()> Public Parent As TShape = Nothing
+    <_Weak()> Public Parent As TShape = Nothing
     Public Center As New TPoint
     Public Radius As Double
     Public AbsCenter As New TPoint

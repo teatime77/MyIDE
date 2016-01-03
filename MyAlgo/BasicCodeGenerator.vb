@@ -924,7 +924,7 @@ Public Class TBasicCodeGenerator
 
         '  すべてのメソッドに対し
         For Each fnc1 In cla1.FncCla
-            If Not fnc1.IsGenerated() AndAlso (PrjMK.OutputNotUsed OrElse (fnc1.Reachable OrElse fnc1.ModFnc().isMustOverride) OrElse fnc1.NameVar = "New@TList") Then
+            If Not fnc1.IsInitializer() AndAlso (PrjMK.OutputNotUsed OrElse (fnc1.Reachable OrElse fnc1.ModFnc().isMustOverride) OrElse fnc1.NameVar = "New@TList") Then
 
                 FncSrc(fnc1)
             End If
