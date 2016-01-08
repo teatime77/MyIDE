@@ -68,43 +68,43 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\MyAlgo\BasicParser.vb">
+    <Compile Include="..\..\MyFM\MyFM\BasicParser.vb">
       <Link>BasicParser.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\Compile.vb">
+    <Compile Include="..\..\MyFM\MyFM\Compile.vb">
       <Link>Compile.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\Declarative.vb">
+    <Compile Include="..\..\MyFM\MyFM\Declarative.vb">
       <Link>Declarative.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\Graph.vb">
-      <Link>Graph.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\Invariant.vb">
-      <Link>Invariant.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\Logic.vb">
-      <Link>Logic.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\Navigation.vb">
-      <Link>Navigation.vb</Link>
-    </Compile>
-    <Compile Include="..\MyAlgo\out2\Basic\Generated.vb">
+    <Compile Include="..\..\MyFM\MyFM\Generated.vb">
       <Link>Generated.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\ProgramTransformation.vb">
+    <Compile Include="..\..\MyFM\MyFM\Graph.vb">
+      <Link>Graph.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Invariant.vb">
+      <Link>Invariant.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Logic.vb">
+      <Link>Logic.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Navigation.vb">
+      <Link>Navigation.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\ProgramTransformation.vb">
       <Link>ProgramTransformation.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\Project.vb">
+    <Compile Include="..\..\MyFM\MyFM\Project.vb">
       <Link>Project.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\Proof.vb">
+    <Compile Include="..\..\MyFM\MyFM\Proof.vb">
       <Link>Proof.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\ScriptParser.vb">
+    <Compile Include="..\..\MyFM\MyFM\ScriptParser.vb">
       <Link>ScriptParser.vb</Link>
     </Compile>
-    <Compile Include="..\MyAlgo\System.vb">
+    <Compile Include="..\..\MyFM\MyFM\System.vb">
       <Link>System.vb</Link>
     </Compile>
     <Compile Include="Module1.vb" />

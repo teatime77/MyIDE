@@ -69,16 +69,52 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\MyFM\MyFM\BasicParser.vb">
+      <Link>BasicParser.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Compile.vb">
+      <Link>Compile.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Declarative.vb">
+      <Link>Declarative.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Generated.vb">
+      <Link>Generated.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Graph.vb">
+      <Link>Graph.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Invariant.vb">
+      <Link>Invariant.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\LALR.vb">
+      <Link>LALR.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Logic.vb">
+      <Link>Logic.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Navigation.vb">
+      <Link>Navigation.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\ProgramTransformation.vb">
+      <Link>ProgramTransformation.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Project.vb">
+      <Link>Project.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\Proof.vb">
+      <Link>Proof.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\ScriptParser.vb">
+      <Link>ScriptParser.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\System.vb">
+      <Link>System.vb</Link>
+    </Compile>
     <Compile Include="BasicCodeGenerator.vb" />
     <Compile Include="Builder.vb" />
-    <Compile Include="Compile.vb" />
-    <Compile Include="Declarative.vb" />
-    <Compile Include="Graph.vb" />
     <Compile Include="IDE.vb" />
-    <Compile Include="Invariant.vb" />
     <Compile Include="JavaCodeGenerator.vb" />
-    <Compile Include="LALR.vb" />
-    <Compile Include="Logic.vb" />
     <Compile Include="CodeGenerator.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -95,15 +131,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="BasicParser.vb" />
     <Compile Include="Miscellaneous.vb" />
-    <Compile Include="out2\Basic\Generated.vb" />
-    <Compile Include="Project.vb" />
-    <Compile Include="ProgramTransformation.vb" />
-    <Compile Include="Proof.vb" />
-    <Compile Include="ScriptParser.vb" />
-    <Compile Include="System.vb" />
-    <Compile Include="Navigation.vb" />
     <Compile Include="TWnd.vb" />
     <Compile Include="WindowsForms.vb" />
   </ItemGroup>
