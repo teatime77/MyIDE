@@ -330,7 +330,7 @@ Public Class TBasicCodeGenerator
     Public Sub IfBlcHeadSrc(if_blc As TIfBlock, tab1 As Integer)
         Dim if1 As TIf, i1 As Integer
 
-        if1 = CType(if_blc.ParentStmt, TIf)
+        if1 = CType(if_blc.UpTrm, TIf)
         i1 = if1.IfBlc.IndexOf(if_blc)
         Debug.Assert(i1 <> -1)
 
