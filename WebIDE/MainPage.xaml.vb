@@ -167,11 +167,11 @@ Partial Public Class MainPage
                 brs = TColor.Orange
             Else
                 Select Case txt.TypeTxt
-                    Case EFigType.eResFig
+                    Case EFigType.ResFig
                         brs = TColor.Blue
-                    Case EFigType.eStrFig
+                    Case EFigType.StrFig
                         brs = TColor.Red
-                    Case EFigType.eComFig
+                    Case EFigType.ComFig
                         brs = TColor.Green
                     Case Else
                         brs = TColor.Black
@@ -183,7 +183,7 @@ Partial Public Class MainPage
             End If
 
             Select Case txt.TypeFig
-                Case EFigType.eSymFig
+                Case EFigType.SymFig
                     If txt.TextTxt.Length = 1 Then
                         Select Case txt.TextTxt(0)
                             Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
@@ -194,7 +194,7 @@ Partial Public Class MainPage
                     Else
                         s = " " + txt.TextTxt + " "
                     End If
-                Case EFigType.eResFig
+                Case EFigType.ResFig
                     Select Case txt.TknTxt
                         Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_
                             s = " " + txt.TextTxt + " "
@@ -203,7 +203,7 @@ Partial Public Class MainPage
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
-                Case EFigType.eRefFig
+                Case EFigType.RefFig
                     Select Case txt.TknTxt
                         Case EToken.Ref
                             If txt.TextTxt = "null" Then
@@ -298,7 +298,7 @@ Partial Public Class MainPage
         Dim gr As TGraphics
         Dim y As Double
 
-        font1 = New TFont(EFont.eGothic, 10)
+        font1 = New TFont(EFont.Gothic, 10)
         SetFontSize(font1)
 
         can1.Width = 160 * font1.CharWFont
@@ -366,11 +366,11 @@ Partial Public Class MainPage
 
     Private Sub Timer_Tick(ByVal sender As Object, ByVal e As EventArgs)
         If TWnd.Capture IsNot Nothing AndAlso TWnd.Capture.MousePressHandler IsNot Nothing Then
-            TWnd.MouseEvent.TypeEv = EEvent.eMousePress
+            TWnd.MouseEvent.TypeEv = EEvent.MousePress
             gApp.EventHandler(TWnd.MouseEvent)
         End If
 
-        gApp.EventHandler(New TEvent(EEvent.eOnTimer))
+        gApp.EventHandler(New TEvent(EEvent.OnTimer))
 
         If gTimerInterval <> gApp.MainForm.Interval Then
             gTimerInterval = gApp.MainForm.Interval
@@ -388,7 +388,7 @@ Partial Public Class MainPage
             Exit Sub
         End If
 
-        gApp.EventHandler(New TFormEvent(EEvent.eOnResize, gApp.MainForm, New TPnt(RootCanvas.ActualWidth, RootCanvas.ActualHeight)))
+        gApp.EventHandler(New TFormEvent(EEvent.OnResize, gApp.MainForm, New TPnt(RootCanvas.ActualWidth, RootCanvas.ActualHeight)))
     End Sub
 
     Private Sub SetMouseEvent(e As MouseEventArgs)
@@ -411,7 +411,7 @@ Partial Public Class MainPage
             Debug.WriteLine("mouse down {0}", txt.Tag)
         End If
         SetMouseEvent(e)
-        TWnd.MouseEvent.TypeEv = EEvent.eMouseDown
+        TWnd.MouseEvent.TypeEv = EEvent.MouseDown
         TWnd.MouseEvent.MouseDownTime = DateTime.Now
 
         '        RootCanvas.Focus()
@@ -422,14 +422,14 @@ Partial Public Class MainPage
 
     Private Sub RootCanvas_MouseMove(sender As Object, e As MouseEventArgs) Handles RootCanvas.MouseMove
         SetMouseEvent(e)
-        TWnd.MouseEvent.TypeEv = EEvent.eMouseMove
+        TWnd.MouseEvent.TypeEv = EEvent.MouseMove
 
         gApp.EventHandler(TWnd.MouseEvent)
     End Sub
 
     Private Sub RootCanvas_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles RootCanvas.MouseLeftButtonUp
         SetMouseEvent(e)
-        TWnd.MouseEvent.TypeEv = EEvent.eMouseUp
+        TWnd.MouseEvent.TypeEv = EEvent.MouseUp
 
         gApp.EventHandler(TWnd.MouseEvent)
         RootCanvas.ReleaseMouseCapture()
@@ -472,7 +472,7 @@ Partial Public Class MainPage
         TWnd.KeyEvent.Control = ((Keyboard.Modifiers And ModifierKeys.Control) <> 0)
         TWnd.KeyEvent.Alt = ((Keyboard.Modifiers And ModifierKeys.Alt) <> 0)
         '        TWnd.KeyEvent.Repeat = e.IsRepeat
-        TWnd.KeyEvent.TypeEv = EEvent.eOnKeyDown
+        TWnd.KeyEvent.TypeEv = EEvent.OnKeyDown
         TWnd.KeyEvent.FormEv = gApp.MainForm
 
         gApp.EventHandler(TWnd.KeyEvent)

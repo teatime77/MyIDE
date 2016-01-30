@@ -63,7 +63,7 @@ Public Class TIDE
 
         SrcBrwsrMenu = New TPopup()
 
-        stp1 = New TStackPanel(EOrientation.eVertical)
+        stp1 = New TStackPanel(EOrientation.Vertical)
 
         btn1 = New TButton("呼び出しグラフ")
         btn1.ClickHandler = AddressOf mnuCallGraph_Clicked
@@ -139,7 +139,7 @@ Public Class TIDE
         'LALR.LALRMain("", "", "C:\usr\prj\MyIDE\MyAlgo\LALR\cpp.y")
         theIDE = Me
 
-        FntIDE = New TFont(EFont.eGothic, 10)
+        FntIDE = New TFont(EFont.Gothic, 10)
         BrsIDE = TColor.Black
 
         MainForm = New TForm()
@@ -174,7 +174,7 @@ Public Class TIDE
         spc.AnchorRight = 1
         spc.AnchorBottom = 1
         spc.BorderColor = TColor.Blue
-        spc.OrientationSpc = EOrientation.eHorizontal
+        spc.OrientationSpc = EOrientation.Horizontal
         spc.RatioSpc = 0.5
         MainForm.AddChildWnd(spc)
         spc.SetPos(New TPnt(1 + tbc1.SizeFig.XPnt + 1, 1))

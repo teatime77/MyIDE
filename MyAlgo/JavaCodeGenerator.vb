@@ -162,25 +162,25 @@ Public Class TJavaCodeGenerator
     End Function
 
     Public Sub MakeDelegateInterfaceJava(dlg1 As TDelegate, cla1 As TClass)
-        WordAdd(EToken.Interface_, EFigType.eResFig, cla1)
+        WordAdd(EToken.Interface_, EFigType.ResFig, cla1)
         Fmt(cla1)
-        WordAdd("{", EFigType.eSymFig, cla1)
+        WordAdd("{", EFigType.SymFig, cla1)
         NL()
 
         Tab(1)
         If dlg1.RetDlg Is Nothing Then
-            WordAdd("void", EFigType.eResFig, cla1)
+            WordAdd("void", EFigType.ResFig, cla1)
         Else
             TypeSrc(dlg1.RetDlg)
         End If
-        WordAdd("Invoke", EFigType.eRefFig, cla1)
+        WordAdd("Invoke", EFigType.RefFig, cla1)
 
         VarListSrc(dlg1.ArgDlg, dlg1)
 
-        WordAdd(";", EFigType.eSymFig, cla1)
+        WordAdd(";", EFigType.SymFig, cla1)
         NL()
 
-        WordAdd("}", EFigType.eSymFig, cla1)
+        WordAdd("}", EFigType.SymFig, cla1)
         NL()
     End Sub
 
@@ -193,62 +193,62 @@ Public Class TJavaCodeGenerator
         name1 = DelegateName(cla1, dlg1.FncDel)
         trm_type = dlg1.FncDel.ClaFnc.NameCla()
 
-        WordAdd(EToken.Class_, EFigType.eResFig, cla1)
-        WordAdd(name1, EFigType.eClassFig, cla1)
-        WordAdd(" implements", EFigType.eResFig, cla1)
+        WordAdd(EToken.Class_, EFigType.ResFig, cla1)
+        WordAdd(name1, EFigType.ClassFig, cla1)
+        WordAdd(" implements", EFigType.ResFig, cla1)
         Fmt(cla1)
-        WordAdd("{", EFigType.eSymFig, cla1)
+        WordAdd("{", EFigType.SymFig, cla1)
         NL()
 
         If Not dlg1.FncDel.ModFnc().isShared Then
 
             ' メンバー変数
             Tab(1)
-            WordAdd(trm_type, EFigType.eClassFig, cla1)
-            WordAdd(" Dst;", EFigType.eVarFig, cla1)
+            WordAdd(trm_type, EFigType.ClassFig, cla1)
+            WordAdd(" Dst;", EFigType.VarFig, cla1)
             NL()
             NL()
         End If
 
         ' コンストラクター
         Tab(1)
-        WordAdd(EToken.Public_, EFigType.eResFig, cla1)
-        WordAdd(name1, EFigType.eResFig, cla1)
-        WordAdd("(", EFigType.eSymFig, cla1)
+        WordAdd(EToken.Public_, EFigType.ResFig, cla1)
+        WordAdd(name1, EFigType.ResFig, cla1)
+        WordAdd("(", EFigType.SymFig, cla1)
         If Not dlg1.FncDel.ModFnc().isShared Then
 
-            WordAdd(trm_type, EFigType.eClassFig, cla1)
-            WordAdd(" dst", EFigType.eVarFig, cla1)
+            WordAdd(trm_type, EFigType.ClassFig, cla1)
+            WordAdd(" dst", EFigType.VarFig, cla1)
         End If
-        WordAdd(")", EFigType.eSymFig, cla1)
-        WordAdd("{", EFigType.eSymFig, cla1)
+        WordAdd(")", EFigType.SymFig, cla1)
+        WordAdd("{", EFigType.SymFig, cla1)
         NL()
 
         If Not dlg1.FncDel.ModFnc().isShared Then
             Tab(2)
-            WordAdd("Dst", EFigType.eVarFig, cla1)
-            WordAdd("=", EFigType.eSymFig, cla1)
-            WordAdd("dst", EFigType.eVarFig, cla1)
-            WordAdd(";", EFigType.eSymFig, cla1)
+            WordAdd("Dst", EFigType.VarFig, cla1)
+            WordAdd("=", EFigType.SymFig, cla1)
+            WordAdd("dst", EFigType.VarFig, cla1)
+            WordAdd(";", EFigType.SymFig, cla1)
             NL()
         End If
 
         Tab(1)
-        WordAdd("}", EFigType.eSymFig, cla1)
+        WordAdd("}", EFigType.SymFig, cla1)
         NL()
         NL()
 
         ' Invokeメソッド
         Tab(1)
-        WordAdd("public", EFigType.eResFig, cla1)
+        WordAdd("public", EFigType.ResFig, cla1)
         If dlg1.FncDel.RetType Is Nothing Then
-            WordAdd("void", EFigType.eResFig, cla1)
+            WordAdd("void", EFigType.ResFig, cla1)
         Else
             TypeSrc(dlg1.FncDel.RetType)
         End If
-        WordAdd("Invoke", EFigType.eRefFig, cla1)
+        WordAdd("Invoke", EFigType.RefFig, cla1)
         VarListSrc(dlg1.FncDel.ArgFnc, dlg1.FncDel)
-        WordAdd("{", EFigType.eSymFig, cla1)
+        WordAdd("{", EFigType.SymFig, cla1)
         NL()
 
         sw.Append(MakeSrcText())
@@ -282,31 +282,31 @@ Public Class TJavaCodeGenerator
     End Function
 
     Public Sub MakeDelegateNewJava(cla1 As TClass, trm1 As TTerm, fnc1 As TFunction)
-        WordAdd("new", EFigType.eResFig, cla1)
-        WordAdd(DelegateName(cla1, fnc1), EFigType.eClassFig, cla1)
-        WordAdd("(", EFigType.eSymFig, cla1)
+        WordAdd("new", EFigType.ResFig, cla1)
+        WordAdd(DelegateName(cla1, fnc1), EFigType.ClassFig, cla1)
+        WordAdd("(", EFigType.SymFig, cla1)
         If trm1 IsNot Nothing Then
             TrmSrc(trm1)
         End If
-        WordAdd(")", EFigType.eSymFig, cla1)
+        WordAdd(")", EFigType.SymFig, cla1)
     End Sub
 
     Public Sub ModifierSrcJava(obj1 As Object, mod1 As TModifier)
         If mod1 IsNot Nothing Then
             If mod1.isPublic Then
-                WordAdd(EToken.Public_, EFigType.eResFig, obj1)
+                WordAdd(EToken.Public_, EFigType.ResFig, obj1)
             End If
             If mod1.isShared Then
-                WordAdd(EToken.Shared_, EFigType.eResFig, obj1)
+                WordAdd(EToken.Shared_, EFigType.ResFig, obj1)
             End If
             If mod1.isConst Then
-                WordAdd("static final", EFigType.eResFig, obj1)
+                WordAdd("static final", EFigType.ResFig, obj1)
             End If
             'If mod1.isVirtual Then
-            '    WordAdd(EToken.Virtual, EFigType.eResFig, obj1)
+            '    WordAdd(EToken.Virtual, EFigType.ResFig, obj1)
             'End If
             'If mod1.isOverride Then
-            '    WordAdd(EToken.Override, EFigType.eResFig, obj1)
+            '    WordAdd(EToken.Override, EFigType.ResFig, obj1)
             'End If
         End If
     End Sub
@@ -342,7 +342,7 @@ Public Class TJavaCodeGenerator
 
     '   セミコロンを追加する
     Public Sub SM(obj1 As Object)
-        WordAdd(";", EFigType.eSymFig, obj1)
+        WordAdd(";", EFigType.SymFig, obj1)
         NL(obj1)
     End Sub
 
@@ -352,7 +352,7 @@ Public Class TJavaCodeGenerator
         Select Case app1.TypeApp
             Case EToken.ADD, EToken.Mns, EToken.MUL, EToken.DIV, EToken.MOD_, EToken.BitOR
                 If app1.ArgApp.Count = 1 AndAlso (app1.TypeApp = EToken.ADD OrElse app1.TypeApp = EToken.Mns) Then
-                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.SymFig, app1)
                     TrmSrc(app1.ArgApp(0))
                 Else
                     If TypeOf app1.FncApp Is TReference AndAlso TypeOf CType(app1.FncApp, TReference).VarRef Is TFunction Then
@@ -363,69 +363,69 @@ Public Class TJavaCodeGenerator
                             ' 演算子オーバーロードの場合
 
                             Fmt(fnc1.ClaFnc)
-                            WordAdd(".", EFigType.eSymFig, app1)
-                            WordAdd(fnc1.OpName(), EFigType.eVarFig, fnc1)
-                            WordAdd("(", EFigType.eSymFig, app1)
+                            WordAdd(".", EFigType.SymFig, app1)
+                            WordAdd(fnc1.OpName(), EFigType.VarFig, fnc1)
+                            WordAdd("(", EFigType.SymFig, app1)
                             TrmSrc(app1.ArgApp(0))
-                            WordAdd(",", EFigType.eSymFig, app1)
+                            WordAdd(",", EFigType.SymFig, app1)
                             TrmSrc(app1.ArgApp(1))
-                            WordAdd(")", EFigType.eSymFig, app1)
+                            WordAdd(")", EFigType.SymFig, app1)
                             Exit Sub
                         End If
                     End If
 
                     TrmSrc(app1.ArgApp(0))
-                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.SymFig, app1)
                     TrmSrc(app1.ArgApp(1))
                 End If
 
             Case EToken.INC, EToken.DEC
                 TrmSrc(app1.ArgApp(0))
                 If ParserCG.vTknName.ContainsKey(app1.TypeApp) Then
-                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.eSymFig, app1)
+                    WordAdd(ParserCG.vTknName(app1.TypeApp), EFigType.SymFig, app1)
                 Else
                     Select Case app1.TypeApp
                         Case EToken.INC
-                            WordAdd(ParserCG.vTknName(EToken.ADDEQ), EFigType.eSymFig, app1)
+                            WordAdd(ParserCG.vTknName(EToken.ADDEQ), EFigType.SymFig, app1)
                         Case EToken.DEC
-                            WordAdd(ParserCG.vTknName(EToken.SUBEQ), EFigType.eSymFig, app1)
+                            WordAdd(ParserCG.vTknName(EToken.SUBEQ), EFigType.SymFig, app1)
                     End Select
-                    WordAdd("1", EFigType.eNumFig, app1)
+                    WordAdd("1", EFigType.NumFig, app1)
                 End If
 
             Case EToken.AppCall
                 Select Case app1.KndApp
-                    Case EApply.eArrayApp
+                    Case EApply.ArrayApp
                         TrmSrc(app1.FncApp)
 
                         For i1 = 0 To app1.ArgApp.Count - 1
-                            WordAdd("[", EFigType.eSymFig, app1)
+                            WordAdd("[", EFigType.SymFig, app1)
                             Debug.Assert(app1.ArgApp(i1).TypeTrm IsNot Nothing)
 
-                            If app1.ArgApp(i1).TypeTrm.KndCla = EClass.eEnumCla Then
+                            If app1.ArgApp(i1).TypeTrm.KndCla = EClass.EnumCla Then
                                 TrmSrc(app1.ArgApp(i1))
-                                WordAdd(".ordinal()", EFigType.eSymFig, app1)
+                                WordAdd(".ordinal()", EFigType.SymFig, app1)
                             Else
                                 TrmSrc(app1.ArgApp(i1))
                             End If
 
-                            WordAdd("]", EFigType.eSymFig, app1)
+                            WordAdd("]", EFigType.SymFig, app1)
                         Next
                         Exit Sub
 
-                    Case EApply.eStringApp, EApply.eListApp, EApply.eDictionaryApp
+                    Case EApply.StringApp, EApply.ListApp, EApply.DictionaryApp
                         Debug.Assert(app1.ArgApp.Count = 1)
 
                         TrmSrc(app1.FncApp)
-                        WordAdd(".", EFigType.eSymFig, app1)
-                        If app1.KndApp = EApply.eStringApp Then
-                            WordAdd("charAt", EFigType.eRefFig, app1)
+                        WordAdd(".", EFigType.SymFig, app1)
+                        If app1.KndApp = EApply.StringApp Then
+                            WordAdd("charAt", EFigType.RefFig, app1)
                         Else
-                            WordAdd("get", EFigType.eRefFig, app1)
+                            WordAdd("get", EFigType.RefFig, app1)
                         End If
-                        WordAdd("(", EFigType.eSymFig, app1)
+                        WordAdd("(", EFigType.SymFig, app1)
                         TrmSrc(app1.ArgApp(0))
-                        WordAdd(")", EFigType.eSymFig, app1)
+                        WordAdd(")", EFigType.SymFig, app1)
                         Exit Sub
                 End Select
 
@@ -433,102 +433,102 @@ Public Class TJavaCodeGenerator
                 AppArg(app1)
 
             Case EToken.BaseCall
-                WordAdd(EToken.Base, EFigType.eResFig, app1)
-                WordAdd(".", EFigType.eSymFig, app1)
+                WordAdd(EToken.Base, EFigType.ResFig, app1)
+                WordAdd(".", EFigType.SymFig, app1)
                 TrmSrc(app1.FncApp)
                 AppArg(app1)
 
             Case EToken.BaseNew
-                WordAdd(EToken.Base, EFigType.eResFig, app1)
+                WordAdd(EToken.Base, EFigType.ResFig, app1)
                 AppArg(app1)
 
             Case EToken.New_
                 Debug.Assert(app1.NewApp IsNot Nothing)
 
                 If app1.IniApp IsNot Nothing AndAlso app1.NewApp.IsArray() Then
-                    WordAdd("new ", EFigType.eRefFig, app1)
+                    WordAdd("new ", EFigType.RefFig, app1)
                     Debug.Assert(app1.NewApp.DimCla <> 0 AndAlso app1.NewApp.GenCla IsNot Nothing AndAlso app1.NewApp.GenCla.Count = 1)
                     If app1.ArgApp.Count <> 0 Then
                         TypeSrc(app1.NewApp.GenCla(0))
-                        WordAdd("[(", EFigType.eSymFig, app1)
+                        WordAdd("[(", EFigType.SymFig, app1)
                         TrmSrc(app1.ArgApp(0))
-                        WordAdd(")+1]", EFigType.eSymFig, app1)
+                        WordAdd(")+1]", EFigType.SymFig, app1)
                         Exit Sub
                     End If
                     TypeSrc(app1.NewApp)
-                    WordAdd("{", EFigType.eSymFig, app1)
+                    WordAdd("{", EFigType.SymFig, app1)
                     For i1 = 0 To app1.IniApp.TrmArr.Count - 1
                         If i1 <> 0 Then
-                            WordAdd(",", EFigType.eSymFig, app1)
+                            WordAdd(",", EFigType.SymFig, app1)
                         End If
                         TrmSrc(app1.IniApp.TrmArr(i1))
                     Next
-                    WordAdd("}", EFigType.eSymFig, app1)
+                    WordAdd("}", EFigType.SymFig, app1)
                 Else
-                    WordAdd(EToken.New_, EFigType.eResFig, app1)
+                    WordAdd(EToken.New_, EFigType.ResFig, app1)
                     TypeSrc(app1.NewApp)
                     If app1.IniApp IsNot Nothing Then
-                        WordAdd("(", EFigType.eSymFig, app1)
-                        WordAdd(")", EFigType.eSymFig, app1)
-                        WordAdd("{", EFigType.eSymFig, app1)
-                        WordAdd("{", EFigType.eSymFig, app1)
+                        WordAdd("(", EFigType.SymFig, app1)
+                        WordAdd(")", EFigType.SymFig, app1)
+                        WordAdd("{", EFigType.SymFig, app1)
+                        WordAdd("{", EFigType.SymFig, app1)
                         For i1 = 0 To app1.IniApp.TrmArr.Count - 1
-                            WordAdd("add", EFigType.eRefFig, app1)
-                            WordAdd("(", EFigType.eSymFig, app1)
+                            WordAdd("add", EFigType.RefFig, app1)
+                            WordAdd("(", EFigType.SymFig, app1)
                             TrmSrc(app1.IniApp.TrmArr(i1))
-                            WordAdd(")", EFigType.eSymFig, app1)
-                            WordAdd(";", EFigType.eSymFig, app1)
+                            WordAdd(")", EFigType.SymFig, app1)
+                            WordAdd(";", EFigType.SymFig, app1)
                         Next
-                        WordAdd("}", EFigType.eSymFig, app1)
-                        WordAdd("}", EFigType.eSymFig, app1)
+                        WordAdd("}", EFigType.SymFig, app1)
+                        WordAdd("}", EFigType.SymFig, app1)
                     Else
                         AppArg(app1)
                     End If
                 End If
             Case EToken.As_, EToken.Cast
-                If app1.ClassApp.KndCla = EClass.eEnumCla Then
+                If app1.ClassApp.KndCla = EClass.EnumCla Then
                     ' intからenumに変換する場合
 
                     TypeSrc(app1.ClassApp)
-                    WordAdd(".values()[", EFigType.eSymFig, app1)
+                    WordAdd(".values()[", EFigType.SymFig, app1)
                     TrmSrc(app1.ArgApp(0))
-                    WordAdd("]", EFigType.eSymFig, app1)
+                    WordAdd("]", EFigType.SymFig, app1)
                 Else
                     tp1 = app1.ArgApp(0).TypeTrm
-                    If tp1.KndCla = EClass.eEnumCla Then
+                    If tp1.KndCla = EClass.EnumCla Then
                         ' enumからintに変換する場合
 
-                        WordAdd("(", EFigType.eSymFig, app1)
+                        WordAdd("(", EFigType.SymFig, app1)
                         TrmSrc(app1.ArgApp(0))
-                        WordAdd(").ordinal()", EFigType.eSymFig, app1)
+                        WordAdd(").ordinal()", EFigType.SymFig, app1)
                     Else
-                        WordAdd("((", EFigType.eSymFig, app1)
+                        WordAdd("((", EFigType.SymFig, app1)
                         TypeSrc(app1.ClassApp)
-                        WordAdd(")(", EFigType.eSymFig, app1)
+                        WordAdd(")(", EFigType.SymFig, app1)
                         TrmSrc(app1.ArgApp(0))
-                        WordAdd("))", EFigType.eSymFig, app1)
+                        WordAdd("))", EFigType.SymFig, app1)
                     End If
                 End If
 
             Case EToken.GetType_
                 TypeSrc(app1.ClassApp)
-                WordAdd(".", EFigType.eSymFig, app1)
-                WordAdd(EToken.Class_, EFigType.eResFig, app1)
+                WordAdd(".", EFigType.SymFig, app1)
+                WordAdd(EToken.Class_, EFigType.ResFig, app1)
 
             Case EToken.Question
-                WordAdd("(", EFigType.eSymFig, app1)
+                WordAdd("(", EFigType.SymFig, app1)
                 TrmSrc(app1.ArgApp(0))
-                WordAdd("?", EFigType.eSymFig, app1)
+                WordAdd("?", EFigType.SymFig, app1)
                 TrmSrc(app1.ArgApp(1))
-                WordAdd(":", EFigType.eSymFig, app1)
+                WordAdd(":", EFigType.SymFig, app1)
                 TrmSrc(app1.ArgApp(2))
-                WordAdd(")", EFigType.eSymFig, app1)
+                WordAdd(")", EFigType.SymFig, app1)
 
             Case EToken.Instanceof
-                WordAdd("typeof", EFigType.eResFig, app1)
-                WordAdd("(", EFigType.eSymFig, app1)
+                WordAdd("typeof", EFigType.ResFig, app1)
+                WordAdd("(", EFigType.SymFig, app1)
                 TrmSrc(app1.ArgApp(0))
-                WordAdd(")", EFigType.eSymFig, app1)
+                WordAdd(")", EFigType.SymFig, app1)
 
             Case EToken.AddressOf_
                 If True Then
@@ -583,16 +583,16 @@ Public Class TJavaCodeGenerator
     Public Overrides Sub CnsSrc(cns1 As TConstant)
         Select Case cns1.TypeAtm
             Case EToken.Char_
-                WordAdd("'" + Escape(cns1.NameRef) + "'", EFigType.eStrFig, cns1)
+                WordAdd("'" + Escape(cns1.NameRef) + "'", EFigType.StrFig, cns1)
             Case EToken.String_
-                WordAdd("""" + Escape(cns1.NameRef) + """", EFigType.eStrFig, cns1)
+                WordAdd("""" + Escape(cns1.NameRef) + """", EFigType.StrFig, cns1)
             Case EToken.RegEx
-                WordAdd(Escape(cns1.NameRef), EFigType.eStrFig, cns1)
+                WordAdd(Escape(cns1.NameRef), EFigType.StrFig, cns1)
             Case EToken.Int
-                WordAdd(cns1.NameRef, EFigType.eNumFig, cns1)
+                WordAdd(cns1.NameRef, EFigType.NumFig, cns1)
             Case EToken.Hex
                 Debug.Assert(TSys.Substring(cns1.NameRef, 0, 2) = "&H")
-                WordAdd("0x" + cns1.NameRef.Substring(2), EFigType.eNumFig, cns1)
+                WordAdd("0x" + cns1.NameRef.Substring(2), EFigType.NumFig, cns1)
             Case Else
                 Debug.Assert(False)
         End Select
@@ -623,14 +623,14 @@ Public Class TJavaCodeGenerator
                     If PrjMK.dicClassMemName.ContainsKey(class_mem1) Then
 
                         class_mem2 = PrjMK.dicClassMemName(class_mem1)
-                        WordAdd(class_mem2, EToken.Ref, EFigType.eUnknownFig, dot1)
+                        WordAdd(class_mem2, EToken.Ref, EFigType.UnknownFig, dot1)
                         Exit Sub
                     End If
                 End If
             End If
 
             TrmSrc(dot1.TrmDot)
-            WordAdd(".", EFigType.eSymFig, dot1)
+            WordAdd(".", EFigType.SymFig, dot1)
 
             If dot1.TypeDot IsNot Nothing AndAlso PrjMK.dicMemName IsNot Nothing Then
                 If PrjMK.dicMemName.ContainsKey(dot1.TypeDot.NameCla()) Then
@@ -638,13 +638,13 @@ Public Class TJavaCodeGenerator
                     If dic1.ContainsKey(dot1.NameRef) Then
                         mem_name = dic1(dot1.NameRef)
 
-                        WordAdd(mem_name, EToken.Ref, EFigType.eRefFig, dot1)
+                        WordAdd(mem_name, EToken.Ref, EFigType.RefFig, dot1)
                         Exit Sub
                     End If
                 End If
             End If
             If dot1.NameRef = "ToString" Then
-                WordAdd("toString", EToken.Ref, EFigType.eRefFig, dot1)
+                WordAdd("toString", EToken.Ref, EFigType.RefFig, dot1)
             Else
                 Fmt(dot1)
             End If
@@ -652,9 +652,9 @@ Public Class TJavaCodeGenerator
     End Sub
 
     Public Overrides Sub RefSrc(ref1 As TReference)
-        WordAdd(JavaName(ref1.NameRef), EToken.Ref, EFigType.eRefFig, ref1)
+        WordAdd(JavaName(ref1.NameRef), EToken.Ref, EFigType.RefFig, ref1)
         If ref1.VarRef Is Nothing AndAlso ref1.NameRef <> "true" AndAlso ref1.NameRef <> "false" AndAlso ref1.NameRef <> "null" AndAlso ref1.NameRef <> "undefined" AndAlso ref1.NameRef <> "this" Then
-            ' WordAdd("参照未解決", EFigType.eUnknownFig, this);
+            ' WordAdd("参照未解決", EFigType.UnknownFig, this);
             ' Debug.WriteLine("参照未解決:{0}", ref1.NameRef);
         End If
     End Sub
@@ -669,36 +669,36 @@ Public Class TJavaCodeGenerator
                     ' javaで演算子オーバーロードの場合
 
                     Fmt(fnc_rel.ClaFnc)
-                    WordAdd(".", EFigType.eSymFig, rel1)
-                    WordAdd(fnc_rel.OpName(), EFigType.eVarFig, fnc_rel)
-                    WordAdd("(", EFigType.eSymFig, rel1)
+                    WordAdd(".", EFigType.SymFig, rel1)
+                    WordAdd(fnc_rel.OpName(), EFigType.VarFig, fnc_rel)
+                    WordAdd("(", EFigType.SymFig, rel1)
                     TrmSrc(rel1.ArgApp(0))
-                    WordAdd(",", EFigType.eSymFig, rel1)
+                    WordAdd(",", EFigType.SymFig, rel1)
                     TrmSrc(rel1.ArgApp(1))
-                    WordAdd(")", EFigType.eSymFig, rel1)
+                    WordAdd(")", EFigType.SymFig, rel1)
                     Exit Sub
                 End If
 
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
+                WordAdd(rel1.TypeApp, EFigType.SymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
             Case EToken.ASN, EToken.LT, EToken.GT, EToken.ADDEQ, EToken.SUBEQ, EToken.MULEQ, EToken.DIVEQ, EToken.MODEQ, EToken.LE, EToken.GE, EToken.Instanceof
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(rel1.TypeApp, EFigType.eSymFig, rel1)
+                WordAdd(rel1.TypeApp, EFigType.SymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
             Case EToken.IsNot_
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(EToken.NE, EFigType.eSymFig, rel1)
+                WordAdd(EToken.NE, EFigType.SymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
             Case EToken.Instanceof
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(" instanceof ", EFigType.eSymFig, rel1)
+                WordAdd(" instanceof ", EFigType.SymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
             Case EToken.Is_
                 TrmSrc(rel1.ArgApp(0))
-                WordAdd(EToken.Eq, EFigType.eSymFig, rel1)
+                WordAdd(EToken.Eq, EFigType.SymFig, rel1)
                 TrmSrc(rel1.ArgApp(1))
 
             Case Else
@@ -708,9 +708,9 @@ Public Class TJavaCodeGenerator
 
 
     Public Overrides Sub ParSrc(par1 As TParenthesis)
-        WordAdd("(", EFigType.eSymFig, par1)
+        WordAdd("(", EFigType.SymFig, par1)
         TrmSrc(par1.TrmPar)
-        WordAdd(")", EFigType.eSymFig, par1)
+        WordAdd(")", EFigType.SymFig, par1)
     End Sub
 
     Public Overrides Sub FromSrc(from1 As TFrom)
@@ -728,7 +728,7 @@ Public Class TJavaCodeGenerator
         Tab(tab1)
         Fmt(EToken.If_, EToken.LP)
         TrmSrc(if1.IfBlc(0).CndIf)
-        WordAdd(")", EFigType.eSymFig, if1)
+        WordAdd(")", EFigType.SymFig, if1)
         BlcSrc(if1, EToken.If_, if1.IfBlc(0).BlcIf, tab1)
         For i1 = 1 To if1.IfBlc.Count - 1
             If if1.IfBlc(i1).CndIf IsNot Nothing Then
@@ -736,11 +736,11 @@ Public Class TJavaCodeGenerator
                 Fmt(EToken.Else_, EToken.If_, EToken.LP)
 
                 TrmSrc(if1.IfBlc(i1).CndIf)
-                WordAdd(")", EFigType.eSymFig, if1)
+                WordAdd(")", EFigType.SymFig, if1)
                 BlcSrc(if1, EToken.ElseIf_, if1.IfBlc(i1).BlcIf, tab1)
             Else
                 Tab(tab1)
-                WordAdd("else", EFigType.eResFig, if1)
+                WordAdd("else", EFigType.ResFig, if1)
                 BlcSrc(if1, EToken.Else_, if1.IfBlc(i1).BlcIf, tab1)
             End If
         Next
@@ -751,48 +751,48 @@ Public Class TJavaCodeGenerator
         Tab(tab1)
         If for1.LabelFor <> 0 Then
 
-            WordAdd(TSys.Format("Label_{0}", for1.LabelFor), EFigType.eLabelFig, for1)
-            WordAdd(":", EFigType.eSymFig, for1)
+            WordAdd(TSys.Format("Label_{0}", for1.LabelFor), EFigType.LabelFig, for1)
+            WordAdd(":", EFigType.SymFig, for1)
         End If
         If for1.IsDo Then
-            WordAdd(EToken.While_, EFigType.eResFig, for1)
-            WordAdd("(", EFigType.eSymFig, for1)
+            WordAdd(EToken.While_, EFigType.ResFig, for1)
+            WordAdd("(", EFigType.SymFig, for1)
             TrmSrc(for1.CndFor)
-            WordAdd(")", EFigType.eSymFig, for1)
+            WordAdd(")", EFigType.SymFig, for1)
             BlcSrc(for1, EToken.Do_, for1.BlcFor, tab1)
         Else
             If for1.InVarFor IsNot Nothing Then
-                WordAdd(EToken.For_, EFigType.eResFig, for1)
-                WordAdd("(", EFigType.eSymFig, for1)
+                WordAdd(EToken.For_, EFigType.ResFig, for1)
+                WordAdd("(", EFigType.SymFig, for1)
                 VarSrc(for1.InVarFor)
-                WordAdd(":", EFigType.eSymFig, for1)
+                WordAdd(":", EFigType.SymFig, for1)
                 If for1.InTrmFor.TypeTrm Is PrjMK.StringType Then
-                    WordAdd("(", EFigType.eSymFig, for1)
+                    WordAdd("(", EFigType.SymFig, for1)
                     TrmSrc(for1.InTrmFor)
-                    WordAdd(").toCharArray()", EFigType.eSymFig, for1)
+                    WordAdd(").toCharArray()", EFigType.SymFig, for1)
                 Else
                     TrmSrc(for1.InTrmFor)
                 End If
-                WordAdd(")", EFigType.eSymFig, for1)
+                WordAdd(")", EFigType.SymFig, for1)
                 BlcSrc(for1, EToken.Each_, for1.BlcFor, tab1)
             ElseIf for1.FromFor IsNot Nothing Then
-                WordAdd(EToken.For_, EFigType.eResFig, for1)
-                WordAdd("(", EFigType.eSymFig, for1)
+                WordAdd(EToken.For_, EFigType.ResFig, for1)
+                WordAdd("(", EFigType.SymFig, for1)
                 Fmt(for1.IdxFor)
-                WordAdd("=", EFigType.eSymFig, for1)
+                WordAdd("=", EFigType.SymFig, for1)
                 TrmSrc(for1.FromFor)
-                WordAdd(";", EFigType.eSymFig, for1)
+                WordAdd(";", EFigType.SymFig, for1)
                 Fmt(for1.IdxFor)
-                WordAdd("<=", EFigType.eSymFig, for1)
+                WordAdd("<=", EFigType.SymFig, for1)
                 TrmSrc(for1.ToFor)
-                WordAdd(";", EFigType.eSymFig, for1)
+                WordAdd(";", EFigType.SymFig, for1)
                 Fmt(for1.IdxFor)
                 If for1.StepFor Is Nothing Then
-                    WordAdd("++", EFigType.eSymFig, for1)
+                    WordAdd("++", EFigType.SymFig, for1)
                 Else
-                    WordAdd("Java 未対応", EFigType.eUnknownFig, for1)
+                    WordAdd("Java 未対応", EFigType.UnknownFig, for1)
                 End If
-                WordAdd(")", EFigType.eSymFig, for1)
+                WordAdd(")", EFigType.SymFig, for1)
                 BlcSrc(for1, EToken.For_, for1.BlcFor, tab1)
             Else
                 Debug.WriteLine("@b")
@@ -811,7 +811,7 @@ Public Class TJavaCodeGenerator
             If asn1.RelAsn.ArgApp(0).IsApp() Then
                 app1 = CType(asn1.RelAsn.ArgApp(0), TApply)
                 Debug.Assert(app1.TypeApp = EToken.AppCall)
-                If app1.KndApp <> EApply.eArrayApp Then
+                If app1.KndApp <> EApply.ArrayApp Then
                     CType(asn1.RelAsn.ArgApp(0), TApply).TrmSrcSet(Me, asn1.RelAsn.ArgApp(1))
                     Exit Sub
                 End If
@@ -819,9 +819,9 @@ Public Class TJavaCodeGenerator
 
             TrmSrc(asn1.RelAsn.ArgApp(0))
             If asn1.RelAsn.TypeApp = EToken.Eq Then
-                WordAdd(EToken.ASN, EFigType.eSymFig, stmt1)
+                WordAdd(EToken.ASN, EFigType.SymFig, stmt1)
             Else
-                WordAdd(asn1.RelAsn.TypeApp, EFigType.eSymFig, stmt1)
+                WordAdd(asn1.RelAsn.TypeApp, EFigType.SymFig, stmt1)
             End If
 
             trm1 = asn1.RelAsn.ArgApp(1)
@@ -832,36 +832,36 @@ Public Class TJavaCodeGenerator
         ElseIf TypeOf stmt1 Is TVariableDeclaration Then
             VarDeclSrc(CType(stmt1, TVariableDeclaration), tab1)
         Else
-            WordAdd("Simple Stmt Src", EFigType.eSymFig, stmt1)
+            WordAdd("Simple Stmt Src", EFigType.SymFig, stmt1)
         End If
 
         If stmt1.TailCom <> "" Then
 
-            WordAdd(vbTab + stmt1.TailCom, EFigType.eComFig, stmt1)
+            WordAdd(vbTab + stmt1.TailCom, EFigType.ComFig, stmt1)
         End If
     End Sub
 
     '  TSelectのソースを作る
     Public Overrides Sub SelectSrc(swt1 As TSelect, tab1 As Integer)
         Tab(tab1)
-        WordAdd("switch", EFigType.eResFig, swt1)
-        WordAdd("(", EFigType.eSymFig, swt1)
+        WordAdd("switch", EFigType.ResFig, swt1)
+        WordAdd("(", EFigType.SymFig, swt1)
         TrmSrc(swt1.TrmSel)
-        WordAdd(")", EFigType.eSymFig, swt1)
-        WordAdd("{", EFigType.eSymFig, swt1)
+        WordAdd(")", EFigType.SymFig, swt1)
+        WordAdd("{", EFigType.SymFig, swt1)
         NL(swt1)
         For Each cas1 In swt1.CaseSel
             For Each trm1 In cas1.TrmCase
                 Tab(tab1)
-                WordAdd("case", EFigType.eResFig, cas1)
+                WordAdd("case", EFigType.ResFig, cas1)
                 TrmSrc(trm1)
-                WordAdd(":", EFigType.eSymFig, cas1)
+                WordAdd(":", EFigType.SymFig, cas1)
                 NL(cas1)
             Next
             If cas1.DefaultCase Then
                 Tab(tab1)
-                WordAdd("default", EFigType.eResFig, cas1)
-                WordAdd(":", EFigType.eSymFig, cas1)
+                WordAdd("default", EFigType.ResFig, cas1)
+                WordAdd(":", EFigType.SymFig, cas1)
                 NL(cas1)
             End If
             For Each stmt1 In cas1.BlcCase.StmtBlc
@@ -872,17 +872,17 @@ Public Class TJavaCodeGenerator
                 ' ジャンプで終わらない場合
 
                 Tab(tab1 + 1)
-                WordAdd(EToken.Break_, EFigType.eResFig, swt1)
+                WordAdd(EToken.Break_, EFigType.ResFig, swt1)
                 SM(swt1)
             End If
         Next
         Tab(tab1)
-        WordAdd("}", EFigType.eSymFig, swt1)
+        WordAdd("}", EFigType.SymFig, swt1)
         NL(swt1)
     End Sub
 
     Public Overrides Sub TrySrc(try1 As TTry, tab1 As Integer)
-        WordAdd("Java Try 未実装", EFigType.eResFig, try1)
+        WordAdd("Java Try 未実装", EFigType.ResFig, try1)
     End Sub
 
     '  TStatementのソースを作る
@@ -896,12 +896,12 @@ Public Class TJavaCodeGenerator
         If stmt1 IsNot Nothing AndAlso stmt1.ComStmt IsNot Nothing Then
             For Each tkn_f In stmt1.ComStmt
                 Tab(tab1)
-                WordAdd(tkn_f.StrTkn, EFigType.eComFig, stmt1)
+                WordAdd(tkn_f.StrTkn, EFigType.ComFig, stmt1)
                 NL(stmt1)
             Next
         End If
         If stmt1 Is Nothing Then
-            WordAdd("null stmt", EFigType.eResFig, stmt1)
+            WordAdd("null stmt", EFigType.ResFig, stmt1)
             NL(stmt1)
         ElseIf TypeOf stmt1 Is TAssignment OrElse TypeOf stmt1 Is TCall OrElse TypeOf stmt1 Is TVariableDeclaration Then
             SimpleStmtSrc(stmt1, tab1)
@@ -923,21 +923,21 @@ Public Class TJavaCodeGenerator
         ElseIf TypeOf stmt1 Is TReDim Then
             red1 = CType(stmt1, TReDim)
             Tab(tab1)
-            WordAdd(EToken.ReDim_, EFigType.eResFig, stmt1)
+            WordAdd(EToken.ReDim_, EFigType.ResFig, stmt1)
             TrmSrc(red1.TrmReDim)
-            WordAdd("(", EFigType.eSymFig, stmt1)
+            WordAdd("(", EFigType.SymFig, stmt1)
             For i1 = 0 To red1.DimReDim.Count - 1
                 If i1 <> 0 Then
-                    WordAdd(",", EFigType.eSymFig, stmt1)
+                    WordAdd(",", EFigType.SymFig, stmt1)
                 End If
                 TrmSrc(red1.DimReDim(i1))
             Next
-            WordAdd(")", EFigType.eSymFig, stmt1)
+            WordAdd(")", EFigType.SymFig, stmt1)
             SM(stmt1)
         ElseIf TypeOf stmt1 Is TReturn Then
             ret1 = CType(stmt1, TReturn)
             Tab(tab1)
-            WordAdd(EToken.Return_, EFigType.eResFig, stmt1)
+            WordAdd(EToken.Return_, EFigType.ResFig, stmt1)
             If ret1.TrmRet IsNot Nothing Then
                 TrmSrc(ret1.TrmRet)
             End If
@@ -946,7 +946,7 @@ Public Class TJavaCodeGenerator
         ElseIf TypeOf stmt1 Is TThrow Then
             thr1 = CType(stmt1, TThrow)
             Tab(tab1)
-            WordAdd(EToken.Throw_, EFigType.eResFig, stmt1)
+            WordAdd(EToken.Throw_, EFigType.ResFig, stmt1)
             TrmSrc(thr1.TrmThrow)
             SM(stmt1)
 
@@ -959,14 +959,14 @@ Public Class TJavaCodeGenerator
                     Select Case stmt1.TypeStmt
                         Case EToken.ExitDo, EToken.ExitFor
                             ext1 = CType(stmt1, TExit)
-                            WordAdd(EToken.Break_, EFigType.eResFig, stmt1)
+                            WordAdd(EToken.Break_, EFigType.ResFig, stmt1)
                             If ext1.LabelExit <> 0 Then
 
-                                WordAdd(TSys.Format(" Label_{0}", ext1.LabelExit), EFigType.eResFig, stmt1)
+                                WordAdd(TSys.Format(" Label_{0}", ext1.LabelExit), EFigType.ResFig, stmt1)
                             End If
 
                         Case EToken.ExitSub
-                            WordAdd(EToken.Return_, EFigType.eResFig, stmt1)
+                            WordAdd(EToken.Return_, EFigType.ResFig, stmt1)
                     End Select
                     SM(stmt1)
                 Case Else
@@ -978,25 +978,25 @@ Public Class TJavaCodeGenerator
 
     '  ブロックのソースを作る
     Public Overrides Sub BlcSrc(obj1 As Object, type1 As EToken, blc1 As TBlock, tab1 As Integer)
-        WordAdd("{", EFigType.eSymFig, blc1)
+        WordAdd("{", EFigType.SymFig, blc1)
         NL(obj1)
         For Each stmt1 In blc1.StmtBlc
             StmtSrc(stmt1, tab1 + 1)
         Next
         Tab(tab1)
-        WordAdd("}", EFigType.eSymFig, blc1)
+        WordAdd("}", EFigType.SymFig, blc1)
         NL(obj1)
     End Sub
 
     Public Overrides Sub VarSrc(var1 As TVariable)
         TypeSrc(var1.TypeVar)
-        WordAdd(" ", EFigType.eSymFig, var1)
+        WordAdd(" ", EFigType.SymFig, var1)
         Fmt(var1)
 
         If var1.InitVar IsNot Nothing Then
             ' 初期値がある場合
 
-            WordAdd("=", EFigType.eSymFig, var1)
+            WordAdd("=", EFigType.SymFig, var1)
             TrmSrc(var1.InitVar)
         End If
     End Sub
@@ -1009,27 +1009,27 @@ Public Class TJavaCodeGenerator
         ModifierSrcJava(fnc1, fnc1.ModFnc())
         If fnc1.TypeFnc = EToken.Operator_ Then
             TypeSrc(fnc1.RetType)
-            WordAdd(" ", EFigType.eSymFig, fnc1)
+            WordAdd(" ", EFigType.SymFig, fnc1)
 
-            WordAdd(fnc1.OpName(), EFigType.eVarFig, fnc1)
+            WordAdd(fnc1.OpName(), EFigType.VarFig, fnc1)
         Else
             Select Case fnc1.TypeFnc
                 Case EToken.Function_
                     TypeSrc(fnc1.RetType)
                 Case EToken.Sub_
-                    WordAdd("void", EFigType.eResFig, fnc1)
+                    WordAdd("void", EFigType.ResFig, fnc1)
                 Case EToken.New_
                     Fmt(fnc1.ClaFnc)
             End Select
 
-            WordAdd(" ", EFigType.eSymFig, fnc1)
-            WordAdd(fnc1.NameFnc(), EFigType.eVarFig, fnc1)
+            WordAdd(" ", EFigType.SymFig, fnc1)
+            WordAdd(fnc1.NameFnc(), EFigType.VarFig, fnc1)
         End If
 
         VarListSrc(fnc1.ArgFnc, fnc1)
 
         If fnc1.BlcFnc Is Nothing Then
-            WordAdd(";", EFigType.eSymFig, fnc1)
+            WordAdd(";", EFigType.SymFig, fnc1)
             NL(fnc1)
         Else
             If fnc1.NameFnc() = "BlcMathML" Then
@@ -1049,7 +1049,7 @@ Public Class TJavaCodeGenerator
         Dim i1 As Integer, cla1 As TClass
 
         If type1 Is Nothing Then
-            WordAdd("型不明", EFigType.eUnknownFig, type1)
+            WordAdd("型不明", EFigType.UnknownFig, type1)
             Return
         End If
 
@@ -1058,23 +1058,23 @@ Public Class TJavaCodeGenerator
 
             Debug.Assert(type1.GenCla IsNot Nothing AndAlso type1.GenCla.Count = 1)
             TypeSrc(type1.GenCla(0))
-            WordAdd("[", EFigType.eUnknownFig, type1)
+            WordAdd("[", EFigType.UnknownFig, type1)
             For i1 = 0 To type1.DimCla - 1
                 If i1 <> 0 Then
-                    WordAdd(",", EFigType.eSymFig, type1)
+                    WordAdd(",", EFigType.SymFig, type1)
                 End If
             Next
-            WordAdd("]", EFigType.eSymFig, type1)
+            WordAdd("]", EFigType.SymFig, type1)
         Else
             ' 配列でない場合
-            WordAdd(TypeName(type1.NameType()), EFigType.eClassFig, type1)
+            WordAdd(TypeName(type1.NameType()), EFigType.ClassFig, type1)
             If type1.GenCla IsNot Nothing Then
                 ' 総称型の場合
 
-                WordAdd("<", EFigType.eUnknownFig, type1)
+                WordAdd("<", EFigType.UnknownFig, type1)
                 For i1 = 0 To type1.GenCla.Count - 1
                     If i1 <> 0 Then
-                        WordAdd(",", EFigType.eSymFig, type1)
+                        WordAdd(",", EFigType.SymFig, type1)
                     End If
                     cla1 = type1.GenCla(i1)
                     If cla1.NameCla() = "Integer" Then
@@ -1083,7 +1083,7 @@ Public Class TJavaCodeGenerator
                         TypeSrc(cla1)
                     End If
                 Next
-                WordAdd(">", EFigType.eSymFig, type1)
+                WordAdd(">", EFigType.SymFig, type1)
             End If
         End If
     End Sub
@@ -1099,7 +1099,7 @@ Public Class TJavaCodeGenerator
             For i1 = 0 To dcl1.VarDecl.Count - 1
                 var1 = dcl1.VarDecl(i1)
                 If i1 <> 0 Then
-                    WordAdd(";", EFigType.eSymFig, dcl1)
+                    WordAdd(";", EFigType.SymFig, dcl1)
                 End If
                 VarSrc(var1)
             Next
@@ -1116,23 +1116,23 @@ Public Class TJavaCodeGenerator
 
         For Each cla1 In src1.ClaSrc
             ComSrc(CType(cla1.ComCla(), TComment), 0, cla1)
-            If cla1.KndCla = EClass.eEnumCla Then
+            If cla1.KndCla = EClass.EnumCla Then
                 '  列挙型の場合
 
-                WordAdd(EToken.Enum_, EFigType.eResFig, cla1)
+                WordAdd(EToken.Enum_, EFigType.ResFig, cla1)
                 Fmt(cla1)
-                WordAdd("{", EFigType.eSymFig, cla1)
+                WordAdd("{", EFigType.SymFig, cla1)
                 NL(cla1)
                 '  すべてのフィールドに対し
                 For Each fld1 In cla1.FldCla
                     Tab(1)
                     Fmt(fld1)
-                    WordAdd(",", EFigType.eSymFig, cla1)
+                    WordAdd(",", EFigType.SymFig, cla1)
                     NL(fld1)
                 Next
-                WordAdd("}", EFigType.eSymFig, cla1)
+                WordAdd("}", EFigType.SymFig, cla1)
                 NL(cla1)
-            ElseIf cla1.KndCla = EClass.eDelegateCla Then
+            ElseIf cla1.KndCla = EClass.DelegateCla Then
                 ' デリゲートの場合
 
                 dlg1 = CType(cla1, TDelegate)
@@ -1141,46 +1141,46 @@ Public Class TJavaCodeGenerator
                 '  クラスの場合
 
                 If cla1.ModCla().isAbstract Then
-                    WordAdd(EToken.Abstract, EFigType.eResFig, cla1)
+                    WordAdd(EToken.Abstract, EFigType.ResFig, cla1)
                 End If
 
                 Select Case cla1.KndCla
-                    Case EClass.eClassCla
-                        WordAdd(EToken.Class_, EFigType.eResFig, cla1)
-                    Case EClass.eStructCla
-                        WordAdd(EToken.Class_, EFigType.eResFig, cla1)
-                    Case EClass.eInterfaceCla
-                        WordAdd(EToken.Interface_, EFigType.eResFig, cla1)
+                    Case EClass.ClassCla
+                        WordAdd(EToken.Class_, EFigType.ResFig, cla1)
+                    Case EClass.StructCla
+                        WordAdd(EToken.Class_, EFigType.ResFig, cla1)
+                    Case EClass.InterfaceCla
+                        WordAdd(EToken.Interface_, EFigType.ResFig, cla1)
                 End Select
                 Fmt(cla1)
 
                 If cla1.GenCla IsNot Nothing Then
                     ' ジェネリック型の場合
 
-                    WordAdd("<", EFigType.eSymFig, cla1)
+                    WordAdd("<", EFigType.SymFig, cla1)
 
                     For i1 = 0 To cla1.GenCla.Count - 1
                         If i1 <> 0 Then
-                            WordAdd(",", EFigType.eSymFig, cla1)
+                            WordAdd(",", EFigType.SymFig, cla1)
                         End If
                         Fmt(cla1.GenCla(i1))
                     Next
 
-                    WordAdd(">", EFigType.eSymFig, cla1)
+                    WordAdd(">", EFigType.SymFig, cla1)
                 End If
 
                 If cla1.SuperClassList.Count <> 0 AndAlso cla1.SuperClassList(0) IsNot PrjMK.ObjectType Then
-                    WordAdd(" ", EFigType.eUnknownFig, cla1)
-                    WordAdd(EToken.Extends, EFigType.eResFig, cla1)
+                    WordAdd(" ", EFigType.UnknownFig, cla1)
+                    WordAdd(EToken.Extends, EFigType.ResFig, cla1)
                     Fmt(cla1.SuperClassList(0))
                 End If
 
                 If cla1.InterfaceList.Count <> 0 Then
-                    WordAdd(" ", EFigType.eSymFig, cla1)
-                    WordAdd(EToken.Implements_, EFigType.eResFig, cla1)
+                    WordAdd(" ", EFigType.SymFig, cla1)
+                    WordAdd(EToken.Implements_, EFigType.ResFig, cla1)
                     For i1 = 0 To cla1.InterfaceList.Count - 1
                         If i1 <> 0 Then
-                            WordAdd(",", EFigType.eSymFig, cla1)
+                            WordAdd(",", EFigType.SymFig, cla1)
                         End If
                         Fmt(cla1.InterfaceList(i1))
                     Next
@@ -1194,29 +1194,29 @@ Public Class TJavaCodeGenerator
                     Tab(1)
                     ModifierSrcJava(fld1, fld1.ModVar)
                     TypeSrc(fld1.TypeVar)
-                    WordAdd(" ", EFigType.eSymFig, fld1)
+                    WordAdd(" ", EFigType.SymFig, fld1)
                     Fmt(fld1)
                     If fld1.InitVar IsNot Nothing Then
                         '  初期値がある場合
-                        WordAdd("=", EFigType.eSymFig, fld1)
+                        WordAdd("=", EFigType.SymFig, fld1)
                         TrmSrc(fld1.InitVar)
                     End If
 
                     If fld1.TailCom <> "" Then
 
-                        WordAdd(vbTab + fld1.TailCom, EFigType.eComFig, fld1)
+                        WordAdd(vbTab + fld1.TailCom, EFigType.ComFig, fld1)
                     End If
 
                     SM(fld1)
                 Next
 
-                If cla1.KndCla = EClass.eStructCla Then
+                If cla1.KndCla = EClass.StructCla Then
                     ' javaの構造体の場合
 
                     ' デフォルトコンストラクターを作る
                     Tab(1)
                     Fmt(EToken.Public_, cla1)
-                    WordAdd("(){}", EFigType.eUnknownFig, cla1)
+                    WordAdd("(){}", EFigType.UnknownFig, cla1)
                     NL()
                 End If
 
@@ -1225,7 +1225,7 @@ Public Class TJavaCodeGenerator
                     FncSrc(fnc1)
                 Next
 
-                WordAdd(EToken.RC, EFigType.eResFig, cla1)
+                WordAdd(EToken.RC, EFigType.ResFig, cla1)
                 NL(cla1)
             End If
         Next
@@ -1251,7 +1251,7 @@ Public Class TJavaCodeGenerator
                     sw.Write(TSys.StringRepeat(vbTab, txt1.TabTxt))
                 End If
                 Select Case txt1.TypeFig
-                    Case EFigType.eSymFig
+                    Case EFigType.SymFig
                         If txt1.TextTxt.Length = 1 Then
                             Select Case txt1.TextTxt(0)
                                 Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
@@ -1262,7 +1262,7 @@ Public Class TJavaCodeGenerator
                         Else
                             sw.Write(" " + txt1.TextTxt + " ")
                         End If
-                    Case EFigType.eResFig
+                    Case EFigType.ResFig
                         Select Case txt1.TknTxt
                             Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_
                                 sw.Write(" " + txt1.TextTxt + " ")
@@ -1271,7 +1271,7 @@ Public Class TJavaCodeGenerator
                             Case Else
                                 sw.Write(txt1.TextTxt + " ")
                         End Select
-                    Case EFigType.eRefFig
+                    Case EFigType.RefFig
                         Select Case txt1.TknTxt
                             Case EToken.Ref
                                 sw.Write(txt1.TextTxt)

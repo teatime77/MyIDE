@@ -402,8 +402,8 @@ Public Class TGraphics
 
     Public Shared Sub SetCursor(cur As ECursor)
         Select Case cur
-            Case ECursor.eARROW
-            Case ECursor.eSIZEWE
+            Case ECursor.ARROW
+            Case ECursor.SIZEWE
             Case Else
                 Debug.Assert(False)
         End Select

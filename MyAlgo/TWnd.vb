@@ -8,61 +8,61 @@ Public Delegate Sub TScrollEventHandler(e As TScrollEventArgs)
 
 '-------------------------------------------------------------------------------- ECursor
 Public Enum ECursor
-    eARROW
-    eIBEAM
-    eWAIT
-    eCROSS
-    eUPARROW
-    eSIZE
-    eICON
-    eSIZENWSE
-    eSIZENESW
-    eSIZEWE
-    eSIZENS
-    eSIZEALL
-    eNO
-    eHAND
-    eAPPSTARTING
-    eHELP
+    ARROW
+    IBEAM
+    WAIT
+    CROSS
+    UPARROW
+    SIZE
+    ICON
+    SIZENWSE
+    SIZENESW
+    SIZEWE
+    SIZENS
+    SIZEALL
+    NO
+    HAND
+    APPSTARTING
+    HELP
 End Enum
 
 '-------------------------------------------------------------------------------- EEvent
 Public Enum EEvent
-    eOnChar
-    eOnKeyDown
-    eMouseDown
-    eMousePress
-    eMouseMove
-    eMouseUp
-    ePaint
-    eOnResize
-    eOnTimer
+    OnChar
+    OnKeyDown
+    MouseDown
+    MousePress
+    MouseMove
+    MouseUp
+    Paint
+    OnResize
+    OnTimer
 End Enum
 
 '-------------------------------------------------------------------------------- EBoundary
 Public Enum EBoundary
-	eTopLeft
-	eTopMid
-	eTopRight
-	eMidLeft
-	eMidMid
-	eMidRight
-	eBottomLeft
-	eBottomMid
-	eBottomRight
-	eNon
+    TopLeft
+    TopMid
+    TopRight
+    MidLeft
+    MidMid
+    MidRight
+    BottomLeft
+    BottomMid
+    BottomRight
+    Non
 End Enum
 
 '-------------------------------------------------------------------------------- EOrientation
 Public Enum EOrientation
-    eHorizontal
-    eVertical
+    Horizontal
+    Vertical
 End Enum
 
 '-------------------------------------------------------------------------------- ETknPos
 Public Enum ETknPos
-    eTextTknPos
-    eExpandTknPos
+    TextTknPos
+    ExpandTknPos
 End Enum
 
 Public Class TFig
@@ -274,7 +274,7 @@ Public Class TWnd
     Public Sub InitFntBrs()
         Dim sz As TPnt
 
-        FntTxt = New TFont(EFont.eGothic, 10)
+        FntTxt = New TFont(EFont.Gothic, 10)
         sz = TGraphics.MeasureText("M", FntTxt)
         CharH = sz.YPnt
         CharW = 6.9
@@ -408,7 +408,7 @@ Public Class TGetWndByPos
 
     Public Sub New()
         FigGetWnd = Nothing
-        BdrGetWnd = EBoundary.eNon
+        BdrGetWnd = EBoundary.Non
         DiffGetWnd = Double.MaxValue
     End Sub
 End Class
@@ -532,7 +532,7 @@ End Class
 '-------------------------------------------------------------------------------- TStackPanel
 Public Class TStackPanel
     Inherits TPanel
-    Public OriStp As EOrientation = EOrientation.eHorizontal
+    Public OriStp As EOrientation = EOrientation.Horizontal
 
     Public Sub New(ori As EOrientation)
         OriStp = ori
@@ -543,7 +543,7 @@ Public Class TStackPanel
     Public Overrides Sub SetAutoSize()
         Dim x As Double, y As Double, max_w As Double, max_h As Double
 
-        If OriStp = EOrientation.eHorizontal Then
+        If OriStp = EOrientation.Horizontal Then
             ' 横方向に並べる場合
 
             x = PadX
@@ -748,7 +748,7 @@ Public Class TForm
             wnd = Capture
         Else
 
-            TGraphics.SetCursor(ECursor.eARROW)
+            TGraphics.SetCursor(ECursor.ARROW)
             GetWndByPos(ev.PosEv - ClientPos, ret)
             wnd = CType(ret.FigGetWnd, TWnd)
         End If
@@ -804,7 +804,7 @@ Public Class TForm
             RemakeDrawFig()
         End If
         Capture = Nothing
-        TGraphics.SetCursor(ECursor.eARROW)
+        TGraphics.SetCursor(ECursor.ARROW)
     End Sub
 
 End Class
@@ -815,7 +815,7 @@ Public Class TLabel
     Public TextWnd As String
 
     Public Sub InitLabel()
-        FntTxt = New TFont(EFont.eGothic, 10)
+        FntTxt = New TFont(EFont.Gothic, 10)
         BrsTxt = TColor.Black
         'TextWnd = "ラベル"
     End Sub
@@ -956,7 +956,7 @@ Public Class TScrollBar
 
         PrvScb.SetLeft(0)
         PrvScb.SetTop(0)
-        If OriScb = EOrientation.eHorizontal Then
+        If OriScb = EOrientation.Horizontal Then
             NxtScb.SetTop(0)
         Else
             NxtScb.SetLeft(0)
@@ -970,7 +970,7 @@ Public Class TScrollBar
     Public Overrides Sub SetWidth(w As Double)
         MyBase.SetWidth(w)
 
-        If OriScb = EOrientation.eHorizontal Then
+        If OriScb = EOrientation.Horizontal Then
             NxtScb.SetLeft(ClientSize.XPnt - NxtScb.SizeFig.XPnt)
         End If
     End Sub
@@ -978,7 +978,7 @@ Public Class TScrollBar
     Public Overrides Sub SetHeight(h As Double)
         MyBase.SetHeight(h)
 
-        If OriScb = EOrientation.eVertical Then
+        If OriScb = EOrientation.Vertical Then
             NxtScb.SetTop(ClientSize.YPnt - NxtScb.SizeFig.YPnt)
         End If
     End Sub
@@ -1000,7 +1000,7 @@ Public Class TScrollBar
         If Capture Is Me Then
             Debug.WriteLine("scroll bar mouse drag")
             se = New TScrollEventArgs(Me)
-            If OriScb = EOrientation.eHorizontal Then
+            If OriScb = EOrientation.Horizontal Then
                 f = ValSv + CType(ev.PosEv.XPnt - MouseDownPos.XPnt, Integer)
             Else
                 f = ValSv + CType(ev.PosEv.YPnt - MouseDownPos.YPnt, Integer)
@@ -1092,8 +1092,8 @@ Public Class TScrollView
     Public VSbScv As TScrollBar
 
     Public Sub New()
-        HSbScv = New TScrollBar(EOrientation.eHorizontal)
-        VSbScv = New TScrollBar(EOrientation.eVertical)
+        HSbScv = New TScrollBar(EOrientation.Horizontal)
+        VSbScv = New TScrollBar(EOrientation.Vertical)
 
         HSbScv.SetHeight(ScrollW)
         VSbScv.SetWidth(ScrollW)
@@ -1410,7 +1410,7 @@ Public Class TSplitContainer
         MyBase.SetWidth(w)
 
         Select Case OrientationSpc
-            Case EOrientation.eHorizontal
+            Case EOrientation.Horizontal
 
                 SplitH((ClientSize.XPnt - (1 + 3 + 1)) * RatioSpc)
         End Select
@@ -1420,7 +1420,7 @@ Public Class TSplitContainer
         MyBase.SetHeight(h)
 
         Select Case OrientationSpc
-            Case EOrientation.eHorizontal
+            Case EOrientation.Horizontal
                 ChildFig(0).SetHeight(ClientSize.YPnt - 2)
                 ChildFig(1).SetHeight(ClientSize.YPnt - 2)
         End Select
@@ -1437,7 +1437,7 @@ Public Class TSplitContainer
 
     Public Overrides Sub OnMouseDown(ev As TMouseEvent)
         If 分割線上(ev) Then
-            TGraphics.SetCursor(ECursor.eSIZEWE)
+            TGraphics.SetCursor(ECursor.SIZEWE)
             TWnd.Capture = Me
             分割中 = True
             SplitLen = ChildFig(0).SizeFig.XPnt
@@ -1458,7 +1458,7 @@ Public Class TSplitContainer
             End If
         Else
             If 分割線上(ev) Then
-                TGraphics.SetCursor(ECursor.eSIZEWE)
+                TGraphics.SetCursor(ECursor.SIZEWE)
             End If
         End If
     End Sub
@@ -1617,11 +1617,11 @@ Public Class TAbsTextBox
                 brs = TColor.Orange
             Else
                 Select Case txt.TypeTxt
-                    Case EFigType.eResFig
+                    Case EFigType.ResFig
                         brs = TColor.Blue
-                    Case EFigType.eStrFig
+                    Case EFigType.StrFig
                         brs = TColor.Red
-                    Case EFigType.eComFig
+                    Case EFigType.ComFig
                         brs = TColor.Green
                     Case Else
                         brs = TColor.Black
@@ -1633,7 +1633,7 @@ Public Class TAbsTextBox
             End If
 
             Select Case txt.TypeFig
-                Case EFigType.eSymFig
+                Case EFigType.SymFig
                     If txt.TextTxt.Length = 1 Then
                         Select Case txt.TextTxt(0)
                             Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
@@ -1644,7 +1644,7 @@ Public Class TAbsTextBox
                     Else
                         s = " " + txt.TextTxt + " "
                     End If
-                Case EFigType.eResFig
+                Case EFigType.ResFig
                     Select Case txt.TknTxt
                         Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_
                             s = " " + txt.TextTxt + " "
@@ -1653,7 +1653,7 @@ Public Class TAbsTextBox
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
-                Case EFigType.eRefFig
+                Case EFigType.RefFig
                     Select Case txt.TknTxt
                         Case EToken.Ref
                             If txt.TextTxt = "null" Then
@@ -1673,7 +1673,7 @@ Public Class TAbsTextBox
             If s IsNot Nothing Then
 
                 w = TSrcEdit.StrLen(s, s.Length)
-                tpos = New TTknPos(ETknPos.eTextTknPos, txt.ObjFig, pos + New TPnt(x2 * CharW, 0), New TPnt(w * CharW, CharH))
+                tpos = New TTknPos(ETknPos.TextTknPos, txt.ObjFig, pos + New TPnt(x2 * CharW, 0), New TPnt(w * CharW, CharH))
                 'Debug.WriteLine("tpos {0} {1} {2}", tpos.PosPos, tpos.SizePos, s)
                 vTknPos.Add(tpos)
                 dc.AddDrawCmp(New TDrawString(s, FntTxt, brs, tpos.PosPos, txt.ObjFig))
@@ -2399,7 +2399,7 @@ Public Class TSrcBrowser
         For Each src In TProject.Prj.SrcPrj
             If src.FigSrc IsNot Nothing Then
                 obj = Nothing
-                exp = EExpand.eNone
+                exp = EExpand.None
 
                 ' for ???
                 For ln = 0 To src.FigSrc.vLineFig.Count - 1
@@ -2414,7 +2414,7 @@ Public Class TSrcBrowser
                     exp_sv = exp
 
                     line = src.FigSrc.vLineFig(ln)
-                    If line.TextLine.Count <> 0 AndAlso line.TextLine(0).TypeFig <> EFigType.eComFig AndAlso line.TextLine(0).ObjFig IsNot Nothing Then
+                    If line.TextLine.Count <> 0 AndAlso line.TextLine(0).TypeFig <> EFigType.ComFig AndAlso line.TextLine(0).ObjFig IsNot Nothing Then
                         ' 空行やコメントでなくオブジェクトが設定されている場合
 
                         txt1 = line.TextLine(0)
@@ -2439,15 +2439,15 @@ Public Class TSrcBrowser
                                     vexp.Push(exp)
                                     vobj.Push(cur_obj)
 
-                                    If exp <> EExpand.eCollapse Then
+                                    If exp <> EExpand.Collapse Then
                                         ' 親は折りたたんでない場合
 
-                                        If line.ExpLine = EExpand.eNone OrElse line.ExpLine = EExpand.eCollapse Then
+                                        If line.ExpLine = EExpand.None OrElse line.ExpLine = EExpand.Collapse Then
                                             ' 未設定か折りたたむ場合
 
                                             ' 折りたたむ
-                                            exp = EExpand.eCollapse
-                                            line.ExpLine = EExpand.eCollapse
+                                            exp = EExpand.Collapse
+                                            line.ExpLine = EExpand.Collapse
                                         End If
                                     End If
 
@@ -2461,7 +2461,7 @@ Public Class TSrcBrowser
                         prv_obj = txt1.ObjFig
                     End If
 
-                    If exp_sv <> EExpand.eCollapse Then
+                    If exp_sv <> EExpand.Collapse Then
                         ' 折りたたまない場合
 
                         If 0 <= y Then
@@ -2489,12 +2489,12 @@ Public Class TSrcBrowser
         Debug.Assert(ln < src.FigSrc.vLineFig.Count)
         line = src.FigSrc.vLineFig(ln)
 
-        If line.ExpLine = EExpand.eCollapse OrElse line.ExpLine = EExpand.eExpand Then
-            tpos = New TTknPos(ETknPos.eExpandTknPos, src.FigSrc.vLineFig(ln), pos, New TPnt(1 * CharW, CharH))
+        If line.ExpLine = EExpand.Collapse OrElse line.ExpLine = EExpand.Expand Then
+            tpos = New TTknPos(ETknPos.ExpandTknPos, src.FigSrc.vLineFig(ln), pos, New TPnt(1 * CharW, CharH))
             vTknPos.Add(tpos)
 
             brs = TColor.Blue
-            If line.ExpLine = EExpand.eCollapse Then
+            If line.ExpLine = EExpand.Collapse Then
                 dc.AddDrawCmp(New TDrawString("+", FntTxt, brs, tpos.PosPos))
             Else
                 dc.AddDrawCmp(New TDrawString("-", FntTxt, brs, tpos.PosPos))
@@ -2555,7 +2555,7 @@ Public Class TSrcBrowser
             If tpos.PosPos.XPnt <= pt.XPnt AndAlso pt.XPnt < tpos.PosPos.XPnt + tpos.SizePos.XPnt Then
                 If tpos.PosPos.YPnt <= pt.YPnt AndAlso pt.YPnt < tpos.PosPos.YPnt + tpos.SizePos.YPnt Then
                     Select Case tpos.TypePos
-                        Case ETknPos.eTextTknPos
+                        Case ETknPos.TextTknPos
                             If tpos.ObjPos IsNot Nothing Then
                                 If TypeOf tpos.ObjPos Is TReference Then
                                     SelRef = CType(tpos.ObjPos, TReference)
@@ -2592,12 +2592,12 @@ Public Class TSrcBrowser
                                     Debug.WriteLine("brw {0}", tpos.ObjPos)
                                 End If
                             End If
-                        Case ETknPos.eExpandTknPos
+                        Case ETknPos.ExpandTknPos
                             line = CType(tpos.ObjPos, FLine)
-                            If line.ExpLine = EExpand.eCollapse Then
-                                line.ExpLine = EExpand.eExpand
+                            If line.ExpLine = EExpand.Collapse Then
+                                line.ExpLine = EExpand.Expand
                             Else
-                                line.ExpLine = EExpand.eCollapse
+                                line.ExpLine = EExpand.Collapse
                             End If
 
                             RemakeDrawFig()
@@ -2766,40 +2766,40 @@ Public Class TApplication
         Dim kev As TKeyEvent, mev As TMouseEvent, fev As TFormEvent
 
         Select Case ev.TypeEv
-            Case EEvent.eMouseDown, EEvent.eMousePress, EEvent.eMouseMove, EEvent.eMouseUp
+            Case EEvent.MouseDown, EEvent.MousePress, EEvent.MouseMove, EEvent.MouseUp
                 mev = CType(ev, TMouseEvent)
                 Select Case ev.TypeEv
-                    Case EEvent.eMouseDown
+                    Case EEvent.MouseDown
                         ev.FormEv.OnMouseDown(mev)
-                    Case EEvent.eMousePress
+                    Case EEvent.MousePress
                         TWnd.Capture.MousePressHandler(mev)
-                    Case EEvent.eMouseMove
+                    Case EEvent.MouseMove
                         ev.FormEv.OnMouseMove(mev)
-                    Case EEvent.eMouseUp
+                    Case EEvent.MouseUp
                         ev.FormEv.OnMouseUp(mev)
                 End Select
                 UpdateDrawApp()
 
-            Case EEvent.eOnChar, EEvent.eOnKeyDown
+            Case EEvent.OnChar, EEvent.OnKeyDown
                 kev = CType(ev, TKeyEvent)
                 Select Case ev.TypeEv
-                    Case EEvent.eOnChar
+                    Case EEvent.OnChar
                         ev.FormEv.OnChar(CType(ev, TKeyEvent).CharEv)
-                    Case EEvent.eOnKeyDown
+                    Case EEvent.OnKeyDown
                         ev.FormEv.OnKeyDown(kev)
                 End Select
                 UpdateDrawApp()
 
-            Case EEvent.ePaint
+            Case EEvent.Paint
                 UpdateDrawApp()
 
-            Case EEvent.eOnResize
+            Case EEvent.OnResize
                 fev = CType(ev, TFormEvent)
                 fev.FormEv.OnResize(fev.SizeEv)
                 fev.FormEv.RemakeDrawFig()
                 UpdateDrawApp()
 
-            Case EEvent.eOnTimer
+            Case EEvent.OnTimer
                 OnTimer()
                 UpdateDrawApp()
         End Select
@@ -2871,7 +2871,7 @@ End Class
 ' -------------------------------------------------------------------------------- SNode
 Public Class SNode
     Inherits TWnd
-    Public Shared FntNode As New TFont(EFont.eGothic, 10)
+    Public Shared FntNode As New TFont(EFont.Gothic, 10)
     Public DatSNode As Object
     Public TextNode As String
 

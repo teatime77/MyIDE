@@ -117,16 +117,16 @@ End Class
 
 '-------------------------------------------------------------------------------- EExpand
 Public Enum EExpand
-    eNone
-    eShow
-    eHide
-    eCollapse
-    eExpand
+    None
+    Show
+    Hide
+    Collapse
+    Expand
 End Enum
 
 ' -------------------------------------------------------------------------------- EFont
 Public Enum EFont
-    eGothic
+    Gothic
 End Enum
 
 Public Interface IUpList

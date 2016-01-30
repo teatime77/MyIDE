@@ -46,8 +46,8 @@ Partial Public Class TProject
                     Next
 
                     Select Case cls1.KndCla
-                        Case EClass.eEnumCla
-                        Case EClass.eDelegateCla
+                        Case EClass.EnumCla
+                        Case EClass.DelegateCla
                         Case Else
 
                             class_sw.WriteLine("<h2>フィールド</h2>")
@@ -397,21 +397,21 @@ Partial Public Class TApply
     Public Sub TrmSrcSet(mk As TCodeGenerator, trm1 As TTerm)
         Select Case KndApp
 
-            Case EApply.eListApp, EApply.eDictionaryApp
+            Case EApply.ListApp, EApply.DictionaryApp
                 Debug.Assert(ArgApp.Count = 1)
 
                 mk.TrmSrc(FncApp)
-                mk.WordAdd(".", EFigType.eSymFig, Me)
-                If KndApp = EApply.eListApp Then
-                    mk.WordAdd("set", EFigType.eRefFig, Me)
+                mk.WordAdd(".", EFigType.SymFig, Me)
+                If KndApp = EApply.ListApp Then
+                    mk.WordAdd("set", EFigType.RefFig, Me)
                 Else
-                    mk.WordAdd("put", EFigType.eRefFig, Me)
+                    mk.WordAdd("put", EFigType.RefFig, Me)
                 End If
-                mk.WordAdd("(", EFigType.eSymFig, Me)
+                mk.WordAdd("(", EFigType.SymFig, Me)
                 mk.TrmSrc(ArgApp(0))
-                mk.WordAdd(",", EFigType.eSymFig, Me)
+                mk.WordAdd(",", EFigType.SymFig, Me)
                 mk.TrmSrc(trm1)
-                mk.WordAdd(")", EFigType.eSymFig, Me)
+                mk.WordAdd(")", EFigType.SymFig, Me)
             Case Else
                 Debug.Assert(False)
         End Select

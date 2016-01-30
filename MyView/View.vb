@@ -185,56 +185,56 @@ End Class
 
 '-------------------------------------------------------------------------------- EOrientation
 Public Enum EOrientation
-	eHorizontal
-	eVertical
+    Horizontal
+    Vertical
 End Enum
 
 
 '-------------------------------------------------------------------------------- ECursor
 Public Enum ECursor
-	eARROW
-	eIBEAM
-	eWAIT
-	eCROSS
-	eUPARROW
-	eSIZE
-	eICON
-	eSIZENWSE
-	eSIZENESW
-	eSIZEWE
-	eSIZENS
-	eSIZEALL
-	eNO
-	eHAND
-	eAPPSTARTING
-	eHELP
+    ARROW
+    IBEAM
+    WAIT
+    CROSS
+    UPARROW
+    SIZE
+    ICON
+    SIZENWSE
+    SIZENESW
+    SIZEWE
+    SIZENS
+    SIZEALL
+    NO
+    HAND
+    APPSTARTING
+    HELP
 End Enum
 
 '-------------------------------------------------------------------------------- EEvent
 Public Enum EEvent
-	eOnChar
-	eOnKeyDown
-	eMouseDown
-	eMouseMove
-	eMouseUp
-	ePaint
-	eOnResize
-	eOnTimer
-	eClick
+    OnChar
+    OnKeyDown
+    MouseDown
+    MouseMove
+    MouseUp
+    Paint
+    OnResize
+    OnTimer
+    Click
 End Enum
 
 '-------------------------------------------------------------------------------- EBoundaryPosition
 Public Enum EBoundaryPosition
-	eTopLeft
-	eTopMiddle
-	eTopRight
-	eMiddleLeft
-	eMiddleMiddle
-	eMiddleRight
-	eBottomLeft
-	eBottomMiddle
-	eBottomRight
-	eNon
+    TopLeft
+    TopMiddle
+    TopRight
+    MiddleLeft
+    MiddleMiddle
+    MiddleRight
+    BottomLeft
+    BottomMiddle
+    BottomRight
+    Non
 End Enum
 
 '-------------------------------------------------------------------------------- EKeyCode
@@ -535,17 +535,17 @@ Public Class TAnchorStyle
 End Class
 
 Public Enum ENaviViewContext
-	eStartButton
-	eStartLabel
-	eStartScrollBar
-	eTreeViewItem
-	eTreeView
-	eStartCanvas
-	eStartStackPanel
-	eStartPanel
-	eStartView
-	eStartForm
-	eStartControl
+    StartButton
+    StartLabel
+    StartScrollBar
+    TreeViewItem
+    TreeView
+    StartCanvas
+    StartStackPanel
+    StartPanel
+    StartView
+    StartForm
+    StartControl
 End Enum
 
 Public Class TNaviRule
@@ -656,15 +656,15 @@ Public Class TNaviView
                         If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
                             ' 左辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eTopLeft
+                            BoundaryPosition = EBoundaryPosition.TopLeft
                         ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
                             ' 右辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eTopMiddle
+                            BoundaryPosition = EBoundaryPosition.TopMiddle
                         Else
                             ' 左辺や右辺にない場合
 
-                            BoundaryPosition = EBoundaryPosition.eTopRight
+                            BoundaryPosition = EBoundaryPosition.TopRight
                         End If
                     ElseIf .AbsoluteY + .ActualHeight - Margin <= y AndAlso y < .AbsoluteY + .ActualHeight + Margin Then
                         ' 下辺にある場合
@@ -672,15 +672,15 @@ Public Class TNaviView
                         If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
                             ' 左辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eBottomLeft
+                            BoundaryPosition = EBoundaryPosition.BottomLeft
                         ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
                             ' 右辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eBottomRight
+                            BoundaryPosition = EBoundaryPosition.BottomRight
                         Else
                             ' 左辺や右辺にない場合
 
-                            BoundaryPosition = EBoundaryPosition.eBottomMiddle
+                            BoundaryPosition = EBoundaryPosition.BottomMiddle
                         End If
                     Else
                         ' 上辺や下辺にない場合
@@ -688,15 +688,15 @@ Public Class TNaviView
                         If .AbsoluteX - Margin <= x AndAlso x < .AbsoluteX + Margin Then
                             ' 左辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eMiddleLeft
+                            BoundaryPosition = EBoundaryPosition.MiddleLeft
                         ElseIf .AbsoluteX + .ActualWidth - Margin <= x AndAlso x < .AbsoluteX + .ActualWidth + Margin Then
                             ' 右辺にある場合
 
-                            BoundaryPosition = EBoundaryPosition.eMiddleRight
+                            BoundaryPosition = EBoundaryPosition.MiddleRight
                         Else
                             ' 左辺や右辺にない場合
 
-                            BoundaryPosition = EBoundaryPosition.eMiddleMiddle
+                            BoundaryPosition = EBoundaryPosition.MiddleMiddle
                         End If
                     End If
 
@@ -833,7 +833,7 @@ Public Class TNaviView
                                         Select Case .Orientation
                                             ' 水平方向に並べる場合
 
-                                            Case EOrientation.eHorizontal
+                                            Case EOrientation.Horizontal
                                                 children_width_sum = Aggregate _child In .Children Into Sum(_child.DesiredWidth)
 
                                                 If children_width_sum <= .ClientWidth Then
@@ -869,7 +869,7 @@ Public Class TNaviView
                                                     ctrl.ActualHeight = ctrl.DesiredHeight
                                                 Next
 
-                                            Case EOrientation.eVertical
+                                            Case EOrientation.Vertical
                                                 ' 垂直方向に並べる場合
 
                                                 children_height_sum = Aggregate _child In .Children Into Sum(_child.DesiredHeight)
@@ -1022,7 +1022,7 @@ Public Class TNaviView
                         Dim button_size As Double, movable_size As Double, thumb_pos As Double, thumb_size As Double
 
                         Select Case .Orientation
-                            Case EOrientation.eHorizontal
+                            Case EOrientation.Horizontal
                                 button_size = .Height
                                 movable_size = .ActualWidth - 2 * button_size
 
@@ -1031,7 +1031,7 @@ Public Class TNaviView
 
                                 .Thumb.Top = 0
                                 .Thumb.Height = button_size
-                            Case EOrientation.eVertical
+                            Case EOrientation.Vertical
                                 button_size = .Width
                                 movable_size = .ActualHeight - 2 * button_size
 
@@ -1055,11 +1055,11 @@ Public Class TNaviView
                             ' Thumbの位置・サイズからLowValue・HighValueを求める場合
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
                                     thumb_pos = .Thumb.Left - button_size
                                     thumb_size = .Thumb.Width
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
                                     thumb_pos = .Thumb.Top - button_size
                                     thumb_size = .Thumb.Height
                             End Select
@@ -1073,12 +1073,12 @@ Public Class TNaviView
                             thumb_size = movable_size * (.HighValue - .LowValue) / (.Maximum - .Minimum)
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
 
                                     .Thumb.Left = button_size + thumb_pos
                                     .Thumb.Width = thumb_size
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
 
                                     .Thumb.Top = button_size + thumb_pos
                                     .Thumb.Height = thumb_size
@@ -1190,7 +1190,7 @@ Public Class TNaviView
                                         Select Case .Orientation
                                             ' 水平方向に並べる場合
 
-                                            Case EOrientation.eHorizontal
+                                            Case EOrientation.Horizontal
                                                 children_width_sum = Aggregate _child In .Children Into Sum(_child.DesiredWidth)
 
                                                 If children_width_sum <= .ClientWidth Then
@@ -1226,7 +1226,7 @@ Public Class TNaviView
                                                     ctrl.ActualHeight = ctrl.DesiredHeight
                                                 Next
 
-                                            Case EOrientation.eVertical
+                                            Case EOrientation.Vertical
                                                 ' 垂直方向に並べる場合
 
                                                 children_height_sum = Aggregate _child In .Children Into Sum(_child.DesiredHeight)
@@ -1379,7 +1379,7 @@ Public Class TNaviView
                         Dim button_size As Double, movable_size As Double, thumb_pos As Double, thumb_size As Double
 
                         Select Case .Orientation
-                            Case EOrientation.eHorizontal
+                            Case EOrientation.Horizontal
                                 button_size = .Height
                                 movable_size = .ActualWidth - 2 * button_size
 
@@ -1388,7 +1388,7 @@ Public Class TNaviView
 
                                 .Thumb.Top = 0
                                 .Thumb.Height = button_size
-                            Case EOrientation.eVertical
+                            Case EOrientation.Vertical
                                 button_size = .Width
                                 movable_size = .ActualHeight - 2 * button_size
 
@@ -1412,11 +1412,11 @@ Public Class TNaviView
                             ' Thumbの位置・サイズからLowValue・HighValueを求める場合
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
                                     thumb_pos = .Thumb.Left - button_size
                                     thumb_size = .Thumb.Width
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
                                     thumb_pos = .Thumb.Top - button_size
                                     thumb_size = .Thumb.Height
                             End Select
@@ -1430,12 +1430,12 @@ Public Class TNaviView
                             thumb_size = movable_size * (.HighValue - .LowValue) / (.Maximum - .Minimum)
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
 
                                     .Thumb.Left = button_size + thumb_pos
                                     .Thumb.Width = thumb_size
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
 
                                     .Thumb.Top = button_size + thumb_pos
                                     .Thumb.Height = thumb_size
@@ -1524,7 +1524,7 @@ Public Class TNaviView
 
                     Select Case stack_panel.Orientation
 
-                        Case EOrientation.eHorizontal
+                        Case EOrientation.Horizontal
                             ' 水平方向に並べる場合
 
                             .ActualWidth = stack_panel.ChildrenScale * .DesiredWidth
@@ -1538,7 +1538,7 @@ Public Class TNaviView
 
                                 .Left = ._Prev.Left + ._Prev.ActualWidth + stack_panel.HorizontalPadding
                             End If
-                        Case EOrientation.eVertical
+                        Case EOrientation.Vertical
                             ' 垂直方向に並べる場合
 
                             .ActualHeight = stack_panel.ChildrenScale * .DesiredHeight
@@ -1594,7 +1594,7 @@ Public Class TNaviView
                         Dim children_width_sum As Double, children_height_sum As Double
 
                         Select Case .Orientation
-                            Case EOrientation.eHorizontal
+                            Case EOrientation.Horizontal
                                 ' 水平方向に並べる場合
 
                                 children_width_sum = Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
@@ -1610,7 +1610,7 @@ Public Class TNaviView
 
                                     .ChildrenScale = .ClientWidth / children_width_sum
                                 End If
-                            Case EOrientation.eVertical
+                            Case EOrientation.Vertical
                                 ' 垂直方向に並べる場合
 
                                 children_height_sum = Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
@@ -1702,7 +1702,7 @@ Public Class TNaviView
                         Dim button_size As Double, movable_size As Double, thumb_pos As Double, thumb_size As Double
 
                         Select Case .Orientation
-                            Case EOrientation.eHorizontal
+                            Case EOrientation.Horizontal
                                 button_size = .Height
                                 movable_size = .ActualWidth - 2 * button_size
 
@@ -1711,7 +1711,7 @@ Public Class TNaviView
 
                                 .Thumb.Top = 0
                                 .Thumb.Height = button_size
-                            Case EOrientation.eVertical
+                            Case EOrientation.Vertical
                                 button_size = .Width
                                 movable_size = .ActualHeight - 2 * button_size
 
@@ -1735,11 +1735,11 @@ Public Class TNaviView
                             ' Thumbの位置・サイズからLowValue・HighValueを求める場合
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
                                     thumb_pos = .Thumb.Left - button_size
                                     thumb_size = .Thumb.Width
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
                                     thumb_pos = .Thumb.Top - button_size
                                     thumb_size = .Thumb.Height
                             End Select
@@ -1753,12 +1753,12 @@ Public Class TNaviView
                             thumb_size = movable_size * (.HighValue - .LowValue) / (.Maximum - .Minimum)
 
                             Select Case .Orientation
-                                Case EOrientation.eHorizontal
+                                Case EOrientation.Horizontal
 
                                     .Thumb.Left = button_size + thumb_pos
                                     .Thumb.Width = thumb_size
 
-                                Case EOrientation.eVertical
+                                Case EOrientation.Vertical
 
                                     .Thumb.Top = button_size + thumb_pos
                                     .Thumb.Height = thumb_size
@@ -1853,7 +1853,7 @@ Public Class TWindowApplication
         Dim get_control_by_position As TNaviView, ctrl As TControl
 
         Select Case ev.TypeEv
-            Case EEvent.eMouseDown, EEvent.eMouseMove, EEvent.eMouseUp
+            Case EEvent.MouseDown, EEvent.MouseMove, EEvent.MouseUp
                 mev = CType(ev, TMouseEvent)
 
                 get_control_by_position = New TNaviView()
@@ -1862,41 +1862,41 @@ Public Class TWindowApplication
                 ControlUnderMouse = get_control_by_position.Result
 
 				Select Case ev.TypeEv
-					Case EEvent.eMouseDown
-						MouseDown = True
+                    Case EEvent.MouseDown
+                        MouseDown = True
 						ControlOnMouseDown = ControlUnderMouse
 
-					Case EEvent.eMouseMove
+                    Case EEvent.MouseMove
 
-					Case EEvent.eMouseUp
-						MouseDown = False
+                    Case EEvent.MouseUp
+                        MouseDown = False
 						If ControlUnderMouse IsNot Nothing AndAlso ControlUnderMouse Is ControlOnMouseDown Then
 
 							If TypeOf ControlUnderMouse Is TButton Then
 
 								UserEvent = New TEvent()
 								UserEvent.Source = ControlUnderMouse
-								UserEvent.TypeEv = EEvent.eClick
-							End If
+                                UserEvent.TypeEv = EEvent.Click
+                            End If
 						End If
 
 				End Select
 
-			Case EEvent.eOnChar, EEvent.eOnKeyDown
-				kev = CType(ev, TKeyEvent)
+            Case EEvent.OnChar, EEvent.OnKeyDown
+                kev = CType(ev, TKeyEvent)
 				Select Case ev.TypeEv
-					Case EEvent.eOnChar
-					Case EEvent.eOnKeyDown
-				End Select
+                    Case EEvent.OnChar
+                    Case EEvent.OnKeyDown
+                End Select
 
-			Case EEvent.ePaint
+            Case EEvent.Paint
 
-			Case EEvent.eOnResize
-				ctrl = CType(ev.Source, TControl)
+            Case EEvent.OnResize
+                ctrl = CType(ev.Source, TControl)
 
 
-			Case EEvent.eOnTimer
-		End Select
+            Case EEvent.OnTimer
+        End Select
 	End Sub
 End Class
 

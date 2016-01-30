@@ -15,7 +15,7 @@ Public Class TViewTest
             If UserEvent IsNot Nothing Then
 
                 Select Case UserEvent.TypeEv
-                    Case EEvent.eClick
+                    Case EEvent.Click
                         ' クリックの場合
 
                         If UserEvent.Source Is DeleteButton Then

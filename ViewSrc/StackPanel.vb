@@ -1,22 +1,22 @@
 ﻿
 '-------------------------------------------------------------------------------- ECursor
 Public Enum ECursor
-	eARROW
-	eIBEAM
-	eWAIT
-	eCROSS
-	eUPARROW
-	eSIZE
-	eICON
-	eSIZENWSE
-	eSIZENESW
-	eSIZEWE
-	eSIZENS
-	eSIZEALL
-	eNO
-	eHAND
-	eAPPSTARTING
-	eHELP
+    ARROW
+    IBEAM
+    WAIT
+    CROSS
+    UPARROW
+    SIZE
+    ICON
+    SIZENWSE
+    SIZENESW
+    SIZEWE
+    SIZENS
+    SIZEALL
+    NO
+    HAND
+    APPSTARTING
+    HELP
 End Enum
 
 '-------------------------------------------------------------------------------- TColor

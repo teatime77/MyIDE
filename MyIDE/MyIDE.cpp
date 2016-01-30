@@ -196,11 +196,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_TIMER:
 		if(TWnd::Capture != nullptr && TWnd::Capture->MousePressHandler != nullptr){
-			TWnd::MouseEvent->TypeEv	= EEvent::eMousePress;
+			TWnd::MouseEvent->TypeEv	= EEvent::MousePress;
 			gIDE->EventHandler(TWnd::MouseEvent);
 		}
 
-		gIDE->EventHandler(gcnew TEvent(EEvent::eOnTimer));
+		gIDE->EventHandler(gcnew TEvent(EEvent::OnTimer));
 
 		if(gTimerInterval != gIDE->MainForm->Interval){
 			gTimerInterval	= gIDE->MainForm->Interval;
@@ -218,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		h1	= float(rc1.bottom - rc1.top);
 		if(0 < w1 && 0 < h1){
 			
-			gIDE->EventHandler(gcnew TFormEvent(EEvent::eOnResize, gIDE->MainForm, TPnt(w1, h1)));
+			gIDE->EventHandler(gcnew TFormEvent(EEvent::OnResize, gIDE->MainForm, TPnt(w1, h1)));
 		}
 		return DefWindowProc(hWnd, message, wParam, lParam);
 
@@ -241,7 +241,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: •`‰æƒR[ƒh‚ð‚±‚±‚É’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢...
-		gIDE->EventHandler(gcnew TEvent(EEvent::ePaint));
+		gIDE->EventHandler(gcnew TEvent(EEvent::Paint));
 		EndPaint(hWnd, &ps);
 		break;
 
@@ -256,17 +256,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		TWnd::MouseEvent->FormEv	= gIDE->MainForm;
 		switch (message){
 		case WM_LBUTTONDOWN:
-			TWnd::MouseEvent->TypeEv	= EEvent::eMouseDown;
+			TWnd::MouseEvent->TypeEv	= EEvent::MouseDown;
 			TWnd::MouseEvent->MouseDownTime	= DateTime::Now;
 			SetCapture(hWnd);
 			gIDE->EventHandler(TWnd::MouseEvent);
 			break;
 		case WM_MOUSEMOVE:
-			TWnd::MouseEvent->TypeEv	= EEvent::eMouseMove;
+			TWnd::MouseEvent->TypeEv	= EEvent::MouseMove;
 			gIDE->EventHandler(TWnd::MouseEvent);
 			break;
 		case WM_LBUTTONUP:
-			TWnd::MouseEvent->TypeEv	= EEvent::eMouseUp;
+			TWnd::MouseEvent->TypeEv	= EEvent::MouseUp;
 			gIDE->EventHandler(TWnd::MouseEvent);
 			ReleaseCapture();
 			break;
@@ -278,12 +278,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		TWnd::KeyEvent->Control	= (HIBYTE(GetKeyState(VK_CONTROL)) != 0);
 		TWnd::KeyEvent->Alt		= (HIBYTE(GetKeyState(VK_MENU)) != 0);
 		TWnd::KeyEvent->Repeat  = ((HIWORD(lParam) & KF_REPEAT) != 0);
-		TWnd::KeyEvent->TypeEv	= EEvent::eOnKeyDown;
+		TWnd::KeyEvent->TypeEv	= EEvent::OnKeyDown;
 		TWnd::KeyEvent->FormEv	= gIDE->MainForm;
 		gIDE->EventHandler(TWnd::KeyEvent);
 		break;
 	case WM_CHAR:
-		TWnd::KeyEvent->TypeEv	= EEvent::eOnChar;
+		TWnd::KeyEvent->TypeEv	= EEvent::OnChar;
 		TWnd::KeyEvent->FormEv	= gIDE->MainForm;
 		TWnd::KeyEvent->CharEv	= (wchar_t)wParam;
 		gIDE->EventHandler(TWnd::KeyEvent);
