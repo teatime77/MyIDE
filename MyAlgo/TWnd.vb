@@ -1646,16 +1646,16 @@ Public Class TAbsTextBox
                     End If
                 Case EFigType.eResFig
                     Select Case txt.TknTxt
-                        Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot
+                        Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_
                             s = " " + txt.TextTxt + " "
-                        Case EToken.eThen
+                        Case EToken.Then_
                             s = " " + txt.TextTxt
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
                 Case EFigType.eRefFig
                     Select Case txt.TknTxt
-                        Case EToken.eRef
+                        Case EToken.Ref
                             If txt.TextTxt = "null" Then
                                 s = "Nothing"
                             ElseIf txt.TextTxt = "this" Then
@@ -2197,7 +2197,7 @@ Public Class TSrcEditAbs
         Dim cnt As Integer, i As Integer, black_brs As TColor = TColor.Black, blue_brs As TColor = TColor.Blue, green_brs As TColor = TColor.Green
         Dim red_brs As TColor = TColor.Red
 
-        cnt = CType(EToken.eMAX_ETkn, Integer)
+        cnt = CType(EToken.MAX_ETkn, Integer)
 
         If BrsSrc IsNot Nothing Then
             Exit Sub
@@ -2208,44 +2208,44 @@ Public Class TSrcEditAbs
             BrsSrc(i) = blue_brs
         Next
 
-        BrsSrc(EToken.eId) = black_brs
-        BrsSrc(EToken.eInt) = black_brs
+        BrsSrc(EToken.Id) = black_brs
+        BrsSrc(EToken.Int) = black_brs
 
-        BrsSrc(EToken.eDot) = black_brs
-        BrsSrc(EToken.eLP) = black_brs
-        BrsSrc(EToken.eRP) = black_brs
-        BrsSrc(EToken.eLB) = black_brs
-        BrsSrc(EToken.eRB) = black_brs
-        BrsSrc(EToken.eLC) = black_brs
-        BrsSrc(EToken.eRC) = black_brs
-        BrsSrc(EToken.eComma) = black_brs
-        BrsSrc(EToken.eMMB) = black_brs
+        BrsSrc(EToken.Dot) = black_brs
+        BrsSrc(EToken.LP) = black_brs
+        BrsSrc(EToken.RP) = black_brs
+        BrsSrc(EToken.LB) = black_brs
+        BrsSrc(EToken.RB) = black_brs
+        BrsSrc(EToken.LC) = black_brs
+        BrsSrc(EToken.RC) = black_brs
+        BrsSrc(EToken.Comma) = black_brs
+        BrsSrc(EToken.MMB) = black_brs
 
-        BrsSrc(EToken.eADD) = black_brs
-        BrsSrc(EToken.eMns) = black_brs
-        BrsSrc(EToken.eMUL) = black_brs
-        BrsSrc(EToken.eDIV) = black_brs
-        BrsSrc(EToken.eMOD) = black_brs
+        BrsSrc(EToken.ADD) = black_brs
+        BrsSrc(EToken.Mns) = black_brs
+        BrsSrc(EToken.MUL) = black_brs
+        BrsSrc(EToken.DIV) = black_brs
+        BrsSrc(EToken.MOD_) = black_brs
         BrsSrc(EToken.Question) = black_brs
 
-        BrsSrc(EToken.eEq) = black_brs
-        BrsSrc(EToken.eNE) = black_brs
-        BrsSrc(EToken.eASN) = black_brs
-        BrsSrc(EToken.eLT) = black_brs
-        BrsSrc(EToken.eGT) = black_brs
-        BrsSrc(EToken.eLE) = black_brs
-        BrsSrc(EToken.eGE) = black_brs
-        BrsSrc(EToken.eADDEQ) = black_brs
-        BrsSrc(EToken.eSUBEQ) = black_brs
-        BrsSrc(EToken.eMULEQ) = black_brs
-        BrsSrc(EToken.eDIVEQ) = black_brs
-        BrsSrc(EToken.eMODEQ) = black_brs
+        BrsSrc(EToken.Eq) = black_brs
+        BrsSrc(EToken.NE) = black_brs
+        BrsSrc(EToken.ASN) = black_brs
+        BrsSrc(EToken.LT) = black_brs
+        BrsSrc(EToken.GT) = black_brs
+        BrsSrc(EToken.LE) = black_brs
+        BrsSrc(EToken.GE) = black_brs
+        BrsSrc(EToken.ADDEQ) = black_brs
+        BrsSrc(EToken.SUBEQ) = black_brs
+        BrsSrc(EToken.MULEQ) = black_brs
+        BrsSrc(EToken.DIVEQ) = black_brs
+        BrsSrc(EToken.MODEQ) = black_brs
 
-        BrsSrc(EToken.eString) = red_brs
-        BrsSrc(EToken.eChar) = red_brs
+        BrsSrc(EToken.String_) = red_brs
+        BrsSrc(EToken.Char_) = red_brs
 
-        BrsSrc(EToken.eLineComment) = green_brs
-        BrsSrc(EToken.eBlockComment) = green_brs
+        BrsSrc(EToken.LineComment) = green_brs
+        BrsSrc(EToken.BlockComment) = green_brs
 
         '		BrsSrc(EToken) = black_brs
     End Sub
@@ -2269,10 +2269,10 @@ Public Class TSrcEdit
         ElseIf SrcEdit IsNot Nothing AndAlso SrcEdit.StmtSrc IsNot Nothing AndAlso ln < SrcEdit.StmtSrc.Count Then
             stmt1 = SrcEdit.StmtSrc(ln)
             If stmt1 Is Nothing Then
-                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.eLineComment), pos))
+                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.LineComment), pos))
 
             ElseIf stmt1.vTknStmt Is Nothing Then
-                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.eLineComment), pos))
+                dc.AddDrawCmp(New TDrawString(vStr(ln), FntTxt, BrsSrc(EToken.LineComment), pos))
             Else
                 x2 = 0
 
@@ -2282,10 +2282,10 @@ Public Class TSrcEdit
                         x2 += tkn.SpcTkn * CharW
                     End If
                     Select Case tkn.TypeTkn
-                        Case EToken.eString
+                        Case EToken.String_
                             dc.AddDrawCmp(New TDrawString("""" + tkn.StrTkn + """", FntTxt, BrsSrc(tkn.TypeTkn), pos + New TPnt(x2, 0)))
                             x2 += 2 * CharW
-                        Case EToken.eChar
+                        Case EToken.Char_
                             dc.AddDrawCmp(New TDrawString("""" + tkn.StrTkn + """c", FntTxt, BrsSrc(tkn.TypeTkn), pos + New TPnt(x2, 0)))
                             x2 += 3 * CharW
                         Case Else
@@ -2418,7 +2418,7 @@ Public Class TSrcBrowser
                         ' 空行やコメントでなくオブジェクトが設定されている場合
 
                         txt1 = line.TextLine(0)
-                        If txt1.TknTxt = EToken.eEnd Then
+                        If txt1.TknTxt = EToken.End_ Then
                             ' 終了の場合
 
                             If cur_obj Is txt1.ObjFig Then

@@ -196,16 +196,16 @@ Partial Public Class MainPage
                     End If
                 Case EFigType.eResFig
                     Select Case txt.TknTxt
-                        Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot
+                        Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_
                             s = " " + txt.TextTxt + " "
-                        Case EToken.eThen
+                        Case EToken.Then_
                             s = " " + txt.TextTxt
                         Case Else
                             s = txt.TextTxt + " "
                     End Select
                 Case EFigType.eRefFig
                     Select Case txt.TknTxt
-                        Case EToken.eRef
+                        Case EToken.Ref
                             If txt.TextTxt = "null" Then
                                 s = "Nothing"
                             ElseIf txt.TextTxt = "this" Then

@@ -33,7 +33,7 @@ Public MustInherit Class TCodeGenerator
     Public Sub WordAdd(str1 As String, type1 As EFigType, obj1 As Object)
         Dim txt1 As FText
         If type1 = EFigType.eComFig Then
-            txt1 = New FText(type1, obj1, ParserCG.vTknName(EToken.eLineComment) + " " + str1)
+            txt1 = New FText(type1, obj1, ParserCG.vTknName(EToken.LineComment) + " " + str1)
         Else
             txt1 = New FText(type1, obj1, str1)
         End If
@@ -80,9 +80,9 @@ Public MustInherit Class TCodeGenerator
         ElseIf TypeOf o1 Is TDot Then
             ref1 = CType(o1, TReference)
             If PrjMK.ClassNameTable IsNot Nothing AndAlso PrjMK.ClassNameTable.ContainsKey(ref1.NameRef) Then
-                WordAdd(PrjMK.ClassNameTable(ref1.NameRef), EToken.eRef, EFigType.eRefFig, ref1)
+                WordAdd(PrjMK.ClassNameTable(ref1.NameRef), EToken.Ref, EFigType.eRefFig, ref1)
             Else
-                WordAdd(ref1.NameRef, EToken.eRef, EFigType.eRefFig, ref1)
+                WordAdd(ref1.NameRef, EToken.Ref, EFigType.eRefFig, ref1)
             End If
 
         ElseIf TypeOf o1 Is TReference Then
@@ -93,13 +93,13 @@ Public MustInherit Class TCodeGenerator
                     TypeSrc(CType(ref1.VarRef, TClass))
                 Else
                     If PrjMK.ClassNameTable IsNot Nothing AndAlso PrjMK.ClassNameTable.ContainsKey(ref1.NameRef) Then
-                        WordAdd(PrjMK.ClassNameTable(ref1.NameRef), EToken.eRef, EFigType.eRefFig, ref1)
+                        WordAdd(PrjMK.ClassNameTable(ref1.NameRef), EToken.Ref, EFigType.eRefFig, ref1)
                     Else
-                        WordAdd(ref1.NameRef, EToken.eRef, EFigType.eRefFig, ref1)
+                        WordAdd(ref1.NameRef, EToken.Ref, EFigType.eRefFig, ref1)
                     End If
                 End If
             Else
-                WordAdd(ref1.NameRef, EToken.eRef, EFigType.eRefFig, ref1)
+                WordAdd(ref1.NameRef, EToken.Ref, EFigType.eRefFig, ref1)
             End If
 
         ElseIf TypeOf o1 Is TClass Then
@@ -184,7 +184,7 @@ Public MustInherit Class TCodeGenerator
         Dim i1 As Integer
 
         Select Case opr1.TypeApp
-            Case EToken.eOR, EToken.eAnd, EToken.eAnp, EToken.eBitOR
+            Case EToken.OR_, EToken.And_, EToken.Anp, EToken.BitOR
                 For i1 = 0 To opr1.ArgApp.Count - 1
                     If i1 <> 0 Then
                         WordAdd(ParserCG.vTknName(opr1.TypeApp), EFigType.eSymFig, opr1)
@@ -192,10 +192,10 @@ Public MustInherit Class TCodeGenerator
                     TrmSrc(opr1.ArgApp(i1))
                 Next
             Case Else
-                Debug.Assert(opr1.TypeApp = EToken.eNot OrElse opr1.Negation)
+                Debug.Assert(opr1.TypeApp = EToken.Not_ OrElse opr1.Negation)
 
-                WordAdd(ParserCG.vTknName(EToken.eNot), EFigType.eSymFig, opr1)
-                If opr1.TypeApp = EToken.eNot Then
+                WordAdd(ParserCG.vTknName(EToken.Not_), EFigType.eSymFig, opr1)
+                If opr1.TypeApp = EToken.Not_ Then
                     TrmSrc(opr1.ArgApp(0))
                 Else
                     opr1.Negation = False
@@ -296,25 +296,25 @@ Public MustInherit Class TCodeGenerator
     Public Sub ModifierSrc(obj1 As Object, mod1 As TModifier)
         If mod1 IsNot Nothing Then
             If mod1.isPublic Then
-                WordAdd(EToken.ePublic, EFigType.eResFig, obj1)
+                WordAdd(EToken.Public_, EFigType.eResFig, obj1)
             End If
             If mod1.isShared Then
-                WordAdd(EToken.eShared, EFigType.eResFig, obj1)
+                WordAdd(EToken.Shared_, EFigType.eResFig, obj1)
             End If
             If mod1.isIterator Then
-                WordAdd(EToken.eIterator, EFigType.eResFig, obj1)
+                WordAdd(EToken.Iterator_, EFigType.eResFig, obj1)
             End If
             If mod1.isConst Then
-                WordAdd(EToken.eConst, EFigType.eResFig, obj1)
+                WordAdd(EToken.Const_, EFigType.eResFig, obj1)
             End If
             If mod1.isVirtual Then
-                WordAdd(EToken.eVirtual, EFigType.eResFig, obj1)
+                WordAdd(EToken.Virtual, EFigType.eResFig, obj1)
             End If
             If mod1.isMustOverride Then
-                WordAdd(EToken.eMustOverride, EFigType.eResFig, obj1)
+                WordAdd(EToken.MustOverride_, EFigType.eResFig, obj1)
             End If
             If mod1.isOverride Then
-                WordAdd(EToken.eOverride, EFigType.eResFig, obj1)
+                WordAdd(EToken.Override, EFigType.eResFig, obj1)
             End If
         End If
     End Sub
@@ -458,7 +458,7 @@ End Class
 Public Class FText
     Inherits FFig
     Public TypeTxt As EFigType = EFigType.eUnknownFig
-    Public TknTxt As EToken = EToken.eUnknown
+    Public TknTxt As EToken = EToken.Unknown
     Public TabTxt As Integer
     Public TextTxt As String
 
