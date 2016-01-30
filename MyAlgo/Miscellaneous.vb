@@ -83,7 +83,11 @@ Partial Public Class TProject
                                                 ' 未処理の場合
 
                                                 vfnc.Add(ref1.FunctionTrm)
-                                                sw.Write("<li><a href=""../{0}/{1}.html"" >{2}</a></li>", GetHtmlFileName(ref1.FunctionTrm.GetClassVar()), GetHtmlFileName(ref1.FunctionTrm), ref1.FunctionTrm.FullName())
+                                                If ref1.FunctionTrm Is Nothing Then
+                                                    sw.Write("<li>{0}</li>", ref1.NameRef)
+                                                Else
+                                                    sw.Write("<li><a href=""../{0}/{1}.html"" >{2}</a></li>", GetHtmlFileName(ref1.FunctionTrm.GetClassVar()), GetHtmlFileName(ref1.FunctionTrm), ref1.FunctionTrm.FullName())
+                                                End If
                                             End If
                                         Next
                                         sw.WriteLine("</ul>")

@@ -36,19 +36,39 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
  	// TODO: ここにコードを挿入してください。
 	TBuilder^ builder = gcnew TBuilder();
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\App1.xml");
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\CSharp.xml");
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\TypeScript.xml");
+	if (true) {
 
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\StackPanel.xml");
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Circle.xml");
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\View.xml");
 
-	//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Miyu.xml");
-	//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyAlgo.xml");
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyView.xml");
+		// プロジェクトファイルのリスト
+		//array<String^>			wchar_t* project_file_list[] = { L"MyFM\MyFM.xml", L"sample\Basic\App5\App5.xml", L"sample\Basic\App4\App4.xml", L"sample\Basic\App1\App1.xml", L"sample\Basic\App2\App2.xml", L"sample\Basic\App3\App3.xml" };
+		array<String^>^			project_file_list = gcnew array<String^> {
+			L"sample\\Basic\\App1\\App1.xml", 
+			L"sample\\Basic\\App2\\App2.xml", 
+			L"sample\\Basic\\App3\\App3.xml",
+			L"sample\\Basic\\App4\\App4.xml", 
+			L"sample\\Basic\\App5\\App5.xml", 
+			L"MyFM\\MyFM.xml", 
+		};
+		for each (String^ s in project_file_list){
+			builder->Build(L"C:\\usr\\prj\\MyFM\\" + s);
+		}
+	}
+	else{
 
-	builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\InvariantBasicOrigin.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\App1.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\CSharp.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\TypeScript.xml");
+
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\StackPanel.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Circle.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\View.xml");
+
+		//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\Miyu.xml");
+		//builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyAlgo.xml");
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\MyView.xml");
+
+		builder->Build(L"C:\\usr\\prj\\MyIDE\\InvariantBasicOrigin\\InvariantBasicOrigin.xml");
+	}
 
 	MSG msg;
 	HACCEL hAccelTable;

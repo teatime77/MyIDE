@@ -316,6 +316,8 @@ Public Class TBasicCodeGenerator
                 WordAdd("Max", EFigType.eResFig, aggr1)
             Case EAggregateFunction.eMin
                 WordAdd("Min", EFigType.eResFig, aggr1)
+            Case EAggregateFunction.eAverage
+                WordAdd("Average", EFigType.eResFig, aggr1)
             Case Else
                 Debug.Assert(False)
         End Select
