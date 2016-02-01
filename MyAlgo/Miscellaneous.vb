@@ -32,14 +32,14 @@ Partial Public Class TProject
                     class_sw.WriteLine("<h1>{0} クラス</h1>", cls1.NameVar)
 
                     class_sw.WriteLine("<h2>継承階層</h2>")
-                    If cls1.SuperClassList.Count <> 0 Then
+                    If cls1.DirectSuperClassList.Count <> 0 Then
 
-                        indent = WriteInheritanceHierarchy(class_sw, cls1.SuperClassList(0))
+                        indent = WriteInheritanceHierarchy(class_sw, cls1.DirectSuperClassList(0))
                     End If
 
                     class_sw.WriteLine("<p style=""text-indent:{0}em"">{1}</p>", indent * 2, cls1.NameVar)
 
-                    For Each sub_class In cls1.SubClassList
+                    For Each sub_class In cls1.DirectSubClassList
                         If SimpleParameterizedClassList.Contains(sub_class) Then
                             class_sw.WriteLine("<p style=""text-indent:{0}em""><a href=""../{1}/{1}.html"">{1}</a></p>", (indent + 1) * 2, sub_class.NameVar)
                         End If

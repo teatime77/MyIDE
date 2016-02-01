@@ -881,11 +881,11 @@ Public Class TBasicCodeGenerator
 
         GenericSrc(cla1)
 
-        If cla1.SuperClassList.Count <> 0 AndAlso cla1.SuperClassList(0) IsNot PrjMK.ObjectType Then
+        If cla1.DirectSuperClassList.Count <> 0 AndAlso cla1.DirectSuperClassList(0) IsNot PrjMK.ObjectType Then
             NL(cla1)
             Tab(1)
             WordAdd("Inherits", EFigType.ResFig, cla1)
-            TypeSrc(cla1.SuperClassList(0))
+            TypeSrc(cla1.DirectSuperClassList(0))
         End If
 
         If cla1.InterfaceList.Count <> 0 Then
