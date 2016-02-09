@@ -140,11 +140,11 @@
     <Compile Include="..\..\MyFM\MyFM\BasicParser.vb">
       <Link>BasicParser.vb</Link>
     </Compile>
-    <Compile Include="..\..\MyFM\MyFM\Compile.vb">
-      <Link>Compile.vb</Link>
-    </Compile>
     <Compile Include="..\..\MyFM\MyFM\Declarative.vb">
       <Link>Declarative.vb</Link>
+    </Compile>
+    <Compile Include="..\..\MyFM\MyFM\External.vb">
+      <Link>External.vb</Link>
     </Compile>
     <Compile Include="..\..\MyFM\MyFM\Generated.vb">
       <Link>Generated.vb</Link>
