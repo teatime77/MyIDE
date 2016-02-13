@@ -47,6 +47,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			L"sample\\Basic\\App3\\App3.xml",
 			L"sample\\Basic\\App4\\App4.xml", 
 			L"sample\\Basic\\App5\\App5.xml", 
+			L"sample\\Basic\\App6\\App6.xml", 
 			L"MyFM\\MyFM.xml", 
 		};
 		for each (String^ s in project_file_list){

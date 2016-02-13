@@ -2219,7 +2219,7 @@ Public Class TSrcEditAbs
         BrsSrc(EToken.LC) = black_brs
         BrsSrc(EToken.RC) = black_brs
         BrsSrc(EToken.Comma) = black_brs
-        BrsSrc(EToken.MMB) = black_brs
+        BrsSrc(EToken.Colon) = black_brs
 
         BrsSrc(EToken.ADD) = black_brs
         BrsSrc(EToken.Mns) = black_brs
